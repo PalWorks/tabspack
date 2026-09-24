@@ -1,0 +1,41 @@
+# Local reference material. Kept on this machine, never committed.
+agent_docs_guide.md
+Detailed README Guide.docx
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.zip
+*.crx
+*.xpi
+
+# Generated coverage and test artifacts
+coverage/
+test-results/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Editor and operating system
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Generated performance fixtures, reproduced by npm run fixtures
+test/fixtures/synthetic/
+
+# Local scratch: test bundles, smoke screenshots
+.tmp/
