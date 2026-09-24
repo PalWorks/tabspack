@@ -1,0 +1,194 @@
+# The TabsPack File Format
+
+| Field | Value |
+|---|---|
+| Format name | `tabspack` |
+| Current schema version | 1 (draft, not yet frozen) |
+| File extension | `.tabspack.json` |
+| Media type | `application/json` |
+| Encoding | UTF-8, no byte order mark |
+| Status | Draft. Frozen at milestone M1 in [ROADMAP.md](ROADMAP.md), after which changes require a `schemaVersion` bump |
+| Licence | The specification is released under MIT with the rest of the repository. Third party implementations are encouraged |
+
+This is the normative description of the format. The extension is one implementation of it. Where this document and the code disagree, this document is wrong and must be corrected, or the code is a bug; either way the discrepancy is a defect.
+
+The machine readable JSON Schema is deliberately not in this repository yet. It will be added at `schema/tabspack.v1.schema.json` at M1, generated from the TypeScript types and tested against every fixture, because a normative schema published before it has been validated against real files is worse than none.
+
+## 1. Design rules
+
+1. Arrays, not id keyed objects. Browser tab and window ids are process local integers and are meaningless on the importing machine, so they are never used as keys or references across files.
+2. Order is explicit. `index` is authoritative within a window.
+3. Only `url` is mandatory on a tab. Everything else is optional, so a hand written file with one URL per tab is valid.
+4. Browser specific fields are always optional and always ignorable.
+5. Unknown fields MUST be ignored for behaviour and MUST be preserved when an implementation rewrites a file. See section 6.
+6. No credentials. A conforming file MUST NOT contain cookies, session tokens, authorization headers, form values or local storage contents.
+
+## 2. Example
+
+```json
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T08:29:40+05:30",
+  "source": {
+    "browser": "Chrome",
+    "browserVersion": "141.0.0.0",
+    "os": "Linux",
+    "extensionVersion": "1.0.0",
+    "profile": "Default"
+  },
+  "counts": { "windows": 1, "tabs": 3, "groups": 1 },
+  "windows": [
+    {
+      "id": "w1",
+      "name": "Research",
+      "focused": true,
+      "incognito": false,
+      "type": "normal",
+      "state": "maximized",
+      "bounds": { "left": 0, "top": 0, "width": 1920, "height": 1080 },
+      "groups": [
+        { "id": "g1", "title": "AI", "color": "blue", "collapsed": false }
+      ],
+      "tabs": [
+        {
+          "index": 0,
+          "url": "https://example.com/pinned",
+          "title": "Pinned reference",
+          "pinned": true
+        },
+        {
+          "index": 1,
+          "url": "https://example.com/a",
+          "title": "Example A",
+          "active": true,
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2026-09-24T08:10:11+05:30"
+        },
+        {
+          "index": 2,
+          "url": "https://example.com/b",
+          "title": "Example B",
+          "group": "AI",
+          "muted": true,
+          "discarded": true,
+          "notes": "read after the meeting",
+          "tags": ["todo"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 3. Top level object
+
+### Table S1: Top level fields
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `format` | string | Yes | MUST be the literal `tabspack`. An implementation MUST reject a file without it rather than guess |
+| `schemaVersion` | integer | Yes | 1 for this version. An implementation MUST refuse a higher version it does not understand, with a clear message, and MUST migrate a lower one |
+| `exportedAt` | string | Yes | ISO 8601 with offset. Local offset preferred over Z, because the offset is information about the user's session |
+| `source` | object | No | Provenance. All members optional: `browser`, `browserVersion`, `os`, `extensionVersion`, `profile`, `deviceName` |
+| `counts` | object | No | `windows`, `tabs`, `groups`. Advisory only. A reader MUST trust the arrays over `counts`, and MAY warn on mismatch |
+| `windows` | array | Yes | One or more window objects. MAY be empty only if the file is a deliberate empty snapshot |
+| `name` | string | No | A user label for the whole pack, for example `Q3 research` |
+| `tags` | array of string | No | User labels for the whole pack |
+
+## 4. Window object
+
+### Table S2: Window fields
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `id` | string | No | File local identifier, referenced by nothing except readability. Convention `w1`, `w2` |
+| `name` | string | No | User visible label. Not a browser feature on Chromium. Used in the TabsPack preview UI, and as a window title preface on Gecko where supported |
+| `tabs` | array | Yes | Tab objects |
+| `groups` | array | No | Group objects declared by this window |
+| `focused` | boolean | No | Which window was focused at export |
+| `incognito` | boolean | No | True if the window was private. Default false |
+| `type` | string | No | `normal`, `popup`, `app`. Anything other than `normal` SHOULD be skipped on restore |
+| `state` | string | No | `normal`, `minimized`, `maximized`, `fullscreen` |
+| `bounds` | object | No | `left`, `top`, `width`, `height` in CSS pixels |
+
+## 5. Tab object
+
+### Table S3: Tab fields
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `url` | string | Yes | The only mandatory field in the format |
+| `index` | integer | No | Position within the window, zero based. When absent, array order is used |
+| `title` | string | No | Page title at export |
+| `pinned` | boolean | No | Pinned tabs sort before unpinned ones on restore, matching browser behaviour |
+| `active` | boolean | No | At most one per window SHOULD be true. A reader encountering several MUST honour the first |
+| `groupId` | string | No | Reference to a `groups[].id` in the same window. MUST NOT be a browser numeric id |
+| `group` | string | No | Shorthand for a group by title, for hand written files. When both `groupId` and `group` are present, `groupId` wins. When only `group` is present, the reader creates or reuses a group with that title and a default colour |
+| `favIconUrl` | string | No | An http or https URL, or a `data:` URL. Writers strip `data:` URLs by default. Readers MUST treat this as untrusted and MUST NOT fetch it during import |
+| `muted` | boolean | No | Audio muted state |
+| `discarded` | boolean | No | A hint that the tab was unloaded, and a hint to restore it unloaded |
+| `openerIndex` | integer or null | No | `index` of the opener tab within the same window, for tab tree reconstruction. Null or absent means no opener |
+| `cookieStoreId` | string or null | No | Gecko container identity. Ignored on Chromium |
+| `lastAccessed` | string | No | ISO 8601, advisory, useful for sorting in the preview |
+| `notes` | string | No | Free text carried through untouched |
+| `tags` | array of string | No | User labels carried through untouched |
+
+## 6. Group object
+
+### Table S4: Group fields
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `id` | string | Yes | File local identifier, referenced by `tabs[].groupId`. Convention `g1`, `g2` |
+| `title` | string | No | Group name |
+| `color` | string | No | One of `grey`, `blue`, `red`, `yellow`, `green`, `pink`, `purple`, `cyan`, `orange`. Spelled `color` to match the browser API. An unknown value MUST fall back to `grey` rather than fail the import |
+| `collapsed` | boolean | No | Collapsed state at export |
+
+## 7. Unknown fields
+
+A reader MUST ignore any field it does not recognise, at every level of the document, rather than reject the file.
+
+A reader that rewrites a file, for example on migration or re export of an imported pack, MUST preserve unrecognised fields on the object where they were found. This is what allows a future TabsPack version, or a third party tool, to add a field without a round trip through TabsPack destroying it.
+
+The two rules together mean: never act on what you do not understand, never delete it either.
+
+## 8. URLs that cannot be restored
+
+Browsers refuse to let an extension create tabs at most privileged schemes, including `chrome://`, `edge://`, `about:` other than `about:blank`, `moz-extension://`, `chrome-extension://` for other extensions, `view-source:`, `javascript:` and `data:`. Local `file://` URLs require an explicit browser level permission that the user grants outside the extension.
+
+Such URLs MUST still be written to the file verbatim, because the file is a record. On restore, a conforming implementation MUST NOT drop them silently. It MUST surface them, and the TabsPack reference implementation opens one placeholder page listing them as clickable links, and counts them in the import report. This is the one lossy edge of the format and it is deliberately visible.
+
+## 9. Versioning and migration
+
+`schemaVersion` is an integer that increments on any change that an older reader could misinterpret. Adding an optional field is not such a change, because of the ignore rule in section 7, so most additions do not bump the version. Renaming a field, changing a type, or changing the meaning of an existing field does bump it.
+
+Every bump ships with a migration function from the previous version and a fixture pair proving the migration, per [TESTING.md](TESTING.md).
+
+A reader MUST refuse a `schemaVersion` greater than it supports, naming the version it found and the version it supports. It MUST NOT attempt a best effort parse of a future version.
+
+## 10. Recognised foreign formats
+
+These are not the TabsPack format. They are inputs the reference implementation normalises into it. Detection is by document shape, never by file extension.
+
+### Table S5: Import adapters
+
+| Source | Detection | Fidelity achievable |
+|---|---|---|
+| Tab Session Manager JSON | Array of objects with `windows` as an id keyed object plus `windowsInfo` | High. Windows, geometry, order, pinned, groups |
+| Session Buddy JSON | Object with a `sessions` array whose entries hold `windows` with `tabs` | High. Windows, order, pinned. Groups where present |
+| Session Buddy CSV | Header row containing a URL column | Low. URLs and titles only |
+| OneTab export text | Lines of `url` then a vertical bar then `title`, blank line separated groups | Medium. URLs, titles, group boundaries as windows |
+| Plain URL list | One URL per line, `#` comments ignored | Low. URLs only |
+| Markdown link list | Lines matching `[title](url)`, headings become windows | Low. URLs, titles, window boundaries |
+| Netscape HTML bookmarks | `<!DOCTYPE NETSCAPE-Bookmark-file-1>` | Low. URLs, titles, folders become windows |
+| Flat JSON array | Array of strings, or of objects carrying a url field | Low. URLs, titles where present |
+
+An adapter MUST NOT invent fidelity. If a source has no window information, the import produces one window and says so in the preview.
+
+## 11. Conformance
+
+An implementation is a conforming **reader** if it accepts every file in `test/fixtures/valid/`, rejects every file in `test/fixtures/invalid/` with an actionable message, and obeys sections 7, 8 and 9.
+
+An implementation is a conforming **writer** if every file it produces is accepted by a conforming reader and round trips without loss of any field defined in sections 3 to 6.
