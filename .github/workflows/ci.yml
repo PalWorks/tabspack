@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint, the project rules in scripts/lint.mjs
+        run: npm run lint
+
+      - name: Schema is generated from the types, not edited by hand
+        run: npm run schema:check
+
+      - name: Unit tests and schema conformance
+        run: npm test
+
+      - name: Generated fixtures match the pipeline
+        run: |
+          npm run fixtures
+          git diff --exit-code test/fixtures/valid
+        env:
+          TZ: UTC
+
+      - name: Performance budgets
+        run: npm run perf
+
+      - name: Build both targets
+        run: npm run build
+
+      - name: Both builds load their manifest
+        run: |
+          node -e "const m=require('./dist/chrome/manifest.json'); if(m.manifest_version!==3) process.exit(1)"
+          node -e "const m=require('./dist/firefox/manifest.json'); if(!m.browser_specific_settings) process.exit(1)"

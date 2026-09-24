@@ -1,0 +1,53 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:15:00+05:30",
+  "name": "Everything",
+  "tags": ["reference", "spec"],
+  "source": {
+    "browser": "Firefox",
+    "browserVersion": "142.0",
+    "os": "linux",
+    "extensionVersion": "0.0.1",
+    "profile": "default",
+    "deviceName": "workstation"
+  },
+  "counts": { "windows": 1, "tabs": 2, "groups": 1 },
+  "windows": [
+    {
+      "id": "w1",
+      "name": "Main",
+      "focused": true,
+      "incognito": false,
+      "type": "normal",
+      "state": "maximized",
+      "bounds": { "left": 0, "top": 0, "width": 1920, "height": 1080 },
+      "groups": [{ "id": "g1", "title": "Research", "color": "purple", "collapsed": true }],
+      "tabs": [
+        {
+          "index": 0,
+          "url": "https://example.com/pinned",
+          "title": "Pinned reference",
+          "pinned": true,
+          "favIconUrl": "https://example.com/favicon.ico",
+          "openerIndex": null,
+          "cookieStoreId": null,
+          "lastAccessed": "2026-09-24T08:10:11+05:30"
+        },
+        {
+          "index": 1,
+          "url": "https://example.com/active",
+          "title": "Active tab",
+          "active": true,
+          "groupId": "g1",
+          "muted": true,
+          "discarded": true,
+          "openerIndex": 0,
+          "cookieStoreId": "firefox-container-2",
+          "notes": "read after the meeting",
+          "tags": ["todo"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:10:00+05:30",
+  "futureTopLevel": { "written": "by a later version" },
+  "windows": [
+    {
+      "id": "w1",
+      "futureWindowField": 42,
+      "groups": [{ "id": "g1", "title": "Work", "futureGroupField": true }],
+      "tabs": [
+        {
+          "index": 0,
+          "url": "https://example.com/a",
+          "groupId": "g1",
+          "futureTabField": ["keep", "me"]
+        }
+      ]
+    }
+  ]
+}

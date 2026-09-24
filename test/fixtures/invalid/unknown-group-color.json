@@ -1,0 +1,12 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:20:00+05:30",
+  "windows": [
+    {
+      "id": "w1",
+      "groups": [{ "id": "g1", "title": "Odd", "color": "chartreuse" }],
+      "tabs": [{ "index": 0, "url": "https://example.com/", "groupId": "g1" }]
+    }
+  ]
+}

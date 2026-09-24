@@ -1,0 +1,85 @@
+{
+  "_comment": "What each non-conforming fixture is for. `schemaValid` drives the schema conformance run; `readerAccepts` is asserted by the M2 validator, because the reader is deliberately more permissive than the schema in the ways docs/SPEC.md sections 6 and 7 name.",
+  "invalid": {
+    "missing-format.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "format is required, and a reader must never guess at a file's type"
+    },
+    "wrong-format.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "format must be the literal tabspack"
+    },
+    "missing-schema-version.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "schemaVersion is required so a reader knows which rules apply"
+    },
+    "windows-not-array.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "windows is an array, never an id keyed object"
+    },
+    "tab-without-url.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "url is the only mandatory field on a tab"
+    },
+    "unknown-group-color.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": true,
+      "why": "the schema pins the colour list, but SPEC section 6 tells a reader to fall back to grey rather than fail the import"
+    },
+    "index-not-integer.json": {
+      "parses": true,
+      "schemaValid": false,
+      "readerAccepts": true,
+      "why": "index is an integer; a reader rounds or reorders rather than losing the tab"
+    },
+    "truncated.json": {
+      "parses": false,
+      "schemaValid": false,
+      "readerAccepts": false,
+      "why": "not JSON at all, so the failure must name the byte offset"
+    }
+  },
+  "edge": {
+    "future-version.tabspack.json": {
+      "parses": true,
+      "schemaValid": true,
+      "readerAccepts": false,
+      "why": "schema cannot express a version gate. A v1 reader must refuse version 2 by name rather than parse it badly"
+    },
+    "dangling-group-ref.tabspack.json": {
+      "parses": true,
+      "schemaValid": true,
+      "readerAccepts": true,
+      "why": "reference integrity is not expressible in JSON Schema. The reader drops the dangling reference and reports it"
+    },
+    "two-active-tabs.tabspack.json": {
+      "parses": true,
+      "schemaValid": true,
+      "readerAccepts": true,
+      "why": "SPEC section 5: a reader honours the first active tab and ignores the rest"
+    },
+    "duplicate-index.tabspack.json": {
+      "parses": true,
+      "schemaValid": true,
+      "readerAccepts": true,
+      "why": "duplicate indices are resolved by array order, and reindexed on import"
+    },
+    "restricted-urls.tabspack.json": {
+      "parses": true,
+      "schemaValid": true,
+      "readerAccepts": true,
+      "why": "five URLs no extension can open. They must be listed on the placeholder page and counted, never dropped silently"
+    }
+  }
+}

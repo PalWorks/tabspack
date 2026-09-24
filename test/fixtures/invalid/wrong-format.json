@@ -1,0 +1,6 @@
+{
+  "format": "sessionbuddy",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:20:00+05:30",
+  "windows": [{ "tabs": [{ "url": "https://example.com/" }] }]
+}

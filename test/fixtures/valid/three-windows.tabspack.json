@@ -1,0 +1,342 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T08:29:40+00:00",
+  "source": {
+    "browser": "Chrome",
+    "browserVersion": "141.0.0.0",
+    "os": "linux",
+    "extensionVersion": "0.0.1"
+  },
+  "counts": {
+    "windows": 3,
+    "tabs": 40,
+    "groups": 3
+  },
+  "windows": [
+    {
+      "id": "w1",
+      "focused": true,
+      "type": "normal",
+      "state": "maximized",
+      "bounds": {
+        "left": 0,
+        "top": 0,
+        "width": 1920,
+        "height": 1080
+      },
+      "groups": [
+        {
+          "id": "g1",
+          "title": "Research",
+          "color": "blue"
+        },
+        {
+          "id": "g2",
+          "title": "Reading",
+          "color": "green",
+          "collapsed": true
+        }
+      ],
+      "tabs": [
+        {
+          "index": 0,
+          "url": "https://example.com/research/0",
+          "title": "Tab groups in Chromium 0",
+          "pinned": true,
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:40+00:00"
+        },
+        {
+          "index": 1,
+          "url": "https://example.com/research/1",
+          "title": "WebExtensions API reference 1",
+          "pinned": true,
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:41+00:00"
+        },
+        {
+          "index": 2,
+          "url": "https://example.com/research/2",
+          "title": "Session restore internals 2",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:42+00:00"
+        },
+        {
+          "index": 3,
+          "url": "https://example.com/research/3",
+          "title": "JSON Schema draft 07 3",
+          "favIconUrl": "data:image/png;base64,AAAA",
+          "lastAccessed": "2025-09-27T19:06:43+00:00"
+        },
+        {
+          "index": 4,
+          "url": "https://example.com/research/4",
+          "title": "Accessibility tree basics 4",
+          "active": true,
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:44+00:00"
+        },
+        {
+          "index": 5,
+          "url": "https://example.com/research/5",
+          "title": "Service worker lifecycle 5",
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:45+00:00"
+        },
+        {
+          "index": 6,
+          "url": "https://example.com/research/6",
+          "title": "Colour contrast ratios 6",
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:46+00:00"
+        },
+        {
+          "index": 7,
+          "url": "https://example.com/research/7",
+          "title": "Deterministic serialisation 7",
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:47+00:00"
+        },
+        {
+          "index": 8,
+          "url": "https://example.com/research/8",
+          "title": "Fixture driven testing 8",
+          "groupId": "g1",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:48+00:00"
+        },
+        {
+          "index": 9,
+          "url": "https://example.com/research/9",
+          "title": "Keyboard interaction patterns 9",
+          "groupId": "g2",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:49+00:00"
+        },
+        {
+          "index": 10,
+          "url": "https://example.com/research/10",
+          "title": "Tab groups in Chromium 10",
+          "groupId": "g2",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:50+00:00"
+        },
+        {
+          "index": 11,
+          "url": "https://example.com/research/11",
+          "title": "WebExtensions API reference 11",
+          "groupId": "g2",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:51+00:00"
+        },
+        {
+          "index": 12,
+          "url": "https://example.com/research/12",
+          "title": "Session restore internals 12",
+          "groupId": "g2",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:52+00:00"
+        },
+        {
+          "index": 13,
+          "url": "https://example.com/research/13",
+          "title": "JSON Schema draft 07 13",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:53+00:00"
+        },
+        {
+          "index": 14,
+          "url": "https://example.com/research/14",
+          "title": "Accessibility tree basics 14",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:54+00:00"
+        },
+        {
+          "index": 15,
+          "url": "https://example.com/research/15",
+          "title": "Service worker lifecycle 15",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:55+00:00"
+        },
+        {
+          "index": 16,
+          "url": "https://example.com/research/16",
+          "title": "Colour contrast ratios 16",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "lastAccessed": "2025-09-27T19:06:56+00:00"
+        },
+        {
+          "index": 17,
+          "url": "https://example.com/research/unloaded",
+          "title": "Deterministic serialisation 17",
+          "favIconUrl": "https://example.com/favicon.ico",
+          "discarded": true,
+          "lastAccessed": "2025-09-27T19:06:57+00:00"
+        }
+      ]
+    },
+    {
+      "id": "w2",
+      "type": "normal",
+      "state": "normal",
+      "bounds": {
+        "left": 40,
+        "top": 40,
+        "width": 1280,
+        "height": 800
+      },
+      "groups": [
+        {
+          "id": "g1",
+          "title": "Shopping",
+          "color": "orange"
+        }
+      ],
+      "tabs": [
+        {
+          "index": 0,
+          "url": "https://example.org/item/0",
+          "title": "Item 0",
+          "active": true,
+          "groupId": "g1"
+        },
+        {
+          "index": 1,
+          "url": "https://example.org/item/1",
+          "title": "Item 1",
+          "groupId": "g1",
+          "openerIndex": 0
+        },
+        {
+          "index": 2,
+          "url": "https://example.org/item/2",
+          "title": "Item 2",
+          "groupId": "g1",
+          "muted": true,
+          "openerIndex": 1
+        },
+        {
+          "index": 3,
+          "url": "https://example.org/item/3",
+          "title": "Item 3",
+          "groupId": "g1",
+          "openerIndex": 2
+        },
+        {
+          "index": 4,
+          "url": "https://example.org/item/4",
+          "title": "Item 4",
+          "groupId": "g1",
+          "openerIndex": 3
+        },
+        {
+          "index": 5,
+          "url": "https://example.org/item/5",
+          "title": "Item 5",
+          "openerIndex": 4
+        },
+        {
+          "index": 6,
+          "url": "https://example.org/item/6",
+          "title": "Item 6",
+          "openerIndex": 5
+        },
+        {
+          "index": 7,
+          "url": "https://example.org/item/7",
+          "title": "Item 7",
+          "openerIndex": 6
+        },
+        {
+          "index": 8,
+          "url": "https://example.org/item/8",
+          "title": "Item 8",
+          "openerIndex": 7
+        },
+        {
+          "index": 9,
+          "url": "https://example.org/item/9",
+          "title": "Item 9",
+          "openerIndex": 8
+        },
+        {
+          "index": 10,
+          "url": "https://example.org/item/10",
+          "title": "Item 10",
+          "openerIndex": 9
+        },
+        {
+          "index": 11,
+          "url": "https://example.org/item/11",
+          "title": "Item 11",
+          "openerIndex": 10
+        },
+        {
+          "index": 12,
+          "url": "https://example.org/item/12",
+          "title": "Item 12",
+          "openerIndex": 11
+        },
+        {
+          "index": 13,
+          "url": "https://example.com/research/5",
+          "title": "Item 13",
+          "openerIndex": 12
+        }
+      ]
+    },
+    {
+      "id": "w3",
+      "type": "normal",
+      "state": "normal",
+      "tabs": [
+        {
+          "index": 0,
+          "url": "chrome://settings/",
+          "title": "Settings"
+        },
+        {
+          "index": 1,
+          "url": "file:///home/example/notes.txt",
+          "title": "Page 1"
+        },
+        {
+          "index": 2,
+          "url": "https://example.net/page/2",
+          "title": "Page 2",
+          "active": true
+        },
+        {
+          "index": 3,
+          "url": "https://example.net/page/3",
+          "title": "Page 3"
+        },
+        {
+          "index": 4,
+          "url": "https://example.net/page/4",
+          "title": "Page 4"
+        },
+        {
+          "index": 5,
+          "url": "https://example.net/page/5",
+          "title": "Page 5"
+        },
+        {
+          "index": 6,
+          "url": "https://example.net/page/6",
+          "title": "Page 6"
+        },
+        {
+          "index": 7,
+          "url": "https://example.net/page/7",
+          "title": "Page 7"
+        }
+      ]
+    }
+  ]
+}

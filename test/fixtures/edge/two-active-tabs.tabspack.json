@@ -1,0 +1,14 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:25:00+05:30",
+  "windows": [
+    {
+      "id": "w1",
+      "tabs": [
+        { "index": 0, "url": "https://example.com/a", "active": true },
+        { "index": 1, "url": "https://example.com/b", "active": true }
+      ]
+    }
+  ]
+}

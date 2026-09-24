@@ -1,0 +1,18 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T09:25:00+05:30",
+  "windows": [
+    {
+      "id": "w1",
+      "tabs": [
+        { "index": 0, "url": "chrome://settings/", "title": "Settings" },
+        { "index": 1, "url": "about:config", "title": "Configuration" },
+        { "index": 2, "url": "javascript:alert(1)", "title": "Script URL" },
+        { "index": 3, "url": "view-source:https://example.com/", "title": "Source" },
+        { "index": 4, "url": "file:///home/example/notes.txt", "title": "Local file" },
+        { "index": 5, "url": "https://example.com/ok", "title": "A normal page" }
+      ]
+    }
+  ]
+}
