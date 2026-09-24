@@ -1,0 +1,216 @@
+/**
+ * The manager page. At M1 it carries export only. Import, preview and snapshots
+ * land in later phases inside this same shell, which is why the page exists now
+ * rather than being bolted on: a popup cannot host a file dialog (ADR-009).
+ *
+ * The output panel is the honesty mechanism of the product: the user reads the
+ * exact bytes before trusting them.
+ */
+import { realAdapter } from "../../core/adapter/index.js";
+import { buildExport, collectFiltered, type ExportPayload } from "../../core/export.js";
+import { buildExportReport, formatBytes, totalRemoved } from "../../core/report.js";
+import { loadSettings, saveSettings, type ExportFormat, type Settings } from "../../core/settings.js";
+import { countSession } from "../../types/session.js";
+import type { Scope } from "../../types/session.js";
+import { must } from "../shared/dom.js";
+import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
+import { copyPayload, savePayload } from "../shared/save.js";
+import { initSegmented } from "../shared/segmented.js";
+
+const adapter = realAdapter;
+
+const ui = {
+  scope: must<HTMLDivElement>("#scope"),
+  format: must<HTMLSelectElement>("#format"),
+  formatNote: must<HTMLSpanElement>("#format-note"),
+  titles: must<HTMLInputElement>("#opt-titles"),
+  favicons: must<HTMLInputElement>("#opt-favicons"),
+  incognito: must<HTMLInputElement>("#opt-incognito"),
+  incognitoLabel: must<HTMLLabelElement>("#opt-incognito-label"),
+  incognitoHint: must<HTMLSpanElement>("#incognito-hint"),
+  dedupe: must<HTMLInputElement>("#opt-dedupe"),
+  web: must<HTMLInputElement>("#opt-web"),
+  pinned: must<HTMLInputElement>("#opt-pinned"),
+  exportButton: must<HTMLButtonElement>("#export"),
+  copyButton: must<HTMLButtonElement>("#copy"),
+  summary: must<HTMLSpanElement>("#summary"),
+  report: must<HTMLDivElement>("#report"),
+  output: must<HTMLTextAreaElement>("#output"),
+  outputMeta: must<HTMLParagraphElement>("#output-meta"),
+};
+
+const FORMAT_NOTES: Record<ExportFormat, string> = {
+  tabspack: "Windows, order, pinned tabs and groups are preserved.",
+  urls: "URLs only. This format cannot be restored faithfully.",
+  flatjson: "Titles and URLs only. This format cannot be restored faithfully.",
+};
+
+let settings: Settings;
+let available = 0;
+
+void start();
+
+async function start(): Promise<void> {
+  settings = await loadSettings(adapter);
+  paintSettings();
+  await gateIncognito();
+
+  initSegmented(ui.scope, settings.scope, (value) => {
+    settings.scope = value as Scope;
+    void persist({ scope: settings.scope });
+  });
+
+  ui.format.addEventListener("change", () => {
+    settings.format = ui.format.value as ExportFormat;
+    ui.formatNote.textContent = FORMAT_NOTES[settings.format];
+    void persist({ format: settings.format });
+  });
+
+  bindToggle(ui.titles, "textIncludeTitles");
+  bindToggle(ui.favicons, "keepFavicons");
+  bindToggle(ui.incognito, "includeIncognito");
+  bindToggle(ui.dedupe, "dedupe");
+  bindToggle(ui.web, "webPagesOnly");
+  bindToggle(ui.pinned, "skipPinned");
+
+  ui.exportButton.addEventListener("click", () => void run("save"));
+  ui.copyButton.addEventListener("click", () => void run("copy"));
+
+  await refresh();
+}
+
+function paintSettings(): void {
+  ui.format.value = settings.format;
+  ui.formatNote.textContent = FORMAT_NOTES[settings.format];
+  ui.titles.checked = settings.textIncludeTitles;
+  ui.favicons.checked = settings.keepFavicons;
+  ui.incognito.checked = settings.includeIncognito;
+  ui.dedupe.checked = settings.dedupe;
+  ui.web.checked = settings.webPagesOnly;
+  ui.pinned.checked = settings.skipPinned;
+}
+
+/**
+ * A control that cannot work is disabled with a visible reason beside it, never
+ * hidden: docs/DESIGN.md section 4.
+ */
+async function gateIncognito(): Promise<void> {
+  const allowed = await adapter.isAllowedIncognitoAccess();
+  if (allowed) {
+    ui.incognitoHint.textContent = "";
+    return;
+  }
+  ui.incognito.checked = false;
+  ui.incognito.disabled = true;
+  ui.incognitoLabel.dataset.disabled = "true";
+  ui.incognitoHint.textContent = "Allow TabsPack in private windows in your browser settings first.";
+  if (settings.includeIncognito) {
+    settings.includeIncognito = false;
+    await saveSettings(adapter, { includeIncognito: false });
+  }
+}
+
+function bindToggle(input: HTMLInputElement, key: keyof Settings): void {
+  input.addEventListener("change", () => {
+    (settings as unknown as Record<string, unknown>)[key] = input.checked;
+    void persist({ [key]: input.checked } as Partial<Settings>);
+  });
+}
+
+async function persist(patch: Partial<Settings>): Promise<void> {
+  await saveSettings(adapter, patch);
+  clearReport(ui.report);
+  await refresh();
+}
+
+async function refresh(): Promise<void> {
+  try {
+    const { session, removed } = await collectFiltered(adapter, settings);
+    const counts = countSession(session);
+    available = counts.tabs;
+    ui.summary.textContent = summarise(counts.windows, counts.tabs, counts.groups);
+    ui.exportButton.textContent = counts.tabs === 0 ? "Export" : `Export ${plural(counts.tabs, "tab")}`;
+    setEnabled(counts.tabs > 0);
+    if (counts.tabs === 0) {
+      renderNote(
+        ui.report,
+        totalRemoved(removed) > 0
+          ? "Every tab in this scope was removed by a filter."
+          : "There is nothing to export in this scope.",
+      );
+    }
+  } catch (error) {
+    available = 0;
+    setEnabled(false);
+    ui.summary.textContent = "Tabs unavailable";
+    renderError(ui.report, describe(error));
+  }
+}
+
+async function run(mode: "save" | "copy"): Promise<void> {
+  if (available === 0) return;
+  const button = mode === "save" ? ui.exportButton : ui.copyButton;
+  const label = button.textContent ?? "";
+  setEnabled(false);
+  button.textContent = "Working";
+  button.setAttribute("aria-busy", "true");
+  clearReport(ui.report);
+
+  try {
+    const payload = await buildExport(adapter, settings);
+    showOutput(payload);
+    const outcome = mode === "save" ? await savePayload(adapter, payload) : await copyPayload(adapter, payload);
+    if (outcome.error) {
+      renderError(ui.report, outcome.error);
+      return;
+    }
+    renderExportReport(
+      ui.report,
+      buildExportReport({
+        session: payload.session,
+        removed: payload.removed,
+        format: payload.format,
+        bytes: payload.bytes,
+        filename: payload.filename,
+        saved: outcome.saved,
+      }),
+    );
+  } catch (error) {
+    renderError(ui.report, describe(error));
+  } finally {
+    button.removeAttribute("aria-busy");
+    button.textContent = label;
+    setEnabled(available > 0);
+  }
+}
+
+/** Large outputs are truncated in the view, and the view says so. */
+const PREVIEW_LIMIT = 200_000;
+
+function showOutput(payload: ExportPayload): void {
+  const counts = countSession(payload.session);
+  const truncated = payload.text.length > PREVIEW_LIMIT;
+  ui.output.value = truncated
+    ? `${payload.text.slice(0, PREVIEW_LIMIT)}\n\nPreview truncated. The saved file is complete.`
+    : payload.text;
+  ui.outputMeta.textContent = `${plural(counts.tabs, "tab")} · ${formatBytes(payload.bytes)} · ${payload.filename}`;
+}
+
+function setEnabled(enabled: boolean): void {
+  ui.exportButton.disabled = !enabled;
+  ui.copyButton.disabled = !enabled;
+}
+
+function summarise(windows: number, tabs: number, groups: number): string {
+  const parts = [plural(windows, "window"), plural(tabs, "tab")];
+  if (groups > 0) parts.push(plural(groups, "group"));
+  return parts.join(" · ");
+}
+
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+function describe(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}

@@ -1,0 +1,292 @@
+/* Components. Every value comes from a token in theme.css. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* App bar ---------------------------------------------------------------- */
+.app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.wordmark svg {
+  display: block;
+  color: var(--accent);
+}
+
+/* Buttons --------------------------------------------------------------- */
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: var(--text-dense);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  width: 100%;
+  height: var(--control-h-primary);
+  font-size: var(--text-body);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.icon-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn,
+  .icon-btn,
+  .segmented button {
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+}
+
+.btn-primary:hover:not([disabled]) {
+  background: var(--accent-hover);
+}
+
+.btn-secondary:hover:not([disabled]),
+.icon-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn:active:not([disabled]) {
+  transform: translateY(1px);
+}
+
+/* Segmented control ----------------------------------------------------- */
+.segmented {
+  display: flex;
+  gap: var(--space-1);
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.segmented button {
+  flex: 1 1 0;
+  appearance: none;
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.segmented button[aria-checked="true"] {
+  background: var(--surface-raised);
+  color: var(--accent);
+  box-shadow: var(--shadow-1);
+}
+
+/* Fields ---------------------------------------------------------------- */
+.field-label {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+select {
+  appearance: auto;
+  height: var(--control-h);
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-dense);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-dense);
+  cursor: pointer;
+}
+
+.check input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.check[data-disabled="true"] {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Report ---------------------------------------------------------------- */
+.report {
+  min-height: 18px;
+  font-size: var(--text-dense);
+}
+
+.report:empty {
+  min-height: 0;
+}
+
+.report .headline {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+.report .detail,
+.report .filename {
+  margin-top: 2px;
+  padding-left: 22px;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.report .filename {
+  font-family: var(--font-mono);
+  user-select: all;
+}
+
+.report[data-tone="success"] .headline {
+  color: var(--success);
+}
+
+.report[data-tone="warn"] .headline {
+  color: var(--warn);
+}
+
+.report[data-tone="error"] .headline {
+  color: var(--danger);
+}
+
+/* Output preview -------------------------------------------------------- */
+.output {
+  width: 100%;
+  min-height: 240px;
+  resize: vertical;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  white-space: pre;
+  overflow: auto;
+}
+
+/* Trust line ------------------------------------------------------------ */
+.trust {
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-micro);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

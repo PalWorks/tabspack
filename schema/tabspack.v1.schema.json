@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tabspack.dev/schema/tabspack.v1.schema.json",
+  "title": "TabsPack file, schema version 1",
+  "type": "object",
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "tabspack",
+      "description": "Always `\"tabspack\"`. A reader rejects a file without it rather than guess."
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "description": "Integer. A reader refuses a version it does not support."
+    },
+    "exportedAt": {
+      "type": "string",
+      "description": "ISO 8601 with offset."
+    },
+    "name": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source": {
+      "$ref": "#/definitions/TabsPackSource"
+    },
+    "counts": {
+      "$ref": "#/definitions/TabsPackCounts"
+    },
+    "windows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TabsPackWindow"
+      }
+    }
+  },
+  "required": [
+    "format",
+    "schemaVersion",
+    "exportedAt",
+    "windows"
+  ],
+  "description": "Generated from src/types/tabspack.ts by scripts/gen-schema.mjs. Normative prose: docs/SPEC.md. Never edit by hand.",
+  "definitions": {
+    "TabsPackSource": {
+      "type": "object",
+      "properties": {
+        "browser": {
+          "type": "string"
+        },
+        "browserVersion": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "extensionVersion": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "deviceName": {
+          "type": "string"
+        }
+      },
+      "description": "Provenance of the export. Every member is optional.",
+      "additionalProperties": true
+    },
+    "TabsPackCounts": {
+      "type": "object",
+      "properties": {
+        "windows": {
+          "type": "integer"
+        },
+        "tabs": {
+          "type": "integer"
+        },
+        "groups": {
+          "type": "integer"
+        }
+      },
+      "description": "Advisory counts. A reader trusts the arrays over these.",
+      "additionalProperties": true
+    },
+    "TabsPackWindow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "File local identifier. Convention `w1`, `w2`."
+        },
+        "name": {
+          "type": "string",
+          "description": "User label. Not a browser feature on Chromium."
+        },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TabsPackTab"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TabsPackGroup"
+          }
+        },
+        "focused": {
+          "type": "boolean"
+        },
+        "incognito": {
+          "type": "boolean"
+        },
+        "type": {
+          "$ref": "#/definitions/WindowType"
+        },
+        "state": {
+          "$ref": "#/definitions/WindowState"
+        },
+        "bounds": {
+          "$ref": "#/definitions/TabsPackBounds"
+        }
+      },
+      "required": [
+        "tabs"
+      ],
+      "description": "One browser window and everything in it.",
+      "additionalProperties": true
+    },
+    "TabsPackTab": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "index": {
+          "type": "integer",
+          "description": "Zero based position within the window. Array order is used when absent."
+        },
+        "title": {
+          "type": "string"
+        },
+        "pinned": {
+          "type": "boolean"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Reference to a `TabsPackGroup.id` in the same window."
+        },
+        "group": {
+          "type": "string",
+          "description": "Shorthand for a group by title, for hand written files. `groupId` wins."
+        },
+        "favIconUrl": {
+          "type": "string"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "discarded": {
+          "type": "boolean"
+        },
+        "openerIndex": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "`index` of the opener tab in the same window, or null."
+        },
+        "cookieStoreId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Gecko contextual identity. Ignored on Chromium."
+        },
+        "lastAccessed": {
+          "type": "string",
+          "description": "ISO 8601 timestamp, advisory."
+        },
+        "notes": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "description": "A single tab. `url` is the only mandatory field in the whole format.",
+      "additionalProperties": true
+    },
+    "TabsPackGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "File local identifier, referenced by `TabsPackTab.groupId`."
+        },
+        "title": {
+          "type": "string"
+        },
+        "color": {
+          "$ref": "#/definitions/GroupColor"
+        },
+        "collapsed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "description": "A tab group, declared inside the window that owns it. `id` is file local: browser group ids are process local integers and are never written here.",
+      "additionalProperties": true
+    },
+    "GroupColor": {
+      "type": "string",
+      "enum": [
+        "grey",
+        "blue",
+        "red",
+        "yellow",
+        "green",
+        "pink",
+        "purple",
+        "cyan",
+        "orange"
+      ],
+      "description": "Tab group colours, spelled as the browser API spells them."
+    },
+    "WindowType": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "popup",
+        "app"
+      ]
+    },
+    "WindowState": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "minimized",
+        "maximized",
+        "fullscreen"
+      ]
+    },
+    "TabsPackBounds": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "integer"
+        },
+        "top": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        }
+      },
+      "description": "Window position and size in CSS pixels.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

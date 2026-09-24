@@ -1,0 +1,96 @@
+/**
+ * The one place the `browser` global enters the codebase.
+ *
+ * `webextension-polyfill` gives Chromium the promise based `browser.*` API that
+ * Gecko has natively. Its own typings are not depended on: the surface TabsPack
+ * uses is declared here, narrowly, so a typo in an API name is a compile error.
+ */
+import polyfill from "webextension-polyfill";
+
+interface Listener<A extends unknown[]> {
+  addListener(callback: (...args: A) => unknown): void;
+}
+
+export interface WebExtApi {
+  runtime: {
+    id?: string;
+    getManifest(): { version: string; name: string };
+    getURL(path: string): string;
+    sendMessage(message: unknown): Promise<unknown>;
+    getPlatformInfo?(): Promise<{ os: string; arch: string }>;
+    getBrowserInfo?(): Promise<{ name: string; version: string }>;
+    onMessage: {
+      addListener(
+        callback: (
+          message: unknown,
+          sender: { id?: string },
+          respond: (response: unknown) => void,
+        ) => boolean | void | Promise<unknown>,
+      ): void;
+    };
+    onInstalled: Listener<[{ reason?: string }]>;
+    lastError?: { message?: string };
+  };
+  tabs: {
+    query(query: Record<string, unknown>): Promise<unknown[]>;
+    create(props: Record<string, unknown>): Promise<{ id?: number }>;
+    update(tabId: number, props: Record<string, unknown>): Promise<unknown>;
+  };
+  windows: {
+    getAll(props: Record<string, unknown>): Promise<unknown[]>;
+    getCurrent(props: Record<string, unknown>): Promise<unknown>;
+    update(windowId: number, props: Record<string, unknown>): Promise<unknown>;
+  };
+  tabGroups?: {
+    query(query: Record<string, unknown>): Promise<unknown[]>;
+    update(groupId: number, props: Record<string, unknown>): Promise<unknown>;
+  };
+  storage: {
+    local: {
+      get(keys: unknown): Promise<Record<string, unknown>>;
+      set(values: Record<string, unknown>): Promise<void>;
+      remove(keys: string | string[]): Promise<void>;
+    };
+  };
+  permissions: {
+    contains(permissions: { permissions: string[] }): Promise<boolean>;
+    request(permissions: { permissions: string[] }): Promise<boolean>;
+  };
+  downloads?: {
+    download(options: Record<string, unknown>): Promise<number>;
+  };
+  action?: {
+    setBadgeText(details: { text: string }): Promise<void>;
+    setBadgeBackgroundColor(details: { color: string }): Promise<void>;
+  };
+  commands?: {
+    getAll(): Promise<unknown[]>;
+  };
+  extension?: {
+    isAllowedIncognitoAccess?(): Promise<boolean>;
+  };
+  contextualIdentities?: unknown;
+  offscreen?: {
+    hasDocument(): Promise<boolean>;
+    createDocument(options: {
+      url: string;
+      reasons: string[];
+      justification: string;
+    }): Promise<void>;
+  };
+}
+
+/**
+ * The polyfill ships CommonJS with loose typings, so it is cast once to the
+ * narrow surface above rather than typed `any` at every call site.
+ */
+export const browser = polyfill as unknown as WebExtApi;
+
+/** True when running inside an extension context, false in a unit test. */
+export function inExtensionContext(): boolean {
+  try {
+    return typeof browser?.runtime?.id === "string";
+  } catch {
+    return false;
+  }
+}

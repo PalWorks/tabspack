@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabsPack</title>
+    <link rel="stylesheet" href="shared/theme.css" />
+    <link rel="stylesheet" href="shared/base.css" />
+    <link rel="stylesheet" href="manager/manager.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="page-head">
+        <span class="wordmark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M4 4h16a1 1 0 0 1 1 1v3H3V5a1 1 0 0 1 1-1zm-1 6h12v3H3v-3zm0 5h9v3H3v-3zm14.5 6L21 17h-2.5v-4h-2v4H14l3.5 4z"
+            />
+          </svg>
+          TabsPack
+        </span>
+        <span class="page-trust">Nothing leaves your device.</span>
+      </header>
+
+      <section class="card" aria-labelledby="export-legend">
+        <h2 class="legend" id="export-legend">Export</h2>
+
+        <div class="control-grid">
+          <span class="control-label" id="scope-label">Scope</span>
+          <div id="scope" class="segmented scope" role="radiogroup" aria-labelledby="scope-label">
+            <button type="button" role="radio" data-value="all_windows" aria-checked="true">All windows</button>
+            <button type="button" role="radio" data-value="current_window" aria-checked="false">This window</button>
+            <button type="button" role="radio" data-value="selection" aria-checked="false">Selection</button>
+          </div>
+
+          <label class="control-label" for="format">Format</label>
+          <div class="row">
+            <select id="format">
+              <option value="tabspack">TabsPack file, round trips</option>
+              <option value="urls">URL list, one way</option>
+              <option value="flatjson">Flat JSON, one way</option>
+            </select>
+            <span id="format-note" class="hint"></span>
+          </div>
+
+          <span class="control-label">Include</span>
+          <div class="check-row">
+            <label class="check"><input type="checkbox" id="opt-titles" /> Titles in text export</label>
+            <label class="check"><input type="checkbox" id="opt-favicons" /> Favicon URLs</label>
+            <label class="check" id="opt-incognito-label">
+              <input type="checkbox" id="opt-incognito" /> Private windows
+            </label>
+            <span id="incognito-hint" class="hint"></span>
+          </div>
+
+          <span class="control-label">Filters</span>
+          <div class="check-row">
+            <label class="check"><input type="checkbox" id="opt-dedupe" /> Remove duplicates</label>
+            <label class="check"><input type="checkbox" id="opt-web" /> Web pages only</label>
+            <label class="check"><input type="checkbox" id="opt-pinned" /> Skip pinned</label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="export" class="btn btn-primary action" type="button" disabled>Export</button>
+          <button id="copy" class="btn btn-secondary" type="button" disabled>Copy</button>
+          <span id="summary" class="summary">Reading tabs</span>
+        </div>
+
+        <div id="report" class="report" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="card" aria-labelledby="output-legend">
+        <h2 class="legend" id="output-legend">Output</h2>
+        <p id="output-meta" class="summary">Nothing exported yet.</p>
+        <textarea
+          id="output"
+          class="output"
+          readonly
+          spellcheck="false"
+          aria-label="Exported file contents"
+        ></textarea>
+      </section>
+    </div>
+    <script src="manager/manager.js" defer></script>
+  </body>
+</html>
