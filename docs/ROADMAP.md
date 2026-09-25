@@ -208,6 +208,23 @@ Every task and backlog item in one table. Read the phase detail sections below f
 5. A backlog item is only promoted into a phase with a problem statement and acceptance criteria. Nothing enters the build as an idea.
 6. Anything not in Table R1 is not agreed work. Add the row first.
 
+## 5. What is left, and who has to do it
+
+### Table R10: The work an agent cannot finish
+
+| Id | What | Why it needs a person |
+|---|---|---|
+| T-507 | Exercise export, import and restore by hand in Chrome, Edge and Firefox | Chrome 137 and later ignore `--load-extension`, and no driver can load an extension into Firefox and then use it. `npm run smoke` covers Chromium, `npm run smoke:firefox` proves the Gecko package installs, and TESTING.md lists exactly what is left |
+| T-507 | Press the keyboard shortcuts | The browser handles them before any page or driver sees them |
+| T-507 | Grant the `tabGroups` permission at the prompt | Chrome refuses `permissions.request` in an automated run |
+| T-507 | Restore a large pack with unloading on | `chrome.tabs.discard` takes the headless browser down: LIMITATIONS Table L3 |
+| T-507 | Confirm snapshots survive a browser restart | The profile is thrown away with the run |
+| T-509 | Submit to three stores | Three developer accounts, and the fee for one of them |
+
+Everything up to those lines is done, and `docs/store/` holds the listing text and
+every answer each store asks for, so the submissions are a sitting rather than a
+piece of work.
+
 ## 5. Done
 
 ### Table R9: Completed
@@ -247,7 +264,7 @@ reads the same bytes with no file name in play, and a renamed file is still
 recognised. The Tab Session Manager reader was written against that project's own
 `src/background/save.js` rather than against a guess.
 
-M5 exit test result: not yet met, and it cannot be met here. The test is "review
+M5 exit test result: not met, and it cannot be met here. The test is "review
 packages accepted by all three stores, and the cross browser matrix fully green",
 and both halves need a person: three developer accounts, and hands on Chrome,
 Edge and Firefox. What was done instead is everything up to that line, and the
