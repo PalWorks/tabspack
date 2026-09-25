@@ -170,6 +170,10 @@ bounds and the keyboard rows need.
 | The group comes back with title, colour and collapsed state | pass | pass | pass |
 | Restored tabs are unloaded, and the count is what the browser shows | pass | pass | pass, except a pinned tab, which Firefox loads anyway: ADR-025 |
 | Restore 200 tabs with unloading on, without taking the browser down | pass, 9s, 199 unloaded | pass, 13s, 199 unloaded | pass, 6s, 199 unloaded |
+| A page slow to commit keeps its address through the unload | pass, 24 of 24, 0 blank | pass, 24 of 24, 0 blank | not applicable, Gecko creates the tab unloaded |
+| Every address of a 200 tab restore is in the browser, not just the count | covered by the row above | covered | pass, 200 of 200 |
+| A tab created unloaded keeps the address it was created with, 40 of them | not applicable, Chromium cannot | not applicable | pass, 40 of 40 |
+| A pack whose first tab is pinned does not lose the tabs after it | not applicable | not applicable | pass, 4 of 4, three runs: ADR-027 |
 | An unloaded tab still shows its title | not applicable, Chromium cannot | not applicable | pass |
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |

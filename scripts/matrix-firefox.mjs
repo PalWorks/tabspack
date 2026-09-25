@@ -415,10 +415,15 @@ try {
   }
   const urls = after.tabs.map((tab) => tab.url);
   row("restore opened a new window", after.windows > before, `${before} before, ${after.windows} after`);
+  const absent = ["r-pinned", "r-plain", "r-second", "r-was-suspended"].filter(
+    (part) => !urls.some((url) => url.includes(part)),
+  );
   row(
     "every address in the pack was opened",
-    ["r-pinned", "r-plain", "r-second", "r-was-suspended"].every((part) => urls.some((url) => url.includes(part))),
-    `${urls.filter((url) => url.includes("/r-")).length} of 4`,
+    absent.length === 0,
+    `${urls.filter((url) => url.includes("/r-")).length} of 4${
+      absent.length ? ` · missing ${absent.join(", ")} · strip ${JSON.stringify(after.tabs.map((tab) => `${tab.discarded ? "-" : "+"}${tab.url}|${tab.title}`))}` : ""
+    }`,
   );
   row("the suspender's own page was never opened", urls.every((url) => !url.includes("suspended.html")));
   row("the pinned tab came back pinned", after.tabs.some((tab) => tab.pinned && tab.url.includes("r-pinned")));
@@ -448,6 +453,56 @@ try {
     restored.filter((tab) => tab.discarded && tab.title && tab.title !== tab.url).length > 0,
     JSON.stringify(restored.map((tab) => `${tab.discarded ? "unloaded" : "loaded"}:${tab.title}`)),
   );
+
+  /* Row: a tab created unloaded keeps the address it was created with -------- */
+
+  /*
+   * Gecko is the only engine that can create a tab already unloaded, which is
+   * why none of the Chromium protections in ADR-025 and ADR-026 apply here: the
+   * tab is never navigating, so there is nothing to wait for. That makes this
+   * the one thing worth checking directly, at a scale where an intermittent
+   * failure shows: a restore row of four tabs saw one come back `about:blank`
+   * and unloaded in one run out of four, and four tabs cannot tell a rig
+   * problem from a browser one.
+   */
+  {
+    const WANTED = 40;
+    const made = await background(async (browser, count) => {
+      const win = await browser.windows.create({ url: "about:blank" });
+      const asked = [];
+      for (let index = 0; index < count; index += 1) {
+        const url = `https://example.com/lazy/${index}`;
+        asked.push(url);
+        await browser.tabs.create({
+          windowId: win.id,
+          url,
+          title: `Lazy ${index}`,
+          discarded: true,
+          active: false,
+        });
+      }
+      const tabs = await browser.tabs.query({ windowId: win.id });
+      const held = tabs.map((tab) => tab.url ?? "");
+      return {
+        asked: asked.length,
+        kept: asked.filter((url) => held.includes(url)).length,
+        blank: held.filter((url) => url === "about:blank" || url === "").length,
+        unloaded: tabs.filter((tab) => tab.discarded).length,
+        windowId: win.id,
+      };
+    }, WANTED).catch((error) => ({ error: String(error) }));
+
+    row(
+      "a tab created unloaded keeps the address it was created with",
+      !made.error && made.kept === WANTED,
+      made.error ?? `${made.kept} of ${WANTED} kept · ${made.blank} blank · ${made.unloaded} unloaded`,
+    );
+    if (!made.error) {
+      await background(async (browser, windowId) => {
+        await browser.windows.remove(windowId);
+      }, made.windowId).catch(() => undefined);
+    }
+  }
 
   /* Row: a large restore with unloading on --------------------------------- */
 
@@ -506,6 +561,31 @@ try {
       "a large restore leaves almost everything unloaded",
       loadedNow !== null && loadedNow.loaded <= 4,
       loadedNow ? `${loadedNow.loaded} loaded of ${loadedNow.total}` : "browser gone",
+    );
+
+    /*
+     * Every address, not just the count. A four tab restore cannot tell an
+     * intermittent loss from a rig problem; two hundred can, and one run in five
+     * of the small row saw a tab come back `about:blank` and unloaded.
+     */
+    const kept = await background(async (browser, count) => {
+      const tabs = await browser.tabs.query({});
+      const held = new Set(tabs.map((tab) => tab.url ?? ""));
+      let missing = 0;
+      const examples = [];
+      for (let index = 0; index < count; index += 1) {
+        const url = `http://127.0.0.1:9999/large/${index}`;
+        if (!held.has(url)) {
+          missing += 1;
+          if (examples.length < 3) examples.push(url);
+        }
+      }
+      return { missing, examples, blank: tabs.filter((tab) => (tab.url ?? "") === "about:blank").length };
+    }, restoreWanted).catch(() => null);
+    row(
+      `every one of the ${restoreWanted} addresses is in the browser, not just the count`,
+      kept !== null && kept.missing === 0,
+      kept ? `${restoreWanted - kept.missing} of ${restoreWanted} · ${kept.blank} about:blank${kept.examples.length ? ` · missing e.g. ${kept.examples.join(", ")}` : ""}` : "browser gone",
     );
   }
 

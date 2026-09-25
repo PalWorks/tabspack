@@ -387,3 +387,60 @@ The consequences in the product were exactly as bad as they sound. A restore wit
 3. The report's unloaded count is recounted from the browser at the end rather than trusted from each creation, because of the Firefox pinned tab above. A count a user cannot check against their own tab strip is worth nothing.
 
 **Consequence.** The lag of one batch means the wait almost never waits: the previous batch has long since committed. A restore of 200 tabs takes 14 seconds in Chrome, 21 in Edge and 8 in Firefox, and leaves 199 of them unloaded, measured. The fake browser now models both Chromium behaviours and the Firefox one, so the unit suite fails without any of the three fixes: eight tests fail without the wait, nine without the id remapping, one without the recount. `npm run matrix` is what found this, and it is the reason that script exists.
+
+---
+
+## ADR-026: Only a committed address counts as an address
+
+Date 2026-09-25. Status accepted. Amends ADR-025. Scopes T-612.
+
+**Context.** ADR-025 waited for a tab to report an address before unloading it, and the test for "has an address" was `url` or `pendingUrl`. That is wrong, and the whole matrix passed anyway.
+
+`pendingUrl` is the address a tab is **on its way to**. `url` is the one it has **committed**. A tab reporting only `pendingUrl` has committed nothing, so the very condition ADR-025 was written to avoid was satisfied by the thing that proves it has not happened yet. Chromium sets `pendingUrl` on the first tick after `tabs.create`, so `settle` returned on its first poll, every time, and the discard landed mid flight.
+
+Nothing caught it because every restore row in the matrix and every restore in the smoke run points at a port nothing listens on. A refused connection commits in well under a millisecond, so `url` was already set by the first poll and the `pendingUrl` branch never decided anything. Measured, on a real pack of 50 remote pages in Edge 153 and Chrome 154:
+
+| Pack | Restored | Came back blank |
+|---|---|---|
+| 200 tabs on a refused local port, which is what the matrix ran | 200 | 0 |
+| The user's own 50 tab session, real sites | 48 | **47** |
+
+The user reported it as "errors in more than 50% of URLs". It was 47 of 48: `url` empty, `title` empty, `discarded` true, and no way to get the page back. The file was intact, so nothing was lost permanently, but a restore that destroys the session it is restoring is the worst defect this product can have, and it shipped past a matrix built specifically to catch this class of thing.
+
+**Options.** Accept `pendingUrl` and lengthen the wait, which does not help, because the flag was never evidence of anything. Or wait for `url` alone and unload whatever has not committed by the deadline, which is what ADR-025 said in words and is still a loss. Or wait for `url` alone and never unload a tab that has not committed.
+
+**Decision.** `settle` returns the ids that have actually committed, and the unload discards only those. A tab that has not committed by the batch's deadline is carried to the end of the window and tried once more; one that still has not is left loaded, and counted as loaded. **Memory is a cost. A lost address is a lost page.** The two are not traded against each other in either direction.
+
+**Consequence.** Measured on the same 50 tab session: 48 restored, 0 blank, 46 unloaded in Chrome, 44 in Edge. It is slower, because the waiting is now real: 15 seconds in Chrome and 21 in Edge against 1.3 seconds to destroy it, with the progress line counting up throughout. The 200 tab local row is unchanged at 13 seconds, because those pages still commit immediately.
+
+Two guards, because the unit suite alone did not fail and the matrix alone did not fail:
+
+- The fake browser reports `pendingUrl` with an empty `url` while a navigation is in flight, and `commitReads` says for how many polls. A local page took one, which is why one was enough to pass. Three tests fail without the fix.
+- The matrix serves its own pages, slowly, on a real socket: 24 tabs, 400 ms before the response headers, asserting that not one address was lost. That row is the one that did not exist, and it is the reason this got through.
+
+---
+
+## ADR-027: A refusal about one tab is not a verdict about the browser, and `about:blank` is not an address
+
+Date 2026-09-25. Status accepted. Amends ADR-026. Scopes T-613.
+
+**Context.** ADR-026 fixed the Chromium loss and the Firefox matrix then failed intermittently: one run in four lost an address from a four tab restore, and the tab came back `about:blank`, unloaded, with a title derived from the address it should have held. A four tab row cannot tell a rig problem from a browser one, so the row was rebuilt to name what was missing and print the tab strip. It then failed every run, and named two separate defects.
+
+**The first.** Firefox refuses `tabs.create({ pinned: true, discarded: true })` with, in its own words, "Pinned tabs cannot be created and discarded." The engine's probe for whether a browser can create a tab unloaded is a `try` around that one call, and any refusal set `discardOnCreate = false` for the rest of the restore. The reference pack's first tab is pinned. So one pinned tab told the engine that Gecko could not create unloaded tabs **at all**, and every tab after it took the Chromium path of create, wait, unload, which is the path with something to lose.
+
+**The second, which is what it then lost.** A new tab on Gecko reports `url: "about:blank"` while its navigation is in flight, not an empty string. ADR-026 had just made an empty `url` the test for "not committed yet", and `about:blank` is not empty, so the wait ended immediately and the unload landed mid flight all over again. Same defect, one layer down, hidden behind a guard that was measured on the other engine.
+
+| Row | Before | After |
+|---|---|---|
+| The 4 tab restore, Firefox 156 | 2 of 4 addresses, twice in a row | 4 of 4, three runs in a row |
+| The 200 tab restore, Firefox 156 | 200 of 200: the loss needed a pinned tab in the pack | 200 of 200 |
+| `tabs.create` with `discarded: true`, 40 tabs, no pinned | 40 of 40 | 40 of 40 |
+
+**Decision.** Two changes:
+
+1. A pinned tab never asks to be created unloaded, on any engine, and a refusal of that pair never reaches the capability probe. Nothing is lost by not asking: Firefox loads a pinned tab straight after agreeing to unload it, which ADR-025 already had to work around. The cost is that a pinned tab restored on Gecko takes its title from its page rather than from the pack, like every tab on Chromium.
+2. `about:blank` counts as an address only for a tab whose pack entry asked for `about:blank`. The engine already knows what each tab was asked for, so `settle` now takes that and compares, rather than testing a string for emptiness. A redirect still counts, because the tab has committed something of its own.
+
+**Consequence.** Three consecutive Firefox runs at 25 of 25 rows, where the same harness failed two rows in two of six runs before. Both fixes are load bearing in the unit suite: two tests fail without the first, one without the second. The fake browser grew a `gecko` mode that reports `about:blank` while navigating and refuses the pinned pair in Firefox's own words.
+
+The lesson is the one ADR-026 already paid for and did not fully learn. **A guard measured on one engine is a guard on one engine.** Both of these were introduced by a fix for the same class of defect, on the other engine, the same day.

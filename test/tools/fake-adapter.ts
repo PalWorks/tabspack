@@ -49,6 +49,20 @@ export interface FakeState {
    * Firefox 156 does: measured in the cross browser matrix, ADR-025.
    */
   reloadsPinnedTabs?: boolean;
+  /**
+   * How many reads a new tab reports `pendingUrl` and no `url` for, which is a
+   * navigation on its way. One is the local page it was; a real remote page took
+   * far more than one, and that difference destroyed a real session: ADR-026.
+   */
+  commitReads?: number;
+  /** A tab whose navigation never commits at all, such as one that downloads. */
+  neverCommits?: boolean;
+  /**
+   * Reports `about:blank` rather than an empty address while a navigation is in
+   * flight, which is what Gecko does, and refuses to create a pinned tab
+   * discarded, which is what Gecko says in as many words: ADR-027.
+   */
+  gecko?: boolean;
 }
 
 export interface FakeAdapter extends BrowserAdapter {
@@ -82,12 +96,12 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
   const storage: Record<string, unknown> = { ...(state.storage ?? {}) };
   let nextTabId = 10_000;
   /**
-   * Tabs whose navigation has not committed yet. A real Chromium reports no
-   * address for these, and loses the address altogether if they are unloaded in
-   * that state. One read is enough to settle, which is what the restore engine
-   * waits for.
+   * Tabs whose navigation has not committed yet, and how many more reads each
+   * needs before it does. A real Chromium reports `pendingUrl` and no `url` for
+   * one of these, and loses the address altogether if it is unloaded in that
+   * state: ADR-025 and ADR-026.
    */
-  const uncommitted = new Set<number>();
+  const uncommitted = new Map<number, number>();
   let nextWindowId = 100;
   let nextGroupId = 900;
   let boundsFailed = false;
@@ -216,6 +230,14 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       if (request.discarded !== undefined && caps().discardOnCreate !== true) {
         throw new Error("Unexpected property: 'discarded'.");
       }
+      /*
+       * Gecko's own words, and a refusal about this request rather than about
+       * the browser. An engine that reads it as the second downgrades every tab
+       * after it, which is the defect in ADR-027.
+       */
+      if (request.discarded === true && request.pinned === true) {
+        throw new Error("Pinned tabs cannot be created and discarded.");
+      }
       const win = request.windowId === undefined ? await adapter.getCurrentWindow(false) : windowOf(request.windowId);
       const tabs = tabsOf(win);
       const tab: RawTab = {
@@ -233,7 +255,9 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       };
       if (tab.active) for (const other of tabs) other.active = false;
       // A tab created unloaded was never navigating, so there is nothing to wait for.
-      if (tab.discarded !== true && tab.id !== undefined) uncommitted.add(tab.id);
+      if (tab.discarded !== true && tab.id !== undefined) {
+        uncommitted.set(tab.id, state.neverCommits === true ? Infinity : (state.commitReads ?? 1));
+      }
       tabs.push(tab);
       normalise(win);
       return tab;
@@ -272,13 +296,19 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       try {
         const { tab } = findTab(tabId);
         /*
-         * A freshly created tab reports no address until its navigation has
-         * committed. Modelled because Chromium does it, and because a tab
-         * unloaded before that moment loses its address for good: ADR-025.
+         * A freshly created tab reports the address it is on its way to and no
+         * address of its own until its navigation commits. Modelled because
+         * Chromium does exactly this, and because a tab unloaded in that state
+         * loses its address for good: ADR-025, and ADR-026 for the `pendingUrl`,
+         * which is the half that was missing and cost a real session.
          */
-        if (uncommitted.has(tabId)) {
-          uncommitted.delete(tabId);
-          return { ...tab, url: "", title: "" };
+        const left = uncommitted.get(tabId);
+        if (left !== undefined) {
+          if (left <= 1) uncommitted.delete(tabId);
+          else uncommitted.set(tabId, left - 1);
+          return state.gecko === true
+            ? { ...tab, url: "about:blank", title: "", pendingUrl: tab.url ?? "" }
+            : { ...tab, url: "", title: "", pendingUrl: tab.url ?? "" };
         }
         return tab;
       } catch {
@@ -305,6 +335,7 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
           tab.title = "";
           uncommitted.delete(tabId);
         }
+
         // Firefox loads a pinned tab straight after agreeing to unload it.
         tab.discarded = state.reloadsPinnedTabs === true && tab.pinned === true ? false : true;
         const to = (nextTabId += 1);

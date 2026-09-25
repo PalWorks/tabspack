@@ -456,6 +456,8 @@ async function fillWindow(
   /* Positions filled in this batch, and in the one before it. See `unload`. */
   let toDiscard: number[] = [];
   let waiting: number[] = [];
+  /* Positions whose tab had not committed its address yet, tried again at the end. */
+  const later: number[] = [];
 
   /**
    * Unloading is what keeps a restore of two hundred tabs from costing two
@@ -479,15 +481,29 @@ async function fillWindow(
    * are ever loaded at the same time, and the queue lags by one batch so the
    * wait above almost never has to wait at all.
    */
-  const unload = async (positions: number[]): Promise<void> => {
-    if (positions.length === 0) return;
-    const ids = positions
-      .map((position) => createdIds[position])
-      .filter((id): id is number => typeof id === "number");
-    if (ids.length === 0) return;
+  const unload = async (positions: number[]): Promise<number[]> => {
+    if (positions.length === 0) return [];
+    /* Positions by the id they hold now, because the unload is about to change it. */
+    const positionOf = new Map<number, number>();
+    /* And the address each was asked for, which is what settling means. */
+    const wanted = new Map<number, string>();
+    for (const position of positions) {
+      const id = createdIds[position];
+      if (typeof id === "number") {
+        positionOf.set(id, position);
+        wanted.set(id, window.tabs[position]?.tab.url ?? "");
+      }
+    }
+    if (positionOf.size === 0) return [];
 
-    await settle(runtime, ids);
-    const moved = await safelyValue(() => adapter.discardTabs(ids), []);
+    const ready = await settle(runtime, wanted);
+    const readySet = new Set(ready);
+    const notYet = [...positionOf.entries()]
+      .filter(([id]) => !readySet.has(id))
+      .map(([, position]) => position);
+    if (ready.length === 0) return notYet;
+
+    const moved = await safelyValue(() => adapter.discardTabs(ready), []);
     report.discarded += moved.length;
 
     const renamed = new Map(moved.map((move) => [move.from, move.to]));
@@ -498,6 +514,7 @@ async function fillWindow(
     for (const fixup of openerFixups) {
       if (renamed.has(fixup.tabId)) fixup.tabId = renamed.get(fixup.tabId) as number;
     }
+    return notYet;
   };
   const openerFixups: { tabId: number; openerIndex: number }[] = [];
   const activeEntry = window.tabs.find((entry) => entry.tab.active) ?? window.tabs[0];
@@ -540,15 +557,21 @@ async function fillWindow(
 
     const endOfBatch = (position + 1) % Math.max(1, options.batchSize) === 0;
     if (endOfBatch) {
-      await unload(waiting);
+      later.push(...(await unload(waiting)));
       waiting = toDiscard;
       toDiscard = [];
       if (position + 1 < window.tabs.length) await runtime.sleep(options.batchDelayMs);
     }
   }
 
-  await unload(waiting);
-  await unload(toDiscard);
+  later.push(...(await unload(waiting)));
+  later.push(...(await unload(toDiscard)));
+  /*
+   * One last go at the tabs that had not committed when their batch's turn came.
+   * By now they have had the rest of the window to do it, and the ones that
+   * still have not are left loaded on purpose.
+   */
+  runtime.loaded += later.length > 0 ? (await unload(later)).length : 0;
 
   // After the unloads, because Chromium hands a tab a new id when it unloads it.
   for (const id of createdIds) if (typeof id === "number") runtime.created.add(id);
@@ -673,7 +696,19 @@ async function createTabFor(
     ...(runtime.containers && tab.cookieStoreId ? { cookieStoreId: tab.cookieStoreId } : {}),
   };
 
-  if (wantsDiscard && runtime.discardOnCreate !== false) {
+  /*
+   * A pinned tab never asks to be created unloaded. Firefox refuses the pair
+   * outright, with "Pinned tabs cannot be created and discarded", and the probe
+   * below reads any refusal as a verdict about the browser rather than about the
+   * request: one pinned tab in a pack therefore told the engine that Gecko could
+   * not create unloaded tabs at all, and every tab after it took the Chromium
+   * path instead. Measured on Firefox 156, and it cost the addresses of the tabs
+   * that followed: ADR-027. Nothing is lost by not asking, because Firefox loads
+   * a pinned tab straight after agreeing to unload it anyway.
+   */
+  const askDiscarded = wantsDiscard && runtime.discardOnCreate !== false && tab.pinned !== true;
+
+  if (askDiscarded) {
     try {
       // `title` travels with `discarded` and only with it. Both are Gecko only,
       // where a title is what an unloaded tab has to show; Chromium rejects an
@@ -770,26 +805,59 @@ function fail(
 }
 
 /**
- * Waits for each tab to report an address, which is the moment its navigation
- * has committed and the moment it is safe to unload. Measured on Edge 153: a
- * tab reports its address about a tenth of a second after it is created, and a
- * tab unloaded before that loses the address permanently. The deadline is short
- * because a tab that never commits is a tab that will not load anyway, and the
- * restore has to finish either way.
+ * Waits for these tabs to commit their navigation, and reports the ones that
+ * did. Unloading any of the others destroys the address: ADR-025.
+ *
+ * Only `url` counts. `pendingUrl` is the address a tab is still on its way to,
+ * so a tab that reports only that has not committed anything yet, and an earlier
+ * version of this treated it as proof that it had. Against a local page, which
+ * commits inside one poll, the difference never showed. Against a real session
+ * of fifty remote pages it unloaded 47 of 48 tabs while they were still in
+ * flight and lost every one of their addresses: ADR-026.
+ *
+ * The deadline is per batch, and a tab that misses it is simply left loaded.
+ * Memory is a cost; a lost address is a lost page.
  */
-async function settle(runtime: Runtime, ids: number[]): Promise<void> {
+async function settle(runtime: Runtime, wanted: Map<number, string>): Promise<number[]> {
   const deadline = runtime.clock() + COMMIT_DEADLINE_MS;
-  const pending = new Set(ids);
+  const pending = new Set(wanted.keys());
+  const committed: number[] = [];
   // Bounded by tries as well as by the clock: a test's clock does not move, and
   // a loop that depends on one that does not is a loop that does not end.
   for (let attempt = 0; attempt < COMMIT_TRIES && pending.size > 0; attempt += 1) {
     for (const id of [...pending]) {
       const tab = await runtime.adapter.getTab(id).catch(() => null);
-      if (tab === null || (tab.url ?? "") !== "" || (tab.pendingUrl ?? "") !== "") pending.delete(id);
+      // A tab that has gone is not waited for, and is not unloaded either.
+      if (tab === null) {
+        pending.delete(id);
+        continue;
+      }
+      if (hasArrived(tab.url ?? "", wanted.get(id) ?? "")) {
+        pending.delete(id);
+        committed.push(id);
+      }
     }
     if (pending.size === 0 || runtime.clock() >= deadline) break;
     await runtime.sleep(COMMIT_POLL_MS);
   }
+  return committed;
+}
+
+/**
+ * Whether a tab's reported address is its own rather than the one every tab
+ * starts life with.
+ *
+ * A new tab reports `about:blank` before its navigation commits, so that is the
+ * empty string all over again: unloading there loses the address, which is how a
+ * pack whose first tab was pinned came back with blank tabs on Firefox 156. A
+ * redirect is accepted, because the tab has committed something of its own and
+ * the address it landed on is the truthful one.
+ */
+function hasArrived(reported: string, wanted: string): boolean {
+  if (reported === "") return false;
+  if (reported !== "about:blank") return true;
+  // Unless blank is where it was going, which is a tab in the pack, not a state.
+  return wanted.trim().toLowerCase() === "about:blank";
 }
 
 async function safely(action: () => Promise<unknown>): Promise<void> {

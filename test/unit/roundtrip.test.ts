@@ -36,10 +36,18 @@ test("the round trip holds with discarding on, and on a browser that discards at
   // engine the titles of unloaded tabs survive the restore. On Chromium they
   // come back from the page itself once it loads, which is why the comparison
   // ignores the field in general.
-  const titled = (JSON.parse(gecko.reexported) as {
-    windows: { tabs: { title?: string }[] }[];
-  }).windows.flatMap((win) => win.tabs.filter((tab) => (tab.title ?? "") !== ""));
-  assert.ok(titled.length >= 35, `${titled.length} restored tabs kept their title`);
+  //
+  // Two exceptions, and both are tabs that were never created unloaded: the one
+  // active tab per window, which no browser will leave unloaded, and a pinned
+  // tab, which Gecko refuses to create unloaded at all. Both are created loaded
+  // and take their title from their page like anywhere else: ADR-027.
+  const restored = (JSON.parse(gecko.reexported) as {
+    windows: { tabs: { title?: string; pinned?: boolean; active?: boolean }[] }[];
+  }).windows.flatMap((win) => win.tabs);
+  const lazy = restored.filter((tab) => tab.pinned !== true && tab.active !== true);
+  const titled = lazy.filter((tab) => (tab.title ?? "") !== "");
+  assert.equal(titled.length, lazy.length, `${titled.length} of ${lazy.length} unloaded tabs kept their title`);
+  assert.ok(lazy.length >= 33, `${lazy.length} tabs were created unloaded`);
 });
 
 test("a browser without tab groups loses the grouping and nothing else", async () => {

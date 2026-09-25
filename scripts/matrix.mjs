@@ -21,6 +21,7 @@ import { createRequire } from "node:module";
 import { mkdir, mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
+import { createServer } from "node:http";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -532,6 +533,93 @@ if (restoreWanted > 0) {
     loadedNow !== null && loadedNow.loaded <= 4,
     loadedNow ? `${loadedNow.loaded} loaded of ${loadedNow.total}` : "browser gone",
   );
+}
+
+/* Row: a page that is slow to commit is not unloaded before it does --------- */
+
+/*
+ * The row that would have caught ADR-026, and did not exist when it shipped.
+ *
+ * Every other restore row here points at a port nothing listens on, because two
+ * hundred real requests to somebody's site is not a test. A refused connection
+ * commits its address in under a millisecond, which is the one case where
+ * unloading a tab too early cannot be seen. A real remote page takes a hundred
+ * times longer, and a tab unloaded in that window comes back blank for good.
+ *
+ * So this row serves the pages itself, slowly, and asserts the one thing that
+ * matters: no tab came back without its address.
+ */
+{
+  const SLOW_MS = 400;
+  const SLOW_TABS = 24;
+  const server = createServer((request, response) => {
+    setTimeout(() => {
+      response.writeHead(200, { "content-type": "text/html" });
+      response.end(`<!doctype html><title>slow ${request.url}</title>`);
+    }, SLOW_MS);
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const slowPort = server.address().port;
+
+  const slowPath = path.join(downloads, "matrix-slow.tabspack.json");
+  await writeFile(
+    slowPath,
+    JSON.stringify({
+      format: "tabspack",
+      schemaVersion: 1,
+      exportedAt: "2026-09-25T08:00:00.000Z",
+      counts: { windows: 1, tabs: SLOW_TABS, groups: 0 },
+      windows: [
+        {
+          id: "w1",
+          type: "normal",
+          tabs: Array.from({ length: SLOW_TABS }, (_, index) => ({
+            index,
+            url: `http://127.0.0.1:${slowPort}/slow/${index}`,
+            title: `Slow ${index}`,
+            ...(index === 0 ? { active: true } : {}),
+          })),
+        },
+      ],
+    }),
+    "utf8",
+  );
+
+  await manager.setInputFiles("#file", slowPath);
+  await manager.waitForFunction(
+    (count) => new RegExp(`${count} tabs`).test(document.querySelector("#file-meta")?.textContent ?? ""),
+    SLOW_TABS,
+    { timeout: 60_000 },
+  );
+  await manager.click("#restore");
+  let slowOutcome = "";
+  try {
+    await manager.waitForFunction(
+      () => /Restored/.test(document.querySelector("#restore-report")?.textContent ?? ""),
+      { timeout: 300_000 },
+    );
+    slowOutcome = (await manager.textContent("#restore-report")) ?? "";
+  } catch (error) {
+    slowOutcome = `no outcome: ${String(error).split("\n")[0]}`;
+  }
+
+  const slow = await rig
+    .worker(async (port) => {
+      const all = await chrome.tabs.query({});
+      const mine = all.filter((tab) => (tab.url ?? "").includes(`127.0.0.1:${port}/slow/`));
+      const blank = all.filter((tab) => (tab.url ?? "") === "" && (tab.pendingUrl ?? "") === "");
+      return { held: mine.length, blank: blank.length, unloaded: mine.filter((tab) => tab.discarded).length };
+    }, slowPort)
+    .catch(() => null);
+
+  row(
+    "a page slow to commit keeps its address through the unload",
+    slow !== null && slow.blank === 0 && slow.held === SLOW_TABS,
+    slow
+      ? `${slow.held} of ${SLOW_TABS} addresses held · ${slow.blank} blank · ${slow.unloaded} unloaded`
+      : "browser gone",
+  );
+  server.close();
 }
 
 /* Row: snapshots survive a browser restart -------------------------------- */

@@ -217,6 +217,90 @@ test("an unloaded restore keeps every address, and the group, and the active tab
   }
 });
 
+/*
+ * The two below are the regression tests for ADR-026, the defect a real session
+ * found after the matrix had passed. The fake browser now reports `pendingUrl`
+ * on a tab whose navigation is still in flight, exactly as Chromium does, and
+ * `commitReads` is how many polls that takes. A local page took one, which is
+ * why nothing caught this; fifty real pages took far more.
+ */
+test("a tab still on its way to its address is waited for, not unloaded", async () => {
+  const session = await referencePack();
+  // Four reads before the address commits, which is an ordinary remote page.
+  const adapter = emptyBrowser({ commitReads: 4 });
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  const blank = tabs.filter((entry) => (entry.url ?? "") === "");
+  assert.equal(
+    blank.length,
+    0,
+    `${blank.length} of ${tabs.length} tabs came back blank: unloading a tab that reports only pendingUrl destroys its address`,
+  );
+  assert.ok(report.discarded > 0, "the tabs were still unloaded, once they had committed");
+});
+
+test("a tab whose navigation never commits is left loaded rather than blanked", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser({ neverCommits: true });
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  assert.ok(tabs.length > 0, "the restore still created the tabs");
+  assert.equal(
+    tabs.filter((entry) => (entry.url ?? "") === "").length,
+    0,
+    "an address is never traded for memory",
+  );
+  assert.equal(report.discarded, 0, "nothing was unloaded, because nothing was safe to unload");
+});
+
+/*
+ * And the two below are ADR-027, found on Firefox 156 by the same real session.
+ * `gecko: true` makes the fake report `about:blank` while a navigation is in
+ * flight, and refuse `pinned` together with `discarded`, both in the browser's
+ * own words.
+ */
+test("a browser that refuses to create a pinned tab unloaded still creates the rest unloaded", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser({ capabilities: { discardOnCreate: true }, gecko: true });
+  const report = await restoreSession(adapter, session, options());
+
+  const refused = adapter.calls.filter(
+    (call) =>
+      call.method === "createTab" &&
+      (call.detail as { discarded?: boolean; pinned?: boolean }).discarded === true &&
+      (call.detail as { pinned?: boolean }).pinned === true,
+  );
+  assert.equal(refused.length, 0, "a pinned tab is never asked to be created unloaded");
+
+  const lazily = adapter.calls.filter(
+    (call) => call.method === "createTab" && (call.detail as { discarded?: boolean }).discarded === true,
+  );
+  assert.ok(
+    lazily.length > 20,
+    `${lazily.length} tabs were created unloaded: one refusal about a pinned tab must not downgrade the whole restore`,
+  );
+  assert.ok(report.discarded > 20, `${report.discarded} unloaded`);
+});
+
+test("about:blank is not the address of a tab that was asked to go somewhere else", async () => {
+  const session = await referencePack();
+  // Reports about:blank while navigating, and cannot create a tab unloaded, so
+  // every tab takes the create then unload path with a blank address in the way.
+  const adapter = emptyBrowser({ gecko: true, commitReads: 3 });
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  const lost = tabs.filter((entry) => (entry.url ?? "") === "" || entry.url === "about:blank");
+  assert.equal(
+    lost.length,
+    0,
+    `${lost.length} of ${tabs.length} tabs came back blank: about:blank is the address every tab starts with, not one it has committed`,
+  );
+  assert.ok(report.restored > 30, `${report.restored} restored`);
+});
+
 test("the unloaded count is what the browser says at the end, not what was asked for", async () => {
   const session = await referencePack();
   // This browser agrees to unload a tab and then loads it anyway, which is what

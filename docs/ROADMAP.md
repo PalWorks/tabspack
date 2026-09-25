@@ -216,12 +216,20 @@ suspender and one was an `edge://` page, leaving 3 that would open anywhere.
 | T-608 | Browser proof | Test | Recovery has to survive the real thing | The smoke pack carries a suspended tab, and the restored window holds the page it stood for | done |
 | T-609 | Unloaded restores | Core, UI | 50 to 200 pages loading at once is the moment the browser stops answering | `unloadRestored` on by default, flushed per batch with one batch of lag. ADR-024 | done |
 
-| T-610 | The cross browser matrix, automated | Test | Table X2 was a list of things nobody had done, and the one row about unloading hid two defects | `scripts/matrix.mjs` and `scripts/matrix-firefox.mjs` drive real Chrome, Edge and Firefox. 25 rows each | done |
+| T-610 | The cross browser matrix, automated | Test | Table X2 was a list of things nobody had done, and the one row about unloading hid two defects | `scripts/matrix.mjs` and `scripts/matrix-firefox.mjs` drive real Chrome, Edge and Firefox. 26 rows on the Chromium family, 25 on Firefox | done |
 | T-611 | What the matrix found | Core | A tab unloaded before its address commits loses it, and Chromium changes the id when it unloads | Wait for the address, follow the new id, recount the report from the browser. ADR-025 | done |
+| T-612 | What the matrix still missed | Core, Test | `pendingUrl` was accepted as proof that a navigation had committed, which it disproves. On a real 50 tab session 47 of 48 tabs came back blank; every matrix row pointed at a refused local port, where the difference cannot show | Only a committed `url` counts, and a tab that has not committed is left loaded rather than unloaded. A slow server row in the matrix, and `commitReads` in the fake browser. ADR-026 | done |
+| T-613 | The same defect on the other engine | Core, Test | Firefox refuses to create a pinned tab unloaded, and the capability probe read that one refusal as a verdict about the browser, so one pinned tab downgraded every tab after it. Those tabs then reported `about:blank` while navigating, which the new guard counted as a committed address | A pinned tab never asks to be created unloaded, and `about:blank` counts only for a tab that asked for it. Two matrix rows at 40 and 200 tabs, and a `gecko` mode in the fake browser. ADR-027 | done |
 
 **M6 exit test.** The user's own export imports with 30 addresses recovered and
 33 of its 34 tabs openable, the last being an `edge://` page no extension may
 open. Met on 2026-09-25.
+
+**M6 second exit test**, added the same day after T-612. A real 50 tab session
+restores with every address intact: 48 opened, 0 blank, the 2 left being
+extension pages no browser will let any extension open. Measured in Chrome 154
+and Edge 153, not in a fake browser and not against a local port. Any pack whose
+pages are real is the test; a pack whose pages resolve instantly is not.
 
 ## 4. Sequencing rules
 
