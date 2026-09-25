@@ -165,6 +165,9 @@ async function runHashAction(select: (id: string) => void): Promise<void> {
   history.replaceState(null, "", location.pathname);
   settings.scope = match[1] as Scope;
   select("export");
+  // The control has to show the scope the export is about to use, or the page
+  // says one thing and does another.
+  scope(settings.scope);
   await refresh();
   await run("save");
 }

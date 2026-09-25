@@ -56,6 +56,16 @@ Read this before "fixing" anything listed here. Every entry is either a browser 
 | Chrome does not grant `permissions.request` in an automated run | The tab groups path cannot be granted in `npm run smoke` | The smoke run asserts the degraded path instead, which is the path that needed proving anyway. The granted path is a manual matrix case |
 | The polyfill is bundled into all four entry points | About 35 KB is repeated in each bundle, roughly 140 KB across a 296 KB build | Accepted for now. Code splitting across a service worker and page contexts costs more than it saves at this size |
 
+## Table L5: Limits that exist to keep the product honest
+
+| Limit | Value | Why |
+|---|---|---|
+| Largest file the importer reads | 64 MB | Forty times the largest session anybody has. Above it the file is refused with a sentence rather than read into a tab that then runs out of memory |
+| Exclude patterns, and the length of one | 200 each | A line of four hundred stars compiles to a regular expression that can backtrack for a very long time on a URL that does not match |
+| Issues shown for one file | Three per kind, then a line saying how many more | A file with five thousand identical problems should produce a report, not a wall |
+| Rows of the preview tree in the document | About thirty, whatever the pack holds | A five thousand tab pack renders in about fifty milliseconds because only what is on screen exists |
+| Snapshot storage before a warning | 80 percent of about 10 MB | ADR-012: the cap is soft, the warning is loud, and nothing is ever deleted to make room |
+
 ## Table L4: Technical debt register
 
 | Debt | Introduced | Paid when |

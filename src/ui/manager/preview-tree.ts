@@ -59,6 +59,12 @@ export class PreviewTree {
   private visible: Row[] = [];
   private readonly selected = new Set<string>();
   private readonly collapsed = new Set<string>();
+  /**
+   * How many of each container row's tabs are selected. Kept rather than counted,
+   * because a window row holding five thousand tabs would otherwise be counted
+   * again for every row on screen, on every scroll.
+   */
+  private readonly selectedUnder = new Map<string, number>();
   private query = "";
   private matches: Set<string> | null = null;
   private focusIndex = 0;
@@ -97,6 +103,7 @@ export class PreviewTree {
     for (const row of this.rows) {
       if (row.kind === "tab") this.selected.add(row.id);
     }
+    this.recount();
     this.focusIndex = 0;
     this.scroller.scrollTop = 0;
     this.refresh();
@@ -165,8 +172,20 @@ export class PreviewTree {
       if (on) this.selected.add(row.id);
       else this.selected.delete(row.id);
     }
+    this.recount();
     this.paint();
     this.callbacks.onSelectionChange();
+  }
+
+  /** One pass over the rows, after any change to the selection. */
+  private recount(): void {
+    this.selectedUnder.clear();
+    for (const row of this.rows) {
+      if (row.kind === "tab") continue;
+      let count = 0;
+      for (const id of row.tabIds) if (this.selected.has(id)) count += 1;
+      this.selectedUnder.set(row.id, count);
+    }
   }
 
   private refresh(): void {
@@ -259,7 +278,7 @@ export class PreviewTree {
   private stateOf(row: Row): "true" | "false" | "mixed" {
     if (row.kind === "tab") return this.selected.has(row.id) ? "true" : "false";
     if (row.tabIds.length === 0) return "false";
-    const on = row.tabIds.filter((id) => this.selected.has(id)).length;
+    const on = this.selectedUnder.get(row.id) ?? 0;
     if (on === 0) return "false";
     return on === row.tabIds.length ? "true" : "mixed";
   }
@@ -272,6 +291,7 @@ export class PreviewTree {
       if (turningOn) this.selected.add(id);
       else this.selected.delete(id);
     }
+    this.recount();
     this.paint();
     this.callbacks.onSelectionChange();
   }
@@ -363,13 +383,24 @@ export function flatten(session: Session, blocked: Map<string, string>, strings:
     };
     rows.push(windowRow);
 
+    // Members are collected once. A pack of five thousand tabs with fifty groups
+    // would otherwise scan every tab once per group.
+    const membersOf = new Map<string, SessionTab[]>();
+    for (const tab of win.tabs) {
+      if (!tab.groupKey) continue;
+      const list = membersOf.get(tab.groupKey) ?? [];
+      list.push(tab);
+      membersOf.set(tab.groupKey, list);
+    }
+    const groupsByKey = new Map(win.groups.map((group) => [group.key, group]));
+
     const emitted = new Set<string>();
     for (const tab of win.tabs) {
       const id = tabId(win, tab);
       if (emitted.has(id)) continue;
-      const group = tab.groupKey ? win.groups.find((candidate) => candidate.key === tab.groupKey) : undefined;
+      const group = tab.groupKey ? groupsByKey.get(tab.groupKey) : undefined;
       if (group) {
-        const members = win.tabs.filter((candidate) => candidate.groupKey === group.key);
+        const members = membersOf.get(group.key) ?? [];
         rows.push({
           kind: "group",
           id: `${win.key}/${group.key}`,

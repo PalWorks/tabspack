@@ -146,14 +146,27 @@ export function domainOf(url: string): string {
   }
 }
 
-/** One wildcard pattern per line. `*` matches any run of characters. */
+/**
+ * One wildcard pattern per line. `*` matches any run of characters.
+ *
+ * The list is bounded on both axes. A pattern is a line somebody typed, and a
+ * line of five hundred stars compiles to five hundred `.*` groups, which a
+ * regular expression engine can spend a very long time backtracking through on
+ * a URL that does not match. The limits cost nobody anything real: the longest
+ * useful pattern is a domain with a star at each end.
+ */
+export const MAX_EXCLUDE_PATTERNS = 200;
+export const MAX_PATTERN_LENGTH = 200;
+
 export function compileExcludeList(list: string): RegExp[] {
   return list
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line !== "" && !line.startsWith("#"))
+    .slice(0, MAX_EXCLUDE_PATTERNS)
+    .map((line) => line.slice(0, MAX_PATTERN_LENGTH))
     .map((line) => {
-      const escaped = line.replace(/[.+^${}()|[\]\\?]/g, "\\$&").replace(/\*/g, ".*");
+      const escaped = line.replace(/[.+^${}()|[\]\\?]/g, "\\$&").replace(/\*+/g, ".*");
       return new RegExp(`^${escaped}$`, "i");
     });
 }

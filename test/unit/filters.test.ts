@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyFilters, compileExcludeList, dedupeKey, domainOf } from "../../src/core/filters.js";
+import { MAX_EXCLUDE_PATTERNS, applyFilters, compileExcludeList, dedupeKey, domainOf } from "../../src/core/filters.js";
 import { DEFAULT_SETTINGS } from "../../src/core/settings.js";
 import type { Session, SessionTab, SessionWindow } from "../../src/types/session.js";
 
@@ -152,4 +152,16 @@ test("a window emptied by a filter is dropped entirely", () => {
 test("domainOf survives a URL that is not a URL", () => {
   assert.equal(domainOf("not a url"), "");
   assert.equal(domainOf("https://Example.com/path"), "example.com");
+});
+
+test("the exclude list is bounded, so a pasted wall of patterns cannot hang a filter", () => {
+  const many = Array.from({ length: 500 }, (_, index) => `*site${index}.example.com*`).join("\n");
+  assert.equal(compileExcludeList(many).length, MAX_EXCLUDE_PATTERNS);
+
+  // A run of stars collapses to one, which is what stops the backtracking.
+  const nasty = `${"*".repeat(400)}x`;
+  const compiled = compileExcludeList(nasty);
+  const started = performance.now();
+  compiled[0]?.test(`https://example.com/${"a".repeat(4000)}`);
+  assert.ok(performance.now() - started < 100, "matching must not backtrack for seconds");
 });

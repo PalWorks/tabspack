@@ -136,3 +136,18 @@ test("two settings written at once both survive", async () => {
   assert.equal(stored.restoreBatchSize, 3);
   assert.equal(stored.theme, "dark");
 });
+
+test("a file with thousands of problems produces a readable list, not thousands of lines", () => {
+  const tabs = Array.from({ length: 2000 }, () => ({ url: "https://example.com/", groupId: "nope" }));
+  const result = loadPack(
+    JSON.stringify({
+      format: "tabspack",
+      schemaVersion: 1,
+      exportedAt: "2026-09-25T08:29:40+00:00",
+      windows: [{ tabs }],
+    }),
+  );
+  assert.equal(result.ok, true);
+  assert.ok(result.issues.length < 12, `${result.issues.length} issues would be a wall, not a report`);
+  assert.ok(result.issues.some((issue) => /appears on 2000 objects/.test(issue.message)));
+});

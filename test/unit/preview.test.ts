@@ -102,3 +102,33 @@ test("a web address is shown without its scheme, and anything else keeps it", ()
   assert.equal(shortUrl("chrome://settings/"), "chrome://settings/");
   assert.equal(shortUrl(`https://example.com/${"x".repeat(200)}`).length, 90);
 });
+
+test("a large pack flattens and counts in one pass, not one per group", () => {
+  const tabs = Array.from({ length: 4000 }, (_, index) =>
+    tabOf(index, `https://example.com/${index}`, `g${index % 40}`),
+  );
+  const session: Session = {
+    capturedAt: 0,
+    source: {},
+    windows: [
+      {
+        key: "w1",
+        focused: true,
+        incognito: false,
+        type: "normal",
+        groups: Array.from({ length: 40 }, (_, index) => ({ key: `g${index}`, title: `Group ${index}` })),
+        tabs,
+      },
+    ],
+  };
+
+  const started = performance.now();
+  const rows = flatten(session, new Map(), STRINGS);
+  const elapsed = performance.now() - started;
+
+  assert.equal(rows.length, 4041, "one window, forty groups and four thousand tabs");
+  assert.ok(elapsed < 250, `flattening took ${elapsed.toFixed(0)} ms`);
+  // Every tab is under exactly one group, and the window owns all of them.
+  assert.equal(rows[0]?.tabIds.length, 4000);
+  assert.equal(rows.filter((row) => row.kind === "group").length, 40);
+});

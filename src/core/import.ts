@@ -14,7 +14,7 @@
 import type { Session } from "../types/session.js";
 import { detect, inputFor, unrecognised } from "./adapters/detect.js";
 import type { AdapterInput, ForeignAdapter } from "./adapters/types.js";
-import { fromFile } from "./deserialize.js";
+import { capIssues, fromFile } from "./deserialize.js";
 import type { Issue } from "./issues.js";
 import { error, errors } from "./issues.js";
 import { migrateToCurrent } from "./migrate.js";
@@ -113,11 +113,11 @@ export function loadPack(text: string, options: LoadOptions = {}): LoadResult {
   const validated = validateFile(migrated.document);
   const issues = [...migrated.issues, ...validated.issues];
   if (!validated.ok || !validated.file) {
-    return { ok: false, source: sourceFor(migrated.document), issues };
+    return { ok: false, source: sourceFor(migrated.document), issues: capIssues(issues) };
   }
 
   const read = fromFile(validated.file, options);
-  const all = [...issues, ...read.issues];
+  const all = capIssues([...issues, ...read.issues]);
   if (errors(all).length > 0) {
     return { ok: false, source: TABSPACK_SOURCE, issues: all };
   }
@@ -160,11 +160,11 @@ function loadForeign(adapter: ForeignAdapter, input: AdapterInput, options: Load
   const validated = validateFile(converted.file);
   const issues = [...converted.issues, ...validated.issues];
   if (!validated.ok || !validated.file) {
-    return { ok: false, source, issues };
+    return { ok: false, source, issues: capIssues(issues) };
   }
 
   const read = fromFile(validated.file, options);
-  const all = [...issues, ...read.issues];
+  const all = capIssues([...issues, ...read.issues]);
   if (errors(all).length > 0) return { ok: false, source, issues: all };
   if (read.session.windows.length === 0) {
     return {

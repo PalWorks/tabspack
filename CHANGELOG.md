@@ -48,6 +48,17 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `--border-strong`, the colour that marks the edge of a text field, was 1.58 to 1 against the page in light and 1.99 to 1 in dark, well under the 3 to 1 that WCAG 1.4.11 requires of a control's own boundary. Found by the contrast check on its first run, and fixed in both themes
 - Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report
 
+### Audited
+
+A sweep of the whole codebase for dead code, gaps, races and claims the code does not keep.
+
+- The runtime message router in the background was dead: every TabsPack page has the extension APIs itself. It is gone, with `sendMessage`, `onMessage` and the `UNHANDLED` sentinel, and `docs/ARCHITECTURE.md` section 7 now explains why contexts do not talk to each other
+- Two settings written in the same millisecond lost one of them. Writes are serialised now
+- A page that threw while wiring itself looked ready and did nothing. Every surface reports a failed start
+- Selecting in a five thousand tab tree counted every descendant of every visible row, on every scroll. Counted once, kept, and the preview renders in about fifty milliseconds
+- A refused storage write, which is what a full quota looks like, was an unhandled rejection with nothing on screen
+- Bounded what was unbounded: the largest file the importer will read, the number and length of exclude patterns, and the number of issues one file can put on screen. All five limits are in `docs/LIMITATIONS.md` Table L5
+
 ### Measured
 
 - NFR-001, on the built package in a real Chromium with 200 tabs open: the popup is interactive in 38 ms, median of ten runs, against a 150 ms budget

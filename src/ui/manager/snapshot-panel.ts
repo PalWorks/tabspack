@@ -126,6 +126,15 @@ export function initSnapshotPanel(
     }
   }
 
+  /**
+   * Storage can refuse a write, most plausibly when it is full, which is the one
+   * failure this panel exists to warn about. Saying nothing would be the worst
+   * possible response to it.
+   */
+  function report(cause: unknown): void {
+    renderError(ui.report, cause instanceof Error ? cause.message : String(cause));
+  }
+
   async function refresh(): Promise<void> {
     const [list, room] = await Promise.all([listSnapshots(adapter), usage(adapter)]);
     paintUsage(room);
@@ -152,7 +161,9 @@ export function initSnapshotPanel(
     name.value = meta.name;
     name.setAttribute("aria-label", t("snapshotNameAria", readableDate(meta.createdAt)));
     name.addEventListener("change", () => {
-      void renameSnapshot(adapter, meta.id, name.value.trim() || meta.name).then(() => refresh());
+      void renameSnapshot(adapter, meta.id, name.value.trim() || meta.name)
+        .then(() => refresh())
+        .catch(report);
     });
     item.appendChild(name);
 
@@ -174,7 +185,9 @@ export function initSnapshotPanel(
     tags.placeholder = t("snapshotTagsPlaceholder");
     tags.setAttribute("aria-label", t("snapshotTagsAria", meta.name));
     tags.addEventListener("change", () => {
-      void tagSnapshot(adapter, meta.id, tags.value.split(",")).then(() => refresh());
+      void tagSnapshot(adapter, meta.id, tags.value.split(","))
+        .then(() => refresh())
+        .catch(report);
     });
     item.appendChild(tags);
 
@@ -218,10 +231,12 @@ export function initSnapshotPanel(
         return;
       }
       if (timer) clearTimeout(timer);
-      void deleteSnapshot(adapter, meta.id).then(() => {
-        renderNote(ui.report, t("snapshotDeleted", meta.name));
-        return refresh();
-      });
+      void deleteSnapshot(adapter, meta.id)
+        .then(() => {
+          renderNote(ui.report, t("snapshotDeleted", meta.name));
+          return refresh();
+        })
+        .catch(report);
     });
     return node;
   }
