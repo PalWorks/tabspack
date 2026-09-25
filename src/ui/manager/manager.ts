@@ -24,6 +24,9 @@ import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
 import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
+import { initSnapshotPanel } from "./snapshot-panel.js";
+import { readSnapshotSession, type SnapshotMeta } from "../../core/snapshots.js";
+import { TABSPACK_SOURCE } from "../../core/import.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
 import { copyPayload, savePayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
@@ -69,15 +72,38 @@ async function start(): Promise<void> {
   paintSettings();
   await gateIncognito();
 
-  initTabs(
+  const tabs = initTabs(
     must<HTMLDivElement>("#tasks"),
     {
       export: must<HTMLDivElement>("#panel-export"),
       import: must<HTMLDivElement>("#panel-import"),
+      snapshots: must<HTMLDivElement>("#panel-snapshots"),
     },
     "export",
   );
-  initImportPanel(adapter, settings);
+  const importPanel = initImportPanel(adapter, settings);
+
+  initSnapshotPanel(adapter, settings, {
+    async preview(meta: SnapshotMeta): Promise<void> {
+      const session = await readSnapshotSession(adapter, meta.id);
+      if (!session) throw new Error("That snapshot could not be read.");
+      tabs.select("import");
+      await importPanel.showSession(session, TABSPACK_SOURCE, meta.name);
+    },
+    async save(text: string, filename: string): Promise<void> {
+      await savePayload(adapter, {
+        format: "tabspack",
+        text,
+        filename,
+        mime: "application/json;charset=utf-8",
+        bytes: text.length,
+        session: { windows: [], source: {}, capturedAt: 0 },
+        removed: { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 },
+      });
+    },
+  });
+
+  await runHashAction(tabs.select);
 
   initSegmented(ui.scope, settings.scope, (value) => {
     settings.scope = value as Scope;
@@ -117,6 +143,22 @@ async function start(): Promise<void> {
   ui.copyButton.addEventListener("click", () => void run("copy"));
 
   await refresh();
+}
+
+/**
+ * A keyboard command on a browser that cannot write a file from the background
+ * opens this page with the export it wanted. Doing it on arrival is the point:
+ * the user already asked for it, and the alternative is a page that arrives with
+ * a button they have to press again.
+ */
+async function runHashAction(select: (id: string) => void): Promise<void> {
+  const match = /^#export=(all_windows|current_window)$/.exec(location.hash);
+  if (!match) return;
+  history.replaceState(null, "", location.pathname);
+  settings.scope = match[1] as Scope;
+  select("export");
+  await refresh();
+  await run("save");
 }
 
 function paintSettings(): void {

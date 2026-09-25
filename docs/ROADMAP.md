@@ -25,7 +25,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 |---|---|---|---|---|---|---|
 | T-001 | Initialise the repository | M0 | Foundation | No version control, so no history, no branch protection and nothing for CI to trigger on | `git init` on `main`, commit the documentation set, `.gitignore` covering local reference material and build output | done |
 | T-002 | Build pipeline | M0 | Foundation | TypeScript cannot run in a browser and two engines need two outputs from one source | esbuild with a single config producing `dist/chrome` and `dist/firefox`, plus typecheck and lint scripts | done |
-| T-003 | Manifests for both engines | M0 | Foundation | Chromium and Gecko differ in manifest requirements, and a wrong permission set is a store rejection | Two manifests over one source tree. Three required permissions, `tabGroups` and `offscreen` optional, `browser_specific_settings` id for Gecko, restrictive CSP | done |
+| T-003 | Manifests for both engines | M0 | Foundation | Chromium and Gecko differ in manifest requirements, and a wrong permission set is a store rejection | Two manifests over one source tree. Three required permissions, `tabGroups` optional, `browser_specific_settings` id for Gecko, restrictive CSP | done |
 | T-004 | Adapter boundary and capability probe | M0 | Foundation | Engine differences leak into feature code and degenerate into browser sniffing | `src/core/adapter/*` wrapping every `browser.*` call, `capabilities.ts` probing for APIs, an eslint rule failing the build on any `browser.*` outside the adapter | done |
 | T-005 | Popup shell | M0 | UI | Users need a one click path, and a popup must never host a file dialog because it closes on focus loss | Popup shows live window and tab counts, one click export, and a link that opens the manager page | done |
 | T-006 | Continuous integration | M0 | Quality | Regressions land silently without a gate | GitHub Actions running typecheck, lint, unit tests and both builds on every push and pull request | done |
@@ -35,7 +35,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-102 | Types and schema generation | M1 | Format | A hand written schema drifts from the code, and a published schema that drifts is worse than none | `src/types/tabspack.ts` as the single source, `schema/tabspack.v1.schema.json` generated in CI, build fails on a hand edit | done |
 | T-103 | Serialize to the file format | M1 | Format | Unstable output makes diffs meaningless and breaks the round trip test | Deterministic key and array order, `data:` favicon stripping by default, `exportedAt` the only non deterministic field | done |
 | T-104 | Filter pipeline | M1 | Export | Users export noise: duplicates, internal pages, pinned tabs they do not want, unsorted lists | Dedupe, scheme filter, skip pinned, wildcard exclude and sort, composed in one documented order | done |
-| T-105 | File write and clipboard | M1 | Export | A service worker cannot reach the clipboard and cannot create object URLs | `downloads` API for the file, offscreen document for clipboard on Chromium, page context on Gecko | done |
+| T-105 | File write and clipboard | M1 | Export | A service worker cannot reach the clipboard and cannot create object URLs | `downloads` API for the file, clipboard from the page context on both engines | done |
 | T-106 | One way text and flat JSON export | M1 | Export | Users want a paste friendly list and will otherwise assume it round trips | Ship both, label them one way in the UI, titles behind a toggle per ADR-011 | done |
 | T-107 | Fixture corpus | M1 | Quality | Nothing can be tested or measured without deterministic sample data | Commit valid, invalid, foreign and synthetic fixtures, including the 3 window 40 tab 3 group case and 1000 and 5000 tab files | done |
 | T-108 | Export scope UI | M1 | UI | The four scopes are the main control surface and must not be buried | Scope selector in popup and manager: current window, all windows, current tab, selection | done |
@@ -60,12 +60,12 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-308 | Flat JSON adapter | M3 | Import | Scripts and other tools emit an array of URLs or objects | Accept an array of strings or of objects carrying a url field | done |
 | T-309 | Filter UI and exclude list | M3 | UI | The filter pipeline from T-104 is useless if it is not reachable | Filter controls in the manager plus a wildcard exclude list in options | done |
 | T-310 | Fidelity disclosure | M3 | Import | A low fidelity source silently yields a low fidelity pack, and the user blames TabsPack | The preview states what the source format carried and what it could not | done |
-| T-401 | Snapshot storage layer | M4 | Snapshots | Files are the wrong unit for a daily habit, and a single storage key would block the list on a large snapshot | Metadata index plus one `snapshot:<uuid>` key per snapshot in `storage.local` | next |
-| T-402 | Snapshot management UI | M4 | Snapshots | A saved snapshot nobody can find, rename or delete is a leak, not a feature | List, rename, tag, delete and restore from the manager page | todo |
-| T-403 | Snapshot import and export without restore | M4 | Snapshots | Users need to move a pack between machines without opening 200 tabs to do it | Export any snapshot to a file, and import a file as a snapshot | todo |
-| T-404 | Keyboard commands | M4 | UI | The fastest users never open a popup | Commands for export all windows, export current window and save snapshot, with defaults that avoid common conflicts | todo |
-| T-405 | Quota guard and retention | M4 | Snapshots | `storage.local` fills silently and then writes start failing | Warn at 80 percent of the soft cap, never auto delete, per ADR-012 | todo |
-| T-501 | Options page | M5 | UI | Defaults, filters and restore policy need a home outside the task flow | Options page covering FR-401 to FR-405 | todo |
+| T-401 | Snapshot storage layer | M4 | Snapshots | Files are the wrong unit for a daily habit, and a single storage key would block the list on a large snapshot | Metadata index plus one `snapshot:<uuid>` key per snapshot in `storage.local` | done |
+| T-402 | Snapshot management UI | M4 | Snapshots | A saved snapshot nobody can find, rename or delete is a leak, not a feature | List, rename, tag, delete and restore from the manager page | done |
+| T-403 | Snapshot import and export without restore | M4 | Snapshots | Users need to move a pack between machines without opening 200 tabs to do it | Export any snapshot to a file, and import a file as a snapshot | done |
+| T-404 | Keyboard commands | M4 | UI | The fastest users never open a popup | Commands for export all windows, export current window and save snapshot, with defaults that avoid common conflicts | done |
+| T-405 | Quota guard and retention | M4 | Snapshots | `storage.local` fills silently and then writes start failing | Warn at 80 percent of the soft cap, never auto delete, per ADR-012 | done |
+| T-501 | Options page | M5 | UI | Defaults, filters and restore policy need a home outside the task flow | Options page covering FR-401 to FR-405 | next |
 | T-502 | Theme and visual polish | M5 | UI | Three surfaces built at different times look like three products | Single pass over popup, manager and options against the T-008 tokens | todo |
 | T-503 | i18n scaffold | M5 | UI | Retrofitting `__MSG_*` after launch touches every string in the product | Scaffold with English complete, locale files open to contribution afterwards | todo |
 | T-504 | Final icons and store assets | M5 | Release | Three stores each demand specific icon sizes, screenshots and promo tiles | One asset set generated to the strictest of the three requirements | todo |
@@ -111,7 +111,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 |---|---|---|---|---|
 | T-001 | None | Default branch `main`. MIT `LICENSE` present. Local reference material ignored | One commit, clean working tree, `git status` shows no untracked documentation | done |
 | T-002 | None | No framework. No runtime dependency other than the vendored polyfill | `npm run build` produces both directories. `npm run typecheck` passes with `strict: true` | done |
-| T-003 | FR-404 | Permissions exactly `tabs`, `storage`, `downloads`. `tabGroups` and `offscreen` optional. No host permissions. CSP `script-src 'self'; object-src 'none'` | Both builds load unpacked with a clean console and no permission warning beyond the three | done |
+| T-003 | FR-404 | Permissions exactly `tabs`, `storage`, `downloads`. `tabGroups` optional. No host permissions. CSP `script-src 'self'; object-src 'none'` | Both builds load unpacked with a clean console and no permission warning beyond the three | done |
 | T-004 | None | Capability probes only. Any browser name or user agent check fails review | Lint fails on `browser.` or `chrome.` outside `src/core/adapter/`. The probe reports a capability table on both engines | done |
 | T-005 | FR-001, FR-003 | No file dialog and no long running work in the popup | Opens within 150 ms with 200 tabs open, counts correct, NFR-001 measured | done |
 | T-006 | None | No secrets. No publish step | A red test blocks a pull request | done |
@@ -174,11 +174,11 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-401 | FR-301 | 50 snapshots totalling 5 MB store and list without a quota error, surviving an extension reload and a browser restart | next |
-| T-402 | FR-302 | Rename, tag and delete persist. Deleting removes the body key, not only the index entry | todo |
-| T-403 | FR-303 | A snapshot exports to a file and a file imports as a snapshot without opening a tab | todo |
-| T-404 | FR-304 | Commands work on all three browsers and are listed in the browser shortcut settings | todo |
-| T-405 | FR-301 | A warning appears at 80 percent of the soft cap. Nothing is ever auto deleted | todo |
+| T-401 | FR-301 | 50 snapshots totalling 5 MB store and list without a quota error, surviving an extension reload and a browser restart | done |
+| T-402 | FR-302 | Rename, tag and delete persist. Deleting removes the body key, not only the index entry | done |
+| T-403 | FR-303 | A snapshot exports to a file and a file imports as a snapshot without opening a tab | done |
+| T-404 | FR-304 | Commands work on all three browsers and are listed in the browser shortcut settings | done |
+| T-405 | FR-301 | A warning appears at 80 percent of the soft cap. Nothing is ever auto deleted | done |
 
 **M4 exit test.** 50 snapshots totalling 5 MB stored, listed and restored without a quota error, surviving an extension reload and a browser restart.
 
@@ -186,7 +186,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-501 | FR-401, FR-403, FR-404 | Every setting persists and takes effect without a reload | todo |
+| T-501 | FR-401, FR-403, FR-404 | Every setting persists and takes effect without a reload | next |
 | T-502 | FR-405 | Three surfaces consistent in system, light and dark | todo |
 | T-503 | FR-406 | No hard coded user facing string outside `_locales/en` | todo |
 | T-504 | None | Assets accepted by all three stores at first upload | todo |
@@ -218,6 +218,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | M1 Export | T-101 to T-110 | 55 unit tests, 19 conformance fixtures, byte stable fixture comparison, performance budgets met with room to spare, 13 check browser smoke run |
 | M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
 | M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
+| M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture
@@ -244,6 +245,19 @@ a message that says what to do. Detection is by document shape only: the suite
 reads the same bytes with no file name in play, and a renamed file is still
 recognised. The Tab Session Manager reader was written against that project's own
 `src/background/save.js` rather than against a guess.
+
+M4 exit test result: fifty snapshots of a 200 tab session store and list without
+a quota error in the unit suite, and in a real Chromium a snapshot is written as
+an index entry plus a body, previewed, and deleted with both keys removed. The
+storage line reports usage against the ten megabyte soft cap, and nothing is ever
+deleted to make room.
+
+Three things were measured in a real browser rather than assumed, and each
+changed the design. A Chromium service worker has no `URL.createObjectURL` but
+its downloads API does accept a data URL, which removed the offscreen document
+from the product entirely (ADR-021). Chrome silently refuses some suggested
+shortcuts: `Alt+Shift+W`, `Alt+Shift+C` and `Alt+Shift+T` came back empty, while
+`E`, `D`, `S`, `K`, `1`, `2` and `Ctrl+Shift+U` were accepted.
 
 Four defects that only a real browser could find were fixed in M2 and are
 recorded in LIMITATIONS.md: `tabs.create` rejecting `title` on Chromium, a CSS

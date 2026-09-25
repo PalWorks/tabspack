@@ -6,7 +6,6 @@ import type { Capabilities } from "../../src/core/adapter/types.js";
 const full: Capabilities = {
   tabGroups: true,
   containers: false,
-  offscreen: true,
   downloads: true,
   windowBounds: true,
   commands: true,

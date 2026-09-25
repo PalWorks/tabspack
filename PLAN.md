@@ -205,7 +205,7 @@ Each is measurable and each becomes a test. The v0.9 targets for startup and mem
 | `storage` | Required | Settings and named snapshots |
 | `downloads` | Required | Write the export file |
 | `tabGroups` | Optional, requested on first use | Chrome shows an update warning for newly added required permissions. Requesting at first use avoids it |
-| `offscreen` | Optional, declared at M4 | Clipboard write from the service worker only. Not declared before something uses it: ADR-015 |
+| `offscreen` | Never | Not needed. The background writes a file through a data URL on Chromium and a blob URL on Gecko, and the clipboard is only ever written from a page: ADR-021 supersedes ADR-015 |
 | `sessions` | Optional, post v1 | Recently closed recovery |
 | Host permissions | None | Never needed. Export Tabs asking for `<all_urls>` is a review risk we will not repeat |
 
@@ -220,7 +220,8 @@ Each is measurable and each becomes a test. The v0.9 targets for startup and mem
 | Window bounds and state on restore | `windows.create` with bounds, retry at 800 by 600 on rejection | Same | Open at default size |
 | Containers, `cookieStoreId` | Absent | Supported | Field carried in the file, ignored on import |
 | Window title preface | Absent | Supported | Window `name` shown in the TabsPack UI only |
-| Clipboard from the service worker | Offscreen document | Page context | Copy from the manager page |
+| File write from the background, for a keyboard command | `data:` URL through the downloads API | Blob URL from the event page | The manager page opens and finishes the export |
+| Clipboard | Page context only | Page context only | Nothing in the product copies from the background |
 | File write | `downloads` API, or Blob plus object URL from a page | Same | Render JSON in a textarea to copy |
 
 ## 14. Risks

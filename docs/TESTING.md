@@ -1,9 +1,9 @@
 # Testing
 
-As of the end of M3: 163 unit tests, 20 conformance fixtures, 16 foreign format
-fixtures, 2 performance budgets and a 40 check browser smoke run that includes a
-real import, a real restore and a real search. The contract below is what they
-are for.
+As of the end of M4: 185 unit tests, 20 conformance fixtures, 16 foreign format
+fixtures, 2 performance budgets and a 50 check browser smoke run that includes a
+real import, a real restore, a real search and a real snapshot. The contract
+below is what they are for.
 
 ## Philosophy
 
@@ -113,6 +113,8 @@ Every adapter is held to the same three assertions in `test/unit/adapters.test.t
 | Discarded restore | Create then discard | Create then discard | `discarded: true` at creation |
 | Clipboard from the service worker | Offscreen document | Offscreen document | Page context |
 | Optional permission prompt for `tabGroups` | Required | Required | Required |
+| Keyboard commands fire, and appear in the browser's shortcut settings | Required | Required | Required |
+| Snapshots survive a browser restart | Required | Required | Required |
 | Containers | Not applicable | Not applicable | Field ignored, no error |
 
 ## Commands
@@ -142,6 +144,12 @@ have found: `tabs.create` rejecting the `title` property on Chromium, a CSS
 layout rule defeating the `hidden` attribute, `tabs.group` needing no permission
 while its metadata does, and a preview that silently deselected the tabs it was
 supposed to report.
+
+What it cannot reach: a browser level keyboard shortcut. No test driver can
+press one, so the smoke run checks everything up to that line, that the commands
+are declared with the shortcuts the browser accepted and that the worker has a
+listener, and `test/unit/commands.test.ts` covers what each command then does.
+Pressing the keys is a manual matrix case.
 
 It is not in CI because CI has no browser, and it is not a substitute for the
 manual matrix above.

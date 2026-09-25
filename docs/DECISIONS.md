@@ -283,3 +283,19 @@ Date 2026-09-25. Status accepted. Relates to T-303 and T-304.
 **Decision.** One file imports as one pack. The first session is read, and a warning names how many were in the file and what to do about the others.
 
 **Consequence.** A user migrating a whole archive has to export their sessions one at a time from the other tool. That is the honest cost, and it is visible in the report rather than discovered later as a silent merge. A session picker in the preview is a reasonable M4 or later addition if anyone asks for it; it is not in Table R1 yet, deliberately.
+
+---
+
+## ADR-021: No offscreen document, because the background can write a file by itself
+
+Date 2026-09-25. Status accepted. Supersedes ADR-015.
+
+**Context.** ADR-015 kept the offscreen document in the source and deferred its permission to M4, on the assumption that a Chromium service worker cannot produce a file and would need one to make a blob URL. M4 is the milestone where a keyboard command has to write a file with no page open, so the assumption was measured.
+
+**What the measurement said.** In a Chromium service worker with the built extension loaded: `URL.createObjectURL` is absent, `Blob` exists, and `chrome.downloads.download` accepts a `data:` URL and returns a download id. A Gecko MV3 background is an event page with a DOM, so it makes a blob URL directly.
+
+**Options.** Declare `offscreen`, request it at first use and keep a document whose only job is to make a blob URL. Or write the file from the background by the route each engine already allows, and fall back to the manager page when neither works.
+
+**Decision.** No offscreen document. `src/background/save-file.ts` tries a blob URL, then a data URL under 1.5 MB, then opens the manager page with the export it wanted. The offscreen source, its build entry and its 35 KB in each package are gone, and the `offscreen` permission is never requested.
+
+**Consequence.** One fewer execution context, one fewer permission a store reviewer has to be told about, and a smaller package. The clipboard is now only ever written from a page, which is where every copy in the product already happens; `copyText` from a context with no DOM throws a message saying so rather than silently doing nothing. If a future feature needs a background clipboard write, this decision is the one to supersede, and the document to restore is in the history of this repository.

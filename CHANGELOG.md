@@ -34,8 +34,13 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - **M3 Selection and foreign formats (T-301 to T-310).** Eight readers for other tools' files, detected by document shape and never by file name: Tab Session Manager, Session Buddy JSON, any CSV with a URL column, OneTab, lists of addresses, Markdown link lists, browser bookmark files and flat JSON arrays. Each declares what it could not carry, and the preview says so before anything is restored. Search across title and address in the preview, with select all and select none acting on what the search shows. The filter controls reach the interface: order, reverse and a wildcard exclude list, all persisted
 - Decision record ADR-020: one file imports as one pack, and a file holding several saved sessions says so
 
+- **M4 Snapshots (T-401 to T-405).** Sessions saved inside the extension, with a metadata index and one body per snapshot so listing fifty of them stays cheap. Rename, tag, export to a file, add a file as a snapshot without opening anything, and a two press delete that removes the body as well as the entry. A snapshot opens in the same preview as a file, so there is one path that opens tabs. Storage use is shown against a ten megabyte soft cap with a warning at eighty percent, and nothing is ever deleted automatically
+- **Keyboard commands (T-404).** Export all windows, export this window, save a snapshot. The export commands write the file from the background: a blob URL where the engine has one, a data URL where it does not, and the manager page for a pack too large for either
+- Decision record ADR-021, superseding ADR-015: no offscreen document, because a Chromium service worker's downloads API accepts a data URL. That removed a whole execution context, a permission and about 35 KB from each package
+
 ### Fixed
 
+- A file input fired no event when the same file was chosen twice, so fixing a file and picking it again did nothing
 - Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report
 
 ### Notes

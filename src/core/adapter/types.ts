@@ -80,7 +80,6 @@ export interface PlatformInfo {
 export interface Capabilities {
   tabGroups: boolean;
   containers: boolean;
-  offscreen: boolean;
   downloads: boolean;
   windowBounds: boolean;
   commands: boolean;
@@ -148,8 +147,8 @@ export interface DownloadRequest {
 
 /**
  * Returned by a message handler that is not responsible for a message, so the
- * router stays silent and lets another context answer. The service worker and
- * the offscreen document both receive every runtime message.
+ * router stays silent and lets another context answer. Every extension context
+ * receives every runtime message, and the first responder wins.
  */
 export const UNHANDLED = "__tabspack_unhandled__";
 
@@ -187,6 +186,10 @@ export interface BrowserAdapter {
   storageRemove(keys: string[]): Promise<void>;
   /** Every stored key. `storageGet` only returns the keys it was given. */
   storageGetAll(): Promise<Record<string, unknown>>;
+  /** Bytes in use, or null when the browser does not report it. */
+  storageBytesInUse(): Promise<number | null>;
+  /** Fires when another page or the background changes stored data. */
+  onStorageChanged(handler: (keys: string[]) => void): void;
   setBadge(text: string, durationMs?: number): Promise<void>;
   sendMessage<T = unknown>(message: unknown): Promise<T | undefined>;
   extensionUrl(path: string): string;

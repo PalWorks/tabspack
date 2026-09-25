@@ -33,7 +33,12 @@ interface Loaded {
   duplicates: Set<string>;
 }
 
-export function initImportPanel(adapter: BrowserAdapter, settings: Settings): void {
+export interface ImportPanel {
+  /** Shows a session that did not come from a file, such as a snapshot. */
+  showSession(session: Session, source: SourceInfo, label: string): Promise<void>;
+}
+
+export function initImportPanel(adapter: BrowserAdapter, settings: Settings): ImportPanel {
   const ui = {
     dropzone: must<HTMLDivElement>("#dropzone"),
     picker: must<HTMLInputElement>("#file"),
@@ -70,6 +75,10 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
   ui.choose.addEventListener("click", () => ui.picker.click());
   ui.picker.addEventListener("change", () => {
     const file = ui.picker.files?.[0];
+    // Clearing the value is what lets the same file be chosen twice: an input
+    // whose value has not changed fires no event, and a person who fixed their
+    // file and picked it again would get nothing.
+    ui.picker.value = "";
     if (file) void accept(file);
   });
 
@@ -136,6 +145,62 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
         ui.groupsPermission.hidden = true;
       });
   });
+
+  /**
+   * The same preview, the same restore, for something that was never a file. A
+   * snapshot opened from its own panel lands here rather than getting a second
+   * restore path of its own.
+   */
+  async function showSession(session: Session, source: SourceInfo, label: string): Promise<void> {
+    intake += 1;
+    clearReport(ui.report);
+    clear(ui.issues);
+    clear(ui.restoreIssues);
+    ui.search.value = "";
+
+    const marks = await markTabs(session);
+    loaded = { session, source, filename: label, bytes: 0, ...marks };
+
+    const counts = countSession(session);
+    ui.fileMeta.textContent = [
+      label,
+      plural(counts.windows, "window"),
+      plural(counts.tabs, "tab"),
+      ...(counts.groups > 0 ? [plural(counts.groups, "group")] : []),
+    ].join(" · ");
+    ui.fidelity.textContent = describeFidelity(source);
+    ui.fidelity.dataset.fidelity = source.fidelity;
+
+    tree.load(session, { blocked: marks.blocked });
+    ui.preview.hidden = false;
+    await gateGroupPermission(session);
+    paintSelection();
+  }
+
+  /** Which tabs cannot be opened at all, and which are already open. */
+  async function markTabs(session: Session): Promise<{ blocked: Map<string, string>; duplicates: Set<string> }> {
+    const [fileAccess, openTabs] = await Promise.all([
+      adapter.isAllowedFileSchemeAccess(),
+      adapter.queryTabs({}).catch(() => []),
+    ]);
+    const openKeys = new Set(
+      openTabs
+        .map((tab) => (typeof tab.url === "string" && tab.url !== "" ? tab.url : (tab.pendingUrl ?? "")))
+        .filter((url) => url !== "")
+        .map(dedupeKey),
+    );
+    const blocked = new Map<string, string>();
+    const duplicates = new Set<string>();
+    for (const win of session.windows) {
+      for (const tab of win.tabs) {
+        const id = tabId(win, tab);
+        const verdict = judgeUrl(tab.url, { fileAccess });
+        if (!verdict.openable) blocked.set(id, "cannot be opened");
+        else if (openKeys.has(dedupeKey(tab.url))) duplicates.add(id);
+      }
+    }
+    return { blocked, duplicates };
+  }
 
   async function accept(file: File): Promise<void> {
     const token = (intake += 1);
@@ -330,6 +395,8 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
       });
     }
   }
+
+  return { showSession };
 }
 
 function plural(count: number, noun: string): string {

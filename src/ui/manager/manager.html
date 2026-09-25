@@ -45,6 +45,17 @@
         >
           Import
         </button>
+        <button
+          id="tab-snapshots"
+          class="tab"
+          type="button"
+          role="tab"
+          data-tab="snapshots"
+          aria-selected="false"
+          aria-controls="panel-snapshots"
+        >
+          Snapshots
+        </button>
       </div>
 
       <div id="panel-export" role="tabpanel" aria-labelledby="tab-export" class="panel">
@@ -202,6 +213,41 @@
 
           <div id="restore-report" class="report" role="status" aria-live="polite"></div>
           <div id="restore-issues" class="report"></div>
+        </section>
+      </div>
+
+      <div id="panel-snapshots" role="tabpanel" aria-labelledby="tab-snapshots" class="panel" hidden>
+        <section class="card" aria-labelledby="snapshots-legend">
+          <h2 class="legend" id="snapshots-legend">Snapshots</h2>
+          <p class="hint">
+            A snapshot is this session kept inside TabsPack, so you do not have to decide where a file
+            goes. It stays on this machine, and nothing here opens a tab on its own.
+          </p>
+
+          <div class="actions">
+            <label class="visually-hidden" for="snapshot-name">Name for this snapshot</label>
+            <input
+              id="snapshot-name"
+              class="search"
+              type="text"
+              placeholder="Name it, or leave this to be named by date"
+              autocomplete="off"
+            />
+            <button id="save-snapshot" class="btn btn-primary action" type="button">Save this session</button>
+            <span id="snapshot-usage" class="summary"></span>
+          </div>
+
+          <div class="row">
+            <button id="add-snapshot-file" class="btn btn-secondary" type="button">Add a file as a snapshot</button>
+            <input id="snapshot-file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
+            <span class="hint">The file is saved here for later. Nothing is opened.</span>
+          </div>
+
+          <div id="snapshot-warning" class="notice" hidden></div>
+          <div id="snapshot-report" class="report" role="status" aria-live="polite"></div>
+
+          <p id="snapshot-empty" class="summary">No snapshots yet.</p>
+          <ul id="snapshot-list" class="snapshot-list"></ul>
         </section>
       </div>
     </div>

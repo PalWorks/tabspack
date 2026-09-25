@@ -522,6 +522,101 @@ try {
     console.log("smoke: no 5000 tab fixture, run npm run fixtures for the NFR-005 check");
   }
 
+  /* Snapshots and keyboard commands, M4 ---------------------------------- */
+
+  await manager.click("#tab-snapshots");
+  check("the snapshots task opens", await manager.isVisible("#save-snapshot"));
+
+  await manager.fill("#snapshot-name", "Smoke snapshot");
+  await manager.click("#save-snapshot");
+  await manager.waitForSelector(".snapshot", { timeout: 10_000 });
+  const snapshotMeta = await manager.textContent(".snapshot-meta");
+  const usageLine = await manager.textContent("#snapshot-usage");
+  check(
+    "a snapshot records the windows and tabs it saved",
+    /\d+ windows? · \d+ tabs/.test(snapshotMeta ?? ""),
+    snapshotMeta ?? "",
+  );
+  check("storage use is reported against the cap", /of about 10\.0 MB used/.test(usageLine ?? ""), usageLine ?? "");
+
+  const stored = await worker.evaluate(async () => {
+    const all = await chrome.storage.local.get(null);
+    const index = all.snapshots ?? [];
+    const bodies = Object.keys(all).filter((key) => key.startsWith("snapshot:"));
+    return { entries: index.length, bodies: bodies.length, name: index[0]?.name ?? "" };
+  });
+  check(
+    "the snapshot is in storage as an index entry and a body",
+    stored.entries === 1 && stored.bodies === 1 && stored.name === "Smoke snapshot",
+    JSON.stringify(stored),
+  );
+
+  /**
+   * A keyboard command is fired by the browser itself, and no test driver can
+   * press a browser level shortcut, so what is checked here is everything up to
+   * that line: the commands are declared with their suggested keys, the browser
+   * lists them where a user can rebind them, and the worker has a listener
+   * waiting. Pressing the keys is a manual matrix case in docs/TESTING.md.
+   */
+  const listening = await worker.evaluate(() => chrome.commands.onCommand.hasListeners?.() ?? true);
+  check("the worker is listening for keyboard commands", listening === true, String(listening));
+
+  const declared = await worker.evaluate(async () =>
+    (await chrome.commands.getAll())
+      .filter((command) => !command.name.startsWith("_"))
+      .map((command) => `${command.name}:${command.shortcut}`)
+      .sort(),
+  );
+  check(
+    "all three commands are declared with a shortcut the browser accepted",
+    JSON.stringify(declared) ===
+      JSON.stringify([
+        "export-all-windows:Alt+Shift+E",
+        "export-current-window:Alt+Shift+D",
+        "save-snapshot:Alt+Shift+S",
+      ]),
+    JSON.stringify(declared),
+  );
+
+  await manager.click(".snapshot-actions button");
+  await manager.waitForFunction(
+    () => /Smoke snapshot/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    { timeout: 10_000 },
+  );
+  check(
+    "previewing a snapshot opens it in the import task, where the restore lives",
+    await manager.isVisible("#tree"),
+  );
+
+  await manager.click("#tab-snapshots");
+  await manager.screenshot({ path: path.join(shots, "manager-snapshots.png"), fullPage: true });
+  await manager.click(".snapshot-actions button:last-child");
+  const armed = await manager.textContent(".snapshot-actions button:last-child");
+  check("deleting asks once before it deletes", /Delete for good/.test(armed ?? ""), armed ?? "");
+  await manager.click(".snapshot-actions button:last-child");
+  await manager.waitForFunction(() => document.querySelectorAll(".snapshot").length === 0, {
+    timeout: 5_000,
+  });
+  const afterDelete = await worker.evaluate(async () => {
+    const all = await chrome.storage.local.get(null);
+    return {
+      entries: (all.snapshots ?? []).length,
+      bodies: Object.keys(all).filter((key) => key.startsWith("snapshot:")).length,
+    };
+  });
+  check(
+    "deleting removes the body as well as the list entry",
+    afterDelete.entries === 0 && afterDelete.bodies === 0,
+    JSON.stringify(afterDelete),
+  );
+
+  await manager.click("#tab-import");
+  await manager.setInputFiles("#file", packPath);
+  await manager.waitForFunction(
+    () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    { timeout: 10_000 },
+  );
+
   await manager.screenshot({ path: path.join(shots, "manager-import.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "dark" });
   await manager.screenshot({ path: path.join(shots, "manager-import-dark.png"), fullPage: true });

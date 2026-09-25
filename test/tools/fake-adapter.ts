@@ -40,6 +40,8 @@ export interface FakeState {
   fileAccessAllowed?: boolean;
   storage?: Record<string, unknown>;
   failDownload?: boolean;
+  /** Null makes the browser refuse to report its own usage, as some do. */
+  storageBytesInUse?: number | null;
   /** Makes the first `createWindow` with bounds reject, as a window manager can. */
   failBoundsOnce?: boolean;
 }
@@ -51,13 +53,13 @@ export interface FakeAdapter extends BrowserAdapter {
   opened: string[];
   /** Every mutating call, in order, so a test can assert the sequence. */
   calls: { method: string; detail?: unknown }[];
+  storageListeners: ((keys: string[]) => void)[];
   state: FakeState;
 }
 
 const DEFAULT_CAPABILITIES: Capabilities = {
   tabGroups: true,
   containers: false,
-  offscreen: true,
   downloads: true,
   windowBounds: true,
   commands: true,
@@ -118,6 +120,7 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     badges: [],
     opened: [],
     calls: [],
+    storageListeners: [],
 
     async platform() {
       return { ...DEFAULT_PLATFORM, ...(state.platform ?? {}) };
@@ -323,12 +326,20 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     },
     async storageSet(values: Record<string, unknown>) {
       Object.assign(storage, values);
+      for (const listener of adapter.storageListeners) listener(Object.keys(values));
     },
     async storageRemove(keys: string[]) {
       for (const key of keys) delete storage[key];
     },
     async storageGetAll() {
       return { ...storage };
+    },
+    onStorageChanged(handler: (keys: string[]) => void) {
+      adapter.storageListeners.push(handler);
+    },
+    async storageBytesInUse() {
+      if (state.storageBytesInUse === null) return null;
+      return new TextEncoder().encode(JSON.stringify(storage)).length;
     },
     async setBadge(text: string, durationMs?: number) {
       adapter.badges.push({ text, durationMs });

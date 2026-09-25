@@ -10,11 +10,10 @@ TabsPack is a browser extension with no server, no network access and no runtime
 
 | Context | File | Lives for | What belongs here |
 |---|---|---|---|
-| Service worker (background) | `src/background/sw.js` | Event to event, terminated when idle | Keyboard commands, badge, opening the manager page, clipboard handoff to the offscreen document. No long lived state, because the worker is killed |
+| Service worker (background) | `src/background/sw.ts` | Event to event, terminated when idle | Keyboard commands, badge, opening the manager page. It writes a file directly for an export command, which is bounded work. No long lived state, because the worker is killed |
 | Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, buttons that open the manager page. Never a file dialog, never a long task |
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
 | Options page | `src/ui/options/` | While open | Settings only |
-| Offscreen document | `src/offscreen/` | Milliseconds | Clipboard write on behalf of the service worker, then closes itself |
 | Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |
 
 The single most important placement decision: **import and export do not live in the popup**. A popup closes when the file picker takes focus, which is the most common cause of broken import in the extensions we studied. The popup is a launcher.
@@ -28,7 +27,9 @@ manifest.chrome.json      Chromium, service_worker background
 manifest.firefox.json     Gecko, background.scripts, browser_specific_settings
 src/
   background/
-    sw.ts                 message router, capability report on install
+    sw.ts                 message router, capability report, command listener
+    commands.ts           what each keyboard command does
+    save-file.ts          writing a file from the background: blob, data URL, page
   core/
     adapter/              the only code allowed to touch browser.*
       types.ts            BrowserAdapter interface, Raw* shapes, Capabilities
@@ -43,6 +44,7 @@ src/
     naming.ts             filenames and ISO timestamps with a local offset
     report.ts             export and import report objects
     settings.ts           defaults, merge on read, storage round trip
+    snapshots.ts          the metadata index, one body per snapshot, quota
     issues.ts             one shape for every validation, migration and read note
     schema.ts             structural validation and the version gate
     migrate.ts            the version step registry, empty until the format changes
@@ -74,9 +76,9 @@ src/
       manager.ts          the shell and the export task
       import-panel.ts     file intake, validation display, restore controls
       preview-tree.ts     the virtualised windows, groups and tabs tree
+      snapshot-panel.ts   save, list, rename, tag, export and delete snapshots
     placeholder/          the page listing addresses that cannot be opened
     options/ (M5)
-  offscreen/              clipboard write for the service worker
   types/
     tabspack.ts           the format types, the source of the JSON Schema
     session.ts            the in memory model
@@ -173,14 +175,17 @@ The service worker is a router, not a brain. Messages are plain objects with a `
 |---|---|---|
 | `OPEN_MANAGER` | popup | Open the manager page |
 | `FLASH_BADGE` | any page | Show a count briefly |
-| `COPY_TEXT` | any page | Clipboard write through the offscreen document |
 | `CAPABILITIES` | any page | The capability probe, for diagnostics |
-| `OFFSCREEN_COPY` | service worker | Answered by the offscreen document, not by the router |
-| `EXPORT_SCOPE` (M4) | keyboard command | Export without opening a surface. Arrives with hotkeys |
 
-A handler that is not responsible for a message returns `UNHANDLED` rather than
-a response, because the service worker and the offscreen document both receive
-every runtime message and the first responder wins.
+A handler that is not responsible for a message returns `UNHANDLED` rather than a
+response, because every extension context receives every runtime message and the
+first responder wins.
+
+Keyboard commands do not use messages at all. The worker runs them itself, in
+`src/background/commands.ts`: collect, then either write a file or save a
+snapshot. A command that has to open a page to finish, because the pack is too
+large to write from the background, opens the manager page at
+`manager.html#export=<scope>` and the page performs the export on arrival.
 
 Restore runs in the manager page, not the service worker, because it is long running and the worker can be terminated mid flight.
 
@@ -193,8 +198,8 @@ Restore runs in the manager page, not the service worker, because it is long run
 | Key | Shape | Notes |
 |---|---|---|
 | `settings` | object | Defaults live in one module, merged on read, so a new setting never requires a migration |
-| `snapshots` | array of `{ id, name, tags, createdAt, counts }` | Metadata only, for fast list rendering |
-| `snapshot:<uuid>` | TabsPackFile | One key per snapshot so a large snapshot never blocks reading the list |
+| `snapshots` | array of `{ id, name, tags, createdAt, updatedAt, counts, bytes }` | Metadata only, so listing fifty snapshots reads a few kilobytes. The body is written before the entry that names it, because an orphan body can be found and an entry with no body cannot be opened |
+| `snapshot:<uuid>` | The pack as text, exactly as exporting it would write | One key per snapshot so a large snapshot never blocks reading the list |
 | `placeholder:<uuid>` | `{ createdAt, tabs }` | The addresses a restore could not open, handed to the placeholder page. A pack can hold hundreds, which is more than a URL can carry. Pruned to the five most recent whenever that page opens |
 | `schemaVersion` | integer | Of the stored data, not of the file format |
 

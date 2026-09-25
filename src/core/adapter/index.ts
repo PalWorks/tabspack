@@ -22,7 +22,6 @@ import { UNHANDLED } from "./types.js";
 import { browser } from "./webext.js";
 
 const BADGE_COLOR = "#2563eb";
-const OFFSCREEN_PATH = "offscreen.html";
 let badgeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -94,7 +93,6 @@ export const realAdapter: BrowserAdapter = {
     return {
       tabGroups: typeof browser.tabGroups?.query === "function",
       containers: typeof browser.contextualIdentities !== "undefined",
-      offscreen: typeof browser.offscreen?.createDocument === "function",
       downloads: typeof browser.downloads?.download === "function",
       windowBounds: typeof browser.windows?.update === "function",
       commands: typeof browser.commands?.getAll === "function",
@@ -251,6 +249,23 @@ export const realAdapter: BrowserAdapter = {
     return await browser.storage.local.get(null);
   },
 
+  onStorageChanged(handler: (keys: string[]) => void): void {
+    browser.storage.onChanged?.addListener((changes, area) => {
+      if (area !== "local") return;
+      handler(Object.keys(changes ?? {}));
+    });
+  },
+
+  async storageBytesInUse(): Promise<number | null> {
+    const fn = browser.storage.local.getBytesInUse;
+    if (typeof fn !== "function") return null;
+    try {
+      return await fn.call(browser.storage.local, null);
+    } catch {
+      return null;
+    }
+  },
+
   async setBadge(text: string, durationMs?: number): Promise<void> {
     const action = browser.action;
     if (!action) return;
@@ -286,37 +301,19 @@ export const realAdapter: BrowserAdapter = {
     await browser.tabs.create({ url });
   },
 
+  /**
+   * The clipboard is only ever written from a page. The background has no DOM and
+   * no clipboard, and nothing in TabsPack asks it to copy: see ADR-021.
+   */
   async copyText(text: string): Promise<void> {
     const clipboard = (globalThis.navigator as { clipboard?: { writeText(t: string): Promise<void> } })
       ?.clipboard;
-    if (typeof document !== "undefined" && clipboard) {
-      await clipboard.writeText(text);
-      return;
+    if (typeof document === "undefined" || !clipboard) {
+      throw new Error("Copying works from the TabsPack pages, not from the background.");
     }
-    await copyViaOffscreen(text);
+    await clipboard.writeText(text);
   },
 };
-
-/**
- * Clipboard write from the service worker, which has no DOM. The offscreen
- * document closes itself once the write completes.
- */
-async function copyViaOffscreen(text: string): Promise<void> {
-  const offscreen = browser.offscreen;
-  if (!offscreen) throw new Error("This browser cannot copy from the background.");
-  if (!(await offscreen.hasDocument())) {
-    await offscreen.createDocument({
-      url: OFFSCREEN_PATH,
-      reasons: ["CLIPBOARD"],
-      justification: "Write the exported tab list to the clipboard.",
-    });
-  }
-  const response = (await browser.runtime.sendMessage({
-    type: "OFFSCREEN_COPY",
-    text,
-  })) as { ok?: boolean; error?: string } | undefined;
-  if (!response?.ok) throw new Error(response?.error ?? "The clipboard write failed.");
-}
 
 /** Message and lifecycle listeners, for the service worker only. */
 export const events = {
@@ -343,5 +340,9 @@ export const events = {
   },
   onInstalled(handler: (reason: string | undefined) => void): void {
     browser.runtime.onInstalled.addListener((details) => handler(details?.reason));
+  },
+  /** Keyboard commands, declared in the manifest and rebindable by the user. */
+  onCommand(handler: (command: string) => void): void {
+    browser.commands?.onCommand?.addListener((command) => handler(command));
   },
 };

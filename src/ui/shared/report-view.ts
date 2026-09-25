@@ -72,6 +72,11 @@ export function renderError(node: HTMLElement, message: string): void {
   paint(node, "error", message, undefined, undefined);
 }
 
+/** Something worked. A warning glyph on a success is a small lie about the outcome. */
+export function renderSuccess(node: HTMLElement, message: string): void {
+  paint(node, "success", message, undefined, undefined);
+}
+
 export function renderNote(node: HTMLElement, message: string): void {
   paint(node, "warn", message, undefined, undefined);
 }

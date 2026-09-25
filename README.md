@@ -2,12 +2,12 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-M3%20foreign%20formats%20complete-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-M4%20snapshots%20complete-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M3 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. Snapshots are M4, the options page and the store work are M5, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M4 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally and has keyboard commands. The options page, translations and the store work are M5, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
 
 ## Contents
 
@@ -49,10 +49,12 @@ Working today:
 - **Import from other tools.** Tab Session Manager, Session Buddy JSON and CSV, OneTab, Markdown link lists, browser bookmark exports, flat JSON and plain lists of addresses, all detected by what is in the file rather than by its name. Each import states what the source format could not carry.
 - **Search and select** in the preview, for taking part of a pack rather than all of it.
 
+- **Snapshots**, saved locally, named and tagged, for the days when you do not want to think about where a file went. Export one to a file, or add a file as a snapshot without opening a single tab.
+- **Keyboard commands** for exporting all windows, exporting this window and saving a snapshot, with no page in the way.
+
 Planned:
 
-- **Snapshots** (M4), saved locally, named and tagged, for the days when you do not want to think about where a file went.
-- **Keyboard commands** (M4), an options page, translations and the store listings (M5).
+- **An options page, translations and the store listings** (M5).
 
 Deliberately not in v1: cloud sync, accounts, encryption, AI features, bookmark management and scheduled saves. See [PLAN.md](PLAN.md) section 7.
 
@@ -90,8 +92,8 @@ One source tree, two manifests, no server, no network, one runtime dependency.
 popup            launcher: counts, one click export, opens the manager
 manager page     import, preview, selection, restore, snapshots. All file work
 options page     settings
-service worker   keyboard commands, badge, clipboard handoff
-offscreen doc    clipboard write on Chromium, then closes
+service worker   keyboard commands, badge, and writing a file when asked by one
+placeholder page addresses a restore could not open, as inert text
 ```
 
 Two models, deliberately: `TabsPackFile` is the public wire format, `Session` is the internal model, and only the serializer bridges them. Nothing outside `src/core/adapter/` may touch `browser.*`, which is what makes one codebase serve Chromium and Gecko. Details and the nine step restore order are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -150,7 +152,7 @@ docs/
   TESTING.md            test layers, fixtures, cross browser matrix
   CONTEXT_MAP.md        which file answers which question
   history/              superseded documents, kept for provenance
-src/                    core, adapter, ui, background, offscreen: see ARCHITECTURE.md
+src/                    core, adapter, ui, background: see ARCHITECTURE.md
 scripts/                build, lint, schema, test, fixtures, icons, perf, smoke
 schema/                 tabspack.v1.schema.json, generated from the types
 test/                   unit suite, fake adapter, fixtures and the bench
@@ -193,4 +195,4 @@ MIT. See [LICENSE](LICENSE). The specification is covered by the same licence, d
 
 ## Acknowledgements
 
-This plan exists because other people published their work. Tab Session Manager by sienori set the fidelity bar and contributed the window creation fallback, the optional `tabGroups` permission trick and favicon compression. Copy All URLs contributed the offscreen clipboard pattern, the filter pipeline and the `pendingUrl` fallback for unloaded tabs. TabsDump and Export Tabs showed, by their absence of an importer, exactly what was missing. Session Buddy set the expectation for restore speed.
+This plan exists because other people published their work. Tab Session Manager by sienori set the fidelity bar and contributed the window creation fallback, the optional `tabGroups` permission trick and favicon compression. Copy All URLs contributed the filter pipeline, the wildcard exclude list and the `pendingUrl` fallback for unloaded tabs. TabsDump and Export Tabs showed, by their absence of an importer, exactly what was missing. Session Buddy set the expectation for restore speed.

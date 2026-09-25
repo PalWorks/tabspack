@@ -25,11 +25,39 @@
     }
   },
   "background": {
-    "scripts": ["sw.js"]
+    "scripts": [
+      "sw.js"
+    ]
   },
-  "permissions": ["tabs", "storage", "downloads"],
-  "optional_permissions": ["tabGroups"],
+  "permissions": [
+    "tabs",
+    "storage",
+    "downloads"
+  ],
+  "optional_permissions": [
+    "tabGroups"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "commands": {
+    "export-all-windows": {
+      "suggested_key": {
+        "default": "Alt+Shift+E"
+      },
+      "description": "Export all windows to a TabsPack file"
+    },
+    "export-current-window": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "Export this window to a TabsPack file"
+    },
+    "save-snapshot": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Save a snapshot of every window"
+    }
   }
 }

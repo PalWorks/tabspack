@@ -21,14 +21,12 @@ const ENTRIES = [
   { in: "src/background/sw.ts", out: "sw" },
   { in: "src/ui/popup/popup.ts", out: "popup/popup" },
   { in: "src/ui/manager/manager.ts", out: "manager/manager" },
-  { in: "src/offscreen/offscreen.ts", out: "offscreen/offscreen" },
   { in: "src/ui/placeholder/placeholder.ts", out: "placeholder/placeholder" },
 ];
 
 const COPIES = [
   { from: "src/ui/popup/popup.html", to: "popup.html" },
   { from: "src/ui/manager/manager.html", to: "manager.html" },
-  { from: "src/offscreen/offscreen.html", to: "offscreen.html" },
   { from: "src/ui/placeholder/placeholder.html", to: "placeholder.html" },
   { from: "src/ui/placeholder/placeholder.css", to: "placeholder/placeholder.css" },
   { from: "src/ui/popup/popup.css", to: "popup/popup.css" },

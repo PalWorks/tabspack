@@ -27,9 +27,12 @@ Read this before "fixing" anything listed here. Every entry is either a browser 
 | `tabs.create` cannot assign a group | Grouping is always a second pass | Restore step 6 in ARCHITECTURE.md section 6 |
 | Tab and group ids are process local | They are useless in a file | The format uses its own `w1`, `g1` ids and `index` for order |
 | An MV3 service worker is terminated when idle | Long running restore in the worker can be killed mid flight | Restore runs in the manager page |
+| A Chromium service worker has no `URL.createObjectURL` | The background cannot make a blob URL to download | Measured: its downloads API accepts a `data:` URL instead, and a Gecko background page can make a blob URL. ADR-021 |
+| A data URL has a practical size limit | A very large pack cannot be written from the background that way | Beyond 1.5 MB the command opens the manager page, which has a DOM and no limit, and finishes the export there |
+| `storage.local` is capped at about 10 MB without the unlimitedStorage permission | Snapshots can fill it | Usage is shown against the cap, a warning appears at 80 percent, and nothing is ever deleted automatically: ADR-012 |
 | A browser action popup closes on focus loss | A file picker opened from a popup loses the popup and its state | ADR-009, all file work happens on the manager page |
 | Unloaded tabs may report an empty `url` | Naive collection loses them | Always fall back to `pendingUrl` |
-| Chrome shows an update warning for newly added required permissions | Adding `tabGroups` later would scare existing users | `tabGroups` and `offscreen` are optional permissions requested at first use |
+| Chrome shows an update warning for newly added required permissions | Adding `tabGroups` later would scare existing users | `tabGroups` is an optional permission requested at first use, from a button that says what it is for |
 | Window bounds may be rejected by the window manager | `windows.create` throws | Retry once at 800 by 600 at the origin, then continue |
 | `windows.create` refuses bounds and a state such as maximized in the same call | A maximized window cannot be given the position and size from the pack | Created plain, then maximized. Its bounds come from the window manager, so bounds do not round trip for a window that is not in its normal state |
 | A group holding the active tab cannot be collapsed | A collapsed group whose active tab is inside it comes back open | Collapsing runs after activating, and a refusal is reported rather than swallowed |
@@ -46,6 +49,9 @@ Read this before "fixing" anything listed here. Every entry is either a browser 
 | A textarea's value is not a child node | `:empty` never changes when the output panel is filled, which made a first version of the smoke check wait forever | Poll the value, not the selector |
 | A layout rule such as `display: flex` beats the `hidden` attribute | A hidden panel rendered anyway, which a real browser found and no unit test could | One rule in `base.css` makes `hidden` mean hidden everywhere |
 | A tab opened by the extension takes a moment to appear to the test driver, and reports no URL until it does | A check for the placeholder page failed although the page had opened | Poll for it rather than reading the page list once |
+| Chrome silently drops a suggested shortcut it will not accept | A command declared with `Alt+Shift+W`, `Alt+Shift+C` or `Alt+Shift+T` loads with no shortcut at all and no error | Measured: `Alt+Shift+E`, `D`, `S`, `K`, `1`, `2` and `Ctrl+Shift+U` are accepted. The shipped defaults are E, D and S, and the browser's own shortcut page can rebind them |
+| Chrome allows at most four suggested keys per extension | A fifth command silently loads with no shortcut, and too many can stop the extension loading at all | Three commands are declared, which leaves room for one more |
+| A file input fires no event when the same file is chosen twice | Fixing a file and picking it again did nothing | The input's value is cleared after every read |
 | Chrome does not grant `permissions.request` in an automated run | The tab groups path cannot be granted in `npm run smoke` | The smoke run asserts the degraded path instead, which is the path that needed proving anyway. The granted path is a manual matrix case |
 | The polyfill is bundled into all four entry points | About 35 KB is repeated in each bundle, roughly 140 KB across a 296 KB build | Accepted for now. Code splitting across a service worker and page contexts costs more than it saves at this size |
 

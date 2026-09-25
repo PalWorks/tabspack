@@ -14,7 +14,6 @@ export function describeCapabilities(caps: Capabilities): string {
   const rows: [string, string][] = [
     ["tab groups", yesNo(caps.tabGroups)],
     ["containers", yesNo(caps.containers)],
-    ["offscreen documents", yesNo(caps.offscreen)],
     ["downloads", yesNo(caps.downloads)],
     ["window bounds", yesNo(caps.windowBounds)],
     ["keyboard commands", yesNo(caps.commands)],

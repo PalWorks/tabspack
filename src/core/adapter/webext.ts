@@ -50,10 +50,12 @@ export interface WebExtApi {
     update(groupId: number, props: Record<string, unknown>): Promise<unknown>;
   };
   storage: {
+    onChanged?: Listener<[Record<string, unknown>, string]>;
     local: {
       get(keys: unknown): Promise<Record<string, unknown>>;
       set(values: Record<string, unknown>): Promise<void>;
       remove(keys: string | string[]): Promise<void>;
+      getBytesInUse?(keys: string | string[] | null): Promise<number>;
     };
   };
   permissions: {
@@ -69,20 +71,13 @@ export interface WebExtApi {
   };
   commands?: {
     getAll(): Promise<unknown[]>;
+    onCommand?: Listener<[string]>;
   };
   extension?: {
     isAllowedIncognitoAccess?(): Promise<boolean>;
     isAllowedFileSchemeAccess?(): Promise<boolean>;
   };
   contextualIdentities?: unknown;
-  offscreen?: {
-    hasDocument(): Promise<boolean>;
-    createDocument(options: {
-      url: string;
-      reasons: string[];
-      justification: string;
-    }): Promise<void>;
-  };
 }
 
 /**

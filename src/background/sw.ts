@@ -6,6 +6,7 @@
 import { events, realAdapter } from "../core/adapter/index.js";
 import { UNHANDLED } from "../core/adapter/types.js";
 import { capabilityNotices, describeCapabilities } from "../core/capabilities.js";
+import { runCommand } from "./commands.js";
 
 const MANAGER_PAGE = "manager.html";
 
@@ -19,6 +20,29 @@ interface Message {
 events.onInstalled((reason) => {
   void report(reason);
 });
+
+/**
+ * A keyboard command is the one place the worker does real work rather than
+ * routing. The badge is the only surface it has, so the count goes there and the
+ * detail goes to the log, where a user who opens the worker can read it.
+ */
+events.onCommand((command) => {
+  void (async () => {
+    try {
+      const outcome = await runCommand(realAdapter, command);
+      await realAdapter.setBadge(badgeFor(outcome.tabs), 2000);
+      console.info(`[TabsPack] ${command}: ${outcome.detail}`);
+    } catch (error) {
+      await realAdapter.setBadge("!", 3000);
+      console.error(`[TabsPack] ${command} failed:`, error);
+    }
+  })();
+});
+
+function badgeFor(tabs: number): string {
+  if (tabs <= 0) return "0";
+  return tabs < 100 ? String(tabs) : "99+";
+}
 
 events.onMessage(async (raw) => {
   const message = (raw ?? {}) as Message;
@@ -34,19 +58,10 @@ events.onMessage(async (raw) => {
       return { ok: true };
     }
 
-    case "COPY_TEXT":
-      try {
-        await realAdapter.copyText(typeof message.text === "string" ? message.text : "");
-        return { ok: true };
-      } catch (error) {
-        return { ok: false, error: error instanceof Error ? error.message : String(error) };
-      }
-
     case "CAPABILITIES":
       return { ok: true, capabilities: await realAdapter.capabilities() };
 
     default:
-      // Includes OFFSCREEN_COPY, which the offscreen document answers.
       return UNHANDLED;
   }
 });
