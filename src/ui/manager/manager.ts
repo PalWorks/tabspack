@@ -1,7 +1,10 @@
 /**
- * The manager page. At M1 it carries export only. Import, preview and snapshots
- * land in later phases inside this same shell, which is why the page exists now
- * rather than being bolted on: a popup cannot host a file dialog (ADR-009).
+ * The manager page. Two tasks, one shell: export on one tab, import and restore on
+ * the other. A popup cannot host a file dialog, which is why all file work lives
+ * here (ADR-009).
+ *
+ * This file wires the export task. The import task is `import-panel.ts`, and the
+ * preview tree it drives is `preview-tree.ts`.
  *
  * The output panel is the honesty mechanism of the product: the user reads the
  * exact bytes before trusting them.
@@ -13,6 +16,8 @@ import { loadSettings, saveSettings, type ExportFormat, type Settings } from "..
 import { countSession } from "../../types/session.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
+import { initTabs } from "../shared/tabs.js";
+import { initImportPanel } from "./import-panel.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
 import { copyPayload, savePayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
@@ -54,6 +59,16 @@ async function start(): Promise<void> {
   settings = await loadSettings(adapter);
   paintSettings();
   await gateIncognito();
+
+  initTabs(
+    must<HTMLDivElement>("#tasks"),
+    {
+      export: must<HTMLDivElement>("#panel-export"),
+      import: must<HTMLDivElement>("#panel-import"),
+    },
+    "export",
+  );
+  initImportPanel(adapter, settings);
 
   initSegmented(ui.scope, settings.scope, (value) => {
     settings.scope = value as Scope;

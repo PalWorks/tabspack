@@ -4,7 +4,7 @@
 |---|---|
 | Version | 0.2 |
 | Date | 2026-09-24 |
-| Status | Pre implementation. No code written yet |
+| Status | In implementation. M0 to M2 built and verified |
 | Supersedes | `docs/history/TabPack_BRD_PRD_v0.9.md` (BRD and PRD v0.9, 2026-07-14) |
 | Normative format spec | [docs/SPEC.md](docs/SPEC.md) |
 | Sequencing and exit tests | [docs/ROADMAP.md](docs/ROADMAP.md) |
@@ -215,7 +215,7 @@ Each is measurable and each becomes a test. The v0.9 targets for startup and mem
 
 | Capability | Chromium | Gecko | Fallback |
 |---|---|---|---|
-| Tab groups read and write | Chrome 89 and later | Firefox 139 and later | Group metadata kept in the file, tabs restored ungrouped, user notified once |
+| Tab groups read and write | Chrome 89 and later, `tabs.group` needs no permission but `tabGroups` metadata does | Firefox 139 and later | Group membership restored without the permission, titles and colours reported as not applied, user notified once |
 | Create a tab already discarded | Not supported on create. Create inactive then `tabs.discard` | `tabs.create({discarded:true})` | Create inactive without discarding |
 | Window bounds and state on restore | `windows.create` with bounds, retry at 800 by 600 on rejection | Same | Open at default size |
 | Containers, `cookieStoreId` | Absent | Supported | Field carried in the file, ignored on import |

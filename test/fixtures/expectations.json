@@ -1,5 +1,5 @@
 {
-  "_comment": "What each non-conforming fixture is for. `schemaValid` drives the schema conformance run; `readerAccepts` is asserted by the M2 validator, because the reader is deliberately more permissive than the schema in the ways docs/SPEC.md sections 6 and 7 name.",
+  "_comment": "What each non-conforming fixture is for. `schemaValid` drives scripts/schema-conformance.mjs; `readerAccepts` drives test/unit/schema.test.ts, because the reader is deliberately more permissive than the schema in the ways docs/SPEC.md Table S6 lists.",
   "invalid": {
     "missing-format.json": {
       "parses": true,

@@ -27,10 +27,18 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - 55 unit tests, 19 conformance fixtures, 2 performance budgets, and `npm run smoke` for a 13 check pass against a real Chromium
 - Decision records ADR-014 to ADR-016: a purpose built lint script rather than eslint, the `offscreen` permission deferred until something uses it, and group membership preserved when the tab groups API is absent
 
+- **M2 Import and restore (T-201 to T-209).** Validation with a JSON path and a suggested fix on every failure, and a version gate that refuses a future file by name. Unknown field retention proved byte for byte. The manager page gains an import task: drag and drop or a picker, a virtualised preview tree of windows, groups and tabs with per row selection, and the restore controls. The restore engine: throttled creation, discarding beyond a threshold, pinned ordering, groups as a second pass, window bounds with a retry, the active tab last, and a report counting restored, skipped, duplicate, unopenable and ungrouped tabs. Addresses no extension may open are listed on a placeholder page as inert text. A migration registry, empty by design, with a fixture pair driving it
+- The round trip harness, `test/tools/roundtrip.ts`: export, import, restore into a writable fake browser, export again, compare field by field. The documented exceptions are in `docs/TESTING.md` Table X3
+- Decision records ADR-017 to ADR-019: a hand written reader rather than a bundled validator, tabs that cannot be opened stay selected so the restore can report them, and the tab groups permission requested by a visible button
+
+### Fixed
+
+- Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report
+
 ### Notes
 
 - The `tabspack` v1 format is frozen as of M1. A field change now follows [docs/PLAYBOOK.md](docs/PLAYBOOK.md) section 4
-- Import and restore arrive at M2. The manager page ships without an import affordance rather than with a disabled one
+- Measured in a real Chromium: a 5000 tab pack previews in about a second with roughly 30 rows in the document, which is NFR-005
 - Measured: 1000 tabs export in 4 ms and 279 KB, against budgets of 2000 ms and 400 KB
 - Not yet verified by a human at a browser: the manual cross browser matrix in [docs/TESTING.md](docs/TESTING.md), and NFR-001, the 150 ms popup
 - The original product document is preserved at `docs/history/TabPack_BRD_PRD_v0.9.md` and is superseded, not current

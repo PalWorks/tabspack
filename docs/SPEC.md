@@ -7,12 +7,12 @@
 | File extension | `.tabspack.json` |
 | Media type | `application/json` |
 | Encoding | UTF-8, no byte order mark |
-| Status | Draft. Frozen at milestone M1 in [ROADMAP.md](ROADMAP.md), after which changes require a `schemaVersion` bump |
+| Status | Frozen as of milestone M1 in [ROADMAP.md](ROADMAP.md). A change now requires a `schemaVersion` decision and the procedure in [PLAYBOOK.md](PLAYBOOK.md) section 4 |
 | Licence | The specification is released under MIT with the rest of the repository. Third party implementations are encouraged |
 
 This is the normative description of the format. The extension is one implementation of it. Where this document and the code disagree, this document is wrong and must be corrected, or the code is a bug; either way the discrepancy is a defect.
 
-The machine readable JSON Schema is deliberately not in this repository yet. It will be added at `schema/tabspack.v1.schema.json` at M1, generated from the TypeScript types and tested against every fixture, because a normative schema published before it has been validated against real files is worse than none.
+The machine readable JSON Schema is `schema/tabspack.v1.schema.json`. It is generated from the TypeScript types in `src/types/tabspack.ts` and tested against every fixture; a hand edit of it fails the build.
 
 ## 1. Design rules
 
@@ -154,11 +154,29 @@ A reader that rewrites a file, for example on migration or re export of an impor
 
 The two rules together mean: never act on what you do not understand, never delete it either.
 
+### Table S6: Where a reader is deliberately more forgiving than the schema
+
+The schema describes what a writer must emit. A reader survives more than that, because a file a person can hand edit is a stated goal of this format. Each of these is reported to the user rather than applied silently.
+
+| Case | Schema | Reader |
+|---|---|---|
+| Unknown group colour | Rejected | Falls back to `grey` |
+| `index` absent, duplicated or not a whole number | Rejected when not an integer | Falls back to the order of the array |
+| `exportedAt` absent | Rejected | Accepted, and the time of import is used |
+| `counts` disagreeing with the arrays | Accepted | Accepted, arrays win, mismatch reported |
+| `groupId` naming a group that is not declared | Accepted | Reference dropped, tab kept, reported |
+| More than one tab marked `active` in a window | Accepted | The first wins, per section 5 |
+| `openerIndex` naming a tab that is not in the window | Accepted | Reference dropped, tab kept |
+
+Two rewrite behaviours follow from section 7 and are worth stating plainly. A reader keeps the text of `exportedAt` and `lastAccessed` exactly as it found it, rather than reformatting the same instant into its own timezone. And the `group` title shorthand in section 5 is resolved into a real group object on rewrite, which is the one case where a rewritten file is deliberately not byte identical to its input.
+
 ## 8. URLs that cannot be restored
 
 Browsers refuse to let an extension create tabs at most privileged schemes, including `chrome://`, `edge://`, `about:` other than `about:blank`, `moz-extension://`, `chrome-extension://` for other extensions, `view-source:`, `javascript:` and `data:`. Local `file://` URLs require an explicit browser level permission that the user grants outside the extension.
 
-Such URLs MUST still be written to the file verbatim, because the file is a record. On restore, a conforming implementation MUST NOT drop them silently. It MUST surface them, and the TabsPack reference implementation opens one placeholder page listing them as clickable links, and counts them in the import report. This is the one lossy edge of the format and it is deliberately visible.
+Such URLs MUST still be written to the file verbatim, because the file is a record. On restore, a conforming implementation MUST NOT drop them silently. It MUST surface them and count them in the import report.
+
+The TabsPack reference implementation opens one placeholder page listing them as **inert, selectable text, never as links**. A `javascript:` or `data:` address must never be one click away from running, and the others would not open from a link anyway. This is the one lossy edge of the format and it is deliberately visible.
 
 ## 9. Versioning and migration
 

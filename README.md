@@ -2,12 +2,12 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-M1%20export%20complete-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-M2%20import%20and%20restore%20complete-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export works, import does not yet.** Milestones M0 and M1 are complete, so the extension builds for Chromium and Gecko and exports your tabs to `.tabspack.json`, a URL list or the clipboard. Import, preview and restore are M2, snapshots are M4, and nothing is published to any store yet. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M2 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, and imports a pack back: validate, preview, select, restore. Foreign formats are M3, snapshots are M4, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
 
 ## Contents
 
@@ -42,12 +42,14 @@ Working today:
 - **Captured faithfully:** window position and state, tab order, pinned tabs, the active tab, muted and unloaded tabs, opener relationships, and tab groups with title, colour and collapsed state.
 - **Filters** for duplicates, non web pages, pinned tabs, a wildcard exclude list and sorting, with every dropped tab named in the report.
 - **Nothing leaves your machine.** No account, no sync, no telemetry, and no network request at all, which `npm run lint` enforces rather than promises.
+- **Import and preview** a pack before anything opens: a tree of windows, groups and tabs, with per row selection, that stays responsive at 5000 tabs.
+- **Restore without freezing the browser.** Tabs are created inactive in throttled batches and unloaded beyond a threshold, so a 200 tab pack does not melt the machine.
+- **Told, never guessed.** Every validation failure carries the path into the file and a suggested fix, and every restore reports what was skipped, already open, ungrouped or impossible to open. Addresses no extension may open are listed on a page of their own instead of vanishing.
 
 Planned:
 
 - **Import from competitors** (M3). Tab Session Manager JSON, Session Buddy JSON and CSV, OneTab text, Markdown link lists, Netscape HTML bookmarks and plain URL lists, detected by document shape.
-- **Preview before restore** (M2). Search, select all, per tab checkboxes, and a report of what was restored, skipped, deduplicated, ungrouped or could not be opened.
-- **Restore without freezing the browser** (M2). Tabs are created inactive and discarded beyond a threshold, so a 200 tab pack does not melt the machine.
+- **Search and filters in the preview** (M3), for taking part of a pack rather than all of it.
 - **Snapshots** (M4), saved locally, named and tagged, for the days when you do not want to think about where a file went.
 
 Deliberately not in v1: cloud sync, accounts, encryption, AI features, bookmark management and scheduled saves. See [PLAN.md](PLAN.md) section 7.
@@ -164,8 +166,8 @@ Three properties get the test budget: a file round trips without loss, a malform
 |---|---|---|
 | M0 | Skeleton, build, both manifests, capability probe, CI | Done |
 | M1 | Export, serialization, file naming, schema frozen | Done |
-| M2 | Import, validation, preview, restore engine, import report | Next |
-| M3 | Selection, filters, foreign format adapters | Planned |
+| M2 | Import, validation, preview, restore engine, import report | Done |
+| M3 | Search in the preview, filters, foreign format adapters | Next |
 | M4 | Local snapshots, hotkeys, badge | Planned |
 | M5 | Options, theme, i18n, store submissions | Planned |
 

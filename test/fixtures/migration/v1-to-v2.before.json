@@ -1,0 +1,16 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-24T08:29:40+00:00",
+  "windows": [
+    {
+      "id": "w1",
+      "type": "normal",
+      "groups": [{ "id": "g1", "title": "Research", "color": "blue" }],
+      "tabs": [
+        { "index": 0, "url": "https://example.com/a", "title": "A", "pinned": true },
+        { "index": 1, "url": "https://example.com/b", "title": "B", "groupId": "g1" }
+      ]
+    }
+  ]
+}

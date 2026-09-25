@@ -21,7 +21,7 @@ Firefox:
 
 Inspect the service worker from the extension card in Chromium, or from `about:debugging` in Firefox. Remember the worker is terminated when idle: a silent extension is usually a terminated worker, not a bug.
 
-For an automated pass, `npm run smoke` loads `dist/chrome` into the Chromium that Playwright downloads and drives both surfaces. It uses that Chromium rather than the system Chrome because Chrome 137 and later ignore `--load-extension` entirely, as recorded in LIMITATIONS.md Table L3. The script skips cleanly when Playwright is not installed, and `--headed` shows the window.
+For an automated pass, `npm run smoke` loads `dist/chrome` into the Chromium that Playwright downloads and drives all three surfaces, including a real import and restore. It uses that Chromium rather than the system Chrome because Chrome 137 and later ignore `--load-extension` entirely, as recorded in LIMITATIONS.md Table L3. The script skips cleanly when Playwright is not installed, and `--headed` shows the window.
 
 ## 2. Implement a feature
 

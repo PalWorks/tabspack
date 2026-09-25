@@ -4,6 +4,7 @@
  */
 import type { BrowserAdapter } from "./adapter/types.js";
 import type { Scope } from "../types/session.js";
+import type { RestoreTarget } from "./restore.js";
 
 export type ExportFormat = "tabspack" | "urls" | "flatjson";
 export type SortMode = "natural" | "title" | "url" | "domain";
@@ -28,6 +29,20 @@ export interface Settings {
   sortDesc: boolean;
   /** Milliseconds the toolbar badge shows a count. */
   badgeMs: number;
+
+  /* Restore policy, FR-403. Every one of these is a real browser trade off. */
+  /** Where a restore puts its tabs. */
+  restoreTarget: RestoreTarget;
+  /** Tabs beyond this many are restored unloaded. FR-208. */
+  discardThreshold: number;
+  /** Tabs created between yields to the browser. */
+  restoreBatchSize: number;
+  /** Pause between batches, which is what keeps the browser responsive. */
+  restoreDelayMs: number;
+  /** Skip a tab from the pack that is already open. FR-205. */
+  skipOpenDuplicates: boolean;
+  /** Open the page listing addresses no extension may open. FR-204. */
+  openPlaceholder: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -43,6 +58,25 @@ export const DEFAULT_SETTINGS: Settings = {
   sort: "natural",
   sortDesc: false,
   badgeMs: 1500,
+
+  restoreTarget: "new_windows",
+  discardThreshold: 20,
+  restoreBatchSize: 8,
+  restoreDelayMs: 40,
+  skipOpenDuplicates: true,
+  openPlaceholder: true,
+};
+
+/**
+ * Bounds for the numeric settings. A value outside its range falls back to the
+ * default rather than being clamped: clamping would silently keep a value the
+ * user never chose, and a restore delay of an hour is a typo, not an intention.
+ */
+const NUMERIC_LIMITS: Record<string, { min: number; max: number }> = {
+  badgeMs: { min: 0, max: 60_000 },
+  discardThreshold: { min: 0, max: 10_000 },
+  restoreBatchSize: { min: 1, max: 100 },
+  restoreDelayMs: { min: 0, max: 5_000 },
 };
 
 const STORAGE_KEY = "settings";
@@ -84,8 +118,18 @@ export function mergeSettings(raw: Partial<Settings> | undefined): Settings {
   if (!["natural", "title", "url", "domain"].includes(merged.sort)) {
     merged.sort = DEFAULT_SETTINGS.sort;
   }
-  if (!Number.isFinite(merged.badgeMs) || merged.badgeMs < 0) {
-    merged.badgeMs = DEFAULT_SETTINGS.badgeMs;
+  if (!["new_windows", "current_window"].includes(merged.restoreTarget)) {
+    merged.restoreTarget = DEFAULT_SETTINGS.restoreTarget;
+  }
+  for (const [key, limit] of Object.entries(NUMERIC_LIMITS)) {
+    const current = (merged as unknown as Record<string, unknown>)[key];
+    const fallback = (DEFAULT_SETTINGS as unknown as Record<string, unknown>)[key];
+    const usable =
+      typeof current === "number" &&
+      Number.isFinite(current) &&
+      current >= limit.min &&
+      current <= limit.max;
+    (merged as unknown as Record<string, unknown>)[key] = usable ? Math.round(current) : fallback;
   }
   return merged;
 }

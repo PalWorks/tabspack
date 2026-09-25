@@ -14,6 +14,8 @@ export interface SessionGroup {
   title?: string;
   color?: GroupColor;
   collapsed?: boolean;
+  /** Fields carried in from a file that this version does not understand. */
+  unknown?: Record<string, unknown>;
 }
 
 export interface SessionTab {
@@ -30,6 +32,14 @@ export interface SessionTab {
   cookieStoreId: string | null;
   /** Epoch milliseconds, or null when the browser does not report it. */
   lastAccessed: number | null;
+  /**
+   * The timestamp exactly as an imported file spelled it. Kept so a pack read in
+   * one timezone and written out again is byte identical, rather than silently
+   * restamped with the reader's offset.
+   */
+  lastAccessedText?: string;
+  notes?: string;
+  tags?: string[];
   /** Fields carried in from a file that this version does not understand. */
   unknown?: Record<string, unknown>;
 }
@@ -53,6 +63,9 @@ export interface SessionSource {
   browserVersion?: string;
   os?: string;
   extensionVersion?: string;
+  profile?: string;
+  deviceName?: string;
+  unknown?: Record<string, unknown>;
 }
 
 export interface Session {
@@ -60,6 +73,11 @@ export interface Session {
   source: SessionSource;
   /** Epoch milliseconds of capture. */
   capturedAt: number;
+  /** `exportedAt` exactly as an imported file spelled it. See `SessionTab.lastAccessedText`. */
+  exportedAtText?: string;
+  /** Pack level label and labels, carried through from a file. */
+  name?: string;
+  tags?: string[];
   unknown?: Record<string, unknown>;
 }
 

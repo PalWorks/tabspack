@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
-| Date | 2026-09-24 |
+| Version | 1.1 |
+| Date | 2026-09-25 |
 | Owns | Visual tokens, component behaviour, layout, interaction states, accessibility rules for every TabsPack surface |
 | Implemented by | T-008 tokens, T-005 popup, T-108 and T-109 export UI, T-203 manager page, T-501 options, T-502 polish, T-506 accessibility |
 
@@ -12,9 +12,13 @@ Read this before writing a line of CSS or markup. A surface that does not follow
 What is verified rather than asserted: `npm run smoke` drives the built
 extension in a real Chromium and checks the popup's live counts, the primary
 button label carrying the count, the segmented control responding to arrow keys
-as a radio group, the report wording after an export, and the disabled private
-windows control carrying a visible reason. Computed styles for the selected and
-unselected segment states were read from the running browser, not eyeballed.
+as a radio group, the report wording after an export, the disabled private
+windows control carrying a visible reason, the import task's preview counts and
+flags, the tree responding to arrow keys and space, the restore report, the
+placeholder page carrying no links, and a 5000 tab pack previewing in about a
+second with only a screenful of rows in the document. Computed styles for the
+selected and unselected segment states were read from the running browser, not
+eyeballed.
 
 ## 1. Design principles
 
@@ -120,7 +124,7 @@ Decisions behind that layout:
 
 ## 4. Manager page
 
-Single column, `max-width: 1120px`, 24 px gutters, cards on `--bg`. At M1 it carries export only; import, preview and snapshots land in later phases inside the same shell.
+Single column, `max-width: 1120px`, 24 px gutters, cards on `--bg`. Two tasks behind a tab list, Export and Import, because a person is doing one of them and stacking both would put half the page's controls out of reach of the task in hand. The tab list is the ARIA tab pattern: arrow keys move, Home and End jump, selection follows focus.
 
 ```
   TabsPack                                    Nothing leaves your device
@@ -149,7 +153,57 @@ Rules for this page:
 - Controls are grouped by what they change: scope and format change what is captured, Include changes what is written, Filters change what is removed. Three labelled rows, never one long list of checkboxes.
 - The output panel is the honesty mechanism: the user sees the exact bytes before trusting them. It is read only and monospace, and it never truncates without saying so.
 - A checkbox that cannot apply, for example private windows without the browser level permission, is disabled with a one line reason beside it, not hidden.
-- No import affordance exists until M2 ships. Disabled UI advertising an unbuilt feature is worse than its absence.
+- The task tabs carry only what has shipped. Disabled UI advertising an unbuilt feature is worse than its absence.
+
+### The import task
+
+```
+  [ Export | Import ]
+  ┌─ Import ──────────────────────────────────────────────────────────┐
+  │  ┌─────────────────────────────────────────────────────────────┐  │
+  │  │            Drop a pack here      [ Choose a file ]          │  │
+  │  │       A .tabspack.json file. Nothing is opened until        │  │
+  │  └─────────────────────────────────────────────────────────────┘  │
+  │  pack.tabspack.json · 2 windows · 6 tabs · 1 group · 1.4 KB       │
+  │  TabsPack file: everything in it can be restored.                 │
+  │  ⚠ 2 things to know about this file            (folded away)      │
+  └───────────────────────────────────────────────────────────────────┘
+  ┌─ Preview ─────────────────────────────────────────────────────────┐
+  │  [Select all] [Select none]   6 of 6 selected · 1 cannot be opened │
+  │  ┌─────────────────────────────────────────────────────────────┐  │
+  │  │ ▾ ☑ Window 1   5 tabs · 1 group · 1 pinned                  │  │
+  │  │   ☑ Pinned reference        example.com/pinned              │  │
+  │  │   ▾ ☑ ● Reading   2 tabs                                     │  │
+  │  │     ☑ Grouped A           example.com/grouped-a             │  │
+  │  │   ☑ Settings   chrome://settings/        [cannot be opened]  │  │
+  │  └─────────────────────────────────────────────────────────────┘  │
+  │  This pack has 1 tab group ...            [ Allow tab groups ]    │
+  │  Restore into [ New windows ▾ ]                                   │
+  │  Policy  ☑ Skip tabs already open   Leave unloaded after [20] tabs │
+  │  [ Restore 5 tabs ]   Nothing opens until you press this.          │
+  │  ✓ Restored 5 tabs · 2 windows · 1 group · 1 cannot be opened      │
+  │  ⚠ 3 notes about this restore                  (folded away)      │
+  └───────────────────────────────────────────────────────────────────┘
+```
+
+Decisions behind that layout:
+
+- **The file, then the preview, then the restore, then the outcome.** The page is in the order of the decisions a person makes, and each card answers one question: what is in this file, what shall I take from it, what happens when I press the button.
+- **The button counts what will actually open**, while the line above the tree counts what is selected. A tab whose address no extension may open stays selected and flagged rather than being quietly deselected, so the restore can report it: ADR-018.
+- **Notes are folded away, never hidden.** A warning is a summary line with a count, openable in place. An error is never folded.
+- **Restore notes sit with the restore**, not with the file. Two regions, each next to the thing it describes.
+- **Nothing opens until the primary button is pressed**, and the sentence beside the button says so.
+
+### Table DS5: The preview tree
+
+| Rule | Detail |
+|---|---|
+| Structure | `role="tree"`, rows are `role="treeitem"` with `aria-level` and `aria-expanded`. Selection is `aria-checked` on the row, `true`, `false` or `mixed`, not a nested checkbox input, so a row is announced as one thing |
+| Keyboard | One tab stop. Up and down move, right expands or descends, left collapses or goes to the parent, Home and End jump, space or enter toggles the row and everything under it |
+| Rendering | Fixed 28 px rows, absolutely positioned inside a spacer of the full height, only the visible rows plus six either side in the document. A 5000 tab pack keeps about 30 rows in the document |
+| Height | Grows with the content between 120 and 480 px, so a small pack is not a tall empty box and a large one does not push the restore controls off the screen |
+| Group rows | Carry the group's colour as an 8 px dot in the browser's own palette, its title, and its tab count |
+| Flags | A tab that cannot be opened carries a right aligned pill in `--warn`. The flag is text, never colour alone |
 
 ## 5. Components
 

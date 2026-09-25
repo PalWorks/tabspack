@@ -33,12 +33,16 @@ export interface WebExtApi {
   };
   tabs: {
     query(query: Record<string, unknown>): Promise<unknown[]>;
-    create(props: Record<string, unknown>): Promise<{ id?: number }>;
+    create(props: Record<string, unknown>): Promise<unknown>;
     update(tabId: number, props: Record<string, unknown>): Promise<unknown>;
+    remove(tabIds: number | number[]): Promise<void>;
+    discard?(tabIds: number | number[]): Promise<unknown>;
+    group?(options: Record<string, unknown>): Promise<number>;
   };
   windows: {
     getAll(props: Record<string, unknown>): Promise<unknown[]>;
     getCurrent(props: Record<string, unknown>): Promise<unknown>;
+    create(props: Record<string, unknown>): Promise<unknown>;
     update(windowId: number, props: Record<string, unknown>): Promise<unknown>;
   };
   tabGroups?: {
@@ -68,6 +72,7 @@ export interface WebExtApi {
   };
   extension?: {
     isAllowedIncognitoAccess?(): Promise<boolean>;
+    isAllowedFileSchemeAccess?(): Promise<boolean>;
   };
   contextualIdentities?: unknown;
   offscreen?: {

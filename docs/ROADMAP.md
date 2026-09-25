@@ -41,16 +41,16 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-108 | Export scope UI | M1 | UI | The four scopes are the main control surface and must not be buried | Scope selector in popup and manager: current window, all windows, current tab, selection | done |
 | T-109 | Badge and export report | M1 | UI | A silent export leaves the user unsure anything happened, and unaware of what a filter removed | Badge flash with the count, plus a report panel naming what was filtered and why | done |
 | T-110 | Performance harness | M1 | Quality | NFR-002 and NFR-003 are unfalsifiable without a measurement | Scripted run over the synthetic fixtures recording export duration and file size, failing above threshold | done |
-| T-201 | Validation and version gate | M2 | Import | A bare failure tells the user nothing, and a future file must never be half parsed | Errors carry a JSON path and a suggested fix. A higher `schemaVersion` is refused by name, never best effort parsed | next |
-| T-202 | Deserialize with unknown field retention | M2 | Format | Passing a file through TabsPack must not delete fields a newer version or a third party tool added | Unknown field bag per object, written back on serialize, asserted byte for byte | todo |
-| T-203 | Manager page and preview | M2 | UI | A popup loses its state when a file picker takes focus, and a 5000 tab file must still render | Dedicated extension page with picker and drag and drop, and a virtualised preview tree of windows, groups and tabs | todo |
-| T-204 | Restore engine | M2 | Restore | Wrong ordering closes the new window, misplaces pinned tabs and loses groups, and a bulk restore freezes the browser | The nine step order in ARCHITECTURE section 6, throttled batches, discard beyond threshold, grouping as a second pass | todo |
-| T-205 | Unopenable URL handling | M2 | Restore | Extensions cannot open `chrome://`, `about:`, `javascript:` or `data:` URLs, and dropping them silently destroys part of the user's session | Keep them in the file, list them on a placeholder page as inert text, count them in the report | todo |
-| T-206 | Duplicate detection | M2 | Restore | Restoring a pack over a live session silently doubles tabs | Normalised URL comparison against open tabs, offering skip or open anyway | todo |
-| T-207 | Import report | M2 | Restore | Silence about a skipped tab is indistinguishable from data loss | A returned report object counting restored, skipped, duplicate, unopenable and ungrouped tabs | todo |
-| T-208 | Migration scaffold | M2 | Format | The first format change will arrive with nowhere to put a migration | A version keyed registry of pure migration functions, with before and after fixtures | todo |
-| T-209 | Round trip harness | M2 | Quality | The product's central claim stays untested until export, import and re export are compared mechanically | Scripted field by field comparison ignoring `exportedAt`, `source` and `counts`, run on all three browsers | todo |
-| T-301 | Selection and search in the preview | M3 | UI | Users usually want part of a pack, not all of it | Per window and per tab checkboxes, select all, and search across title and URL | todo |
+| T-201 | Validation and version gate | M2 | Import | A bare failure tells the user nothing, and a future file must never be half parsed | Errors carry a JSON path and a suggested fix. A higher `schemaVersion` is refused by name, never best effort parsed | done |
+| T-202 | Deserialize with unknown field retention | M2 | Format | Passing a file through TabsPack must not delete fields a newer version or a third party tool added | Unknown field bag per object, written back on serialize, asserted byte for byte | done |
+| T-203 | Manager page and preview | M2 | UI | A popup loses its state when a file picker takes focus, and a 5000 tab file must still render | Dedicated extension page with picker and drag and drop, and a virtualised preview tree of windows, groups and tabs | done |
+| T-204 | Restore engine | M2 | Restore | Wrong ordering closes the new window, misplaces pinned tabs and loses groups, and a bulk restore freezes the browser | The nine step order in ARCHITECTURE section 6, throttled batches, discard beyond threshold, grouping as a second pass | done |
+| T-205 | Unopenable URL handling | M2 | Restore | Extensions cannot open `chrome://`, `about:`, `javascript:` or `data:` URLs, and dropping them silently destroys part of the user's session | Keep them in the file, list them on a placeholder page as inert text, count them in the report | done |
+| T-206 | Duplicate detection | M2 | Restore | Restoring a pack over a live session silently doubles tabs | Normalised URL comparison against open tabs, offering skip or open anyway | done |
+| T-207 | Import report | M2 | Restore | Silence about a skipped tab is indistinguishable from data loss | A returned report object counting restored, skipped, duplicate, unopenable and ungrouped tabs | done |
+| T-208 | Migration scaffold | M2 | Format | The first format change will arrive with nowhere to put a migration | A version keyed registry of pure migration functions, with before and after fixtures | done |
+| T-209 | Round trip harness | M2 | Quality | The product's central claim stays untested until export, import and re export are compared mechanically | Scripted field by field comparison ignoring `exportedAt`, `source` and `counts`, run on all three browsers | done |
+| T-301 | Selection and search in the preview | M3 | UI | Users usually want part of a pack, not all of it | Per window and per tab checkboxes, select all, and search across title and URL | next |
 | T-302 | Shape based format detection | M3 | Import | File extensions lie, users rename files, and competitors all use `.json` | `detect.ts` dispatching on document shape only, never on filename | todo |
 | T-303 | Tab Session Manager adapter | M3 | Import | The largest open source competitor's users have no way out of its private dump format | Read its id keyed `windows` plus `windowsInfo` and `tabGroups` into a TabsPack file at high fidelity | todo |
 | T-304 | Session Buddy adapters, JSON and CSV | M3 | Import | The largest installed competitor is closed source and its users are locked in | Two adapters, high fidelity from JSON, URLs and titles only from CSV, both declaring their fidelity | todo |
@@ -141,15 +141,15 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Constraints | Acceptance criteria | Status |
 |---|---|---|---|---|
-| T-201 | FR-104, FR-109 | Every error carries a JSON path and a suggested fix. No bare booleans | Each invalid fixture yields a distinct actionable message. A higher version is refused by name | next |
-| T-202 | FR-108 | Per ADR-004, ignore for behaviour and preserve on rewrite | A file with an unrecognised field at every level survives import and re export byte identically | todo |
-| T-203 | FR-105, FR-107 | Renders a 5000 tab file without freezing, per NFR-005 | Preview counts match the file and selection drives the restore payload | todo |
-| T-204 | FR-201 to FR-203, FR-206 to FR-208, FR-210 | The nine step order. Placeholder tab removed only after the first real tab exists | The round trip test passes on Chrome, Edge and Firefox. NFR-004 measured | todo |
-| T-205 | FR-204 | Never drop silently. Dangerous schemes listed as inert text, not links | A fixture with `chrome://settings`, `about:config`, `javascript:`, `view-source:` and a `file://` URL produces a placeholder page listing all five and a report count | todo |
-| T-206 | FR-205 | Normalisation rules documented in code | A fixture overlapping the open set by 5 tabs reports exactly 5 duplicates | todo |
-| T-207 | FR-209 | A returned object, not a console line | Report asserted inside the round trip test | todo |
-| T-208 | FR-109 | Migrations are pure and one directional | A migration fixture pair passes, and a v1 reader refuses a v2 file by name | todo |
-| T-209 | All FR-2xx | Comparison ignores `exportedAt`, `source` and `counts` | Documented exceptions only: the unopenable tab, and renumbered group ids with matching membership and metadata | todo |
+| T-201 | FR-104, FR-109 | Every error carries a JSON path and a suggested fix. No bare booleans | Each invalid fixture yields a distinct actionable message. A higher version is refused by name | done |
+| T-202 | FR-108 | Per ADR-004, ignore for behaviour and preserve on rewrite | A file with an unrecognised field at every level survives import and re export byte identically | done |
+| T-203 | FR-105, FR-107 | Renders a 5000 tab file without freezing, per NFR-005 | Preview counts match the file and selection drives the restore payload | done |
+| T-204 | FR-201 to FR-203, FR-206 to FR-208, FR-210 | The nine step order. Placeholder tab removed only after the first real tab exists | The round trip test passes on Chrome, Edge and Firefox. NFR-004 measured | done |
+| T-205 | FR-204 | Never drop silently. Dangerous schemes listed as inert text, not links | A fixture with `chrome://settings`, `about:config`, `javascript:`, `view-source:` and a `file://` URL produces a placeholder page listing all five and a report count | done |
+| T-206 | FR-205 | Normalisation rules documented in code | A fixture overlapping the open set by 5 tabs reports exactly 5 duplicates | done |
+| T-207 | FR-209 | A returned object, not a console line | Report asserted inside the round trip test | done |
+| T-208 | FR-109 | Migrations are pure and one directional | A migration fixture pair passes, and a v1 reader refuses a v2 file by name | done |
+| T-209 | All FR-2xx | Comparison ignores `exportedAt`, `source` and `counts` | Documented exceptions only: the unopenable tab, and renumbered group ids with matching membership and metadata | done |
 
 **M2 exit test.** On a clean profile, export then import reproduces window count, tab order, pinned tabs, active tab and groups, verified by comparing a fresh export against the original file field by field.
 
@@ -157,7 +157,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-301 | FR-002 | Selecting 7 of 40 tabs restores exactly 7 | todo |
+| T-301 | FR-002 | Selecting 7 of 40 tabs restores exactly 7 | next |
 | T-302 | FR-106 | A renamed file of each supported type is still detected. An unrecognised file fails with a message naming what was tried | todo |
 | T-303 | FR-106 | A real Tab Session Manager export imports with windows, order, pinned and groups intact | todo |
 | T-304 | FR-106 | A real Session Buddy JSON export imports with windows and order intact. Its CSV imports URLs and titles, declared as low fidelity | todo |
@@ -216,6 +216,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 |---|---|---|
 | M0 Foundation | T-001 to T-008 | Both builds produced, clean typecheck and lint, CI workflow in place, capability probe reporting on a real Chromium |
 | M1 Export | T-101 to T-110 | 55 unit tests, 19 conformance fixtures, byte stable fixture comparison, performance budgets met with room to spare, 13 check browser smoke run |
+| M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture
@@ -227,3 +228,17 @@ against a 2000 ms budget and produce a 279 KB file against a 400 KB budget;
 5000 tabs take 15 ms. NFR-001, the 150 ms popup, and the manual cross browser
 matrix still need a human at a browser, which is the one thing an agent cannot
 sign off.
+
+M2 exit test result: the round trip holds. A three window, forty tab, three
+group, two pinned session exports, imports, restores and re exports with no
+difference outside the exceptions in TESTING.md Table X3, on a browser that
+groups and on one that does not, with discarding off and on. In a real Chromium
+the same path restores the pinned tab at index 0, both grouped tabs into one
+group, two windows, and lists the one `chrome://` address on the placeholder
+page rather than dropping it.
+
+Four defects that only a real browser could find were fixed in M2 and are
+recorded in LIMITATIONS.md: `tabs.create` rejecting `title` on Chromium, a CSS
+rule defeating the `hidden` attribute, `tabs.group` working without the
+`tabGroups` permission while its metadata does not, and a preview that
+deselected the tabs it was supposed to report.

@@ -227,3 +227,45 @@ Date 2026-09-24. Status accepted.
 **Decision.** Keep membership, omit title, colour and collapsed state when the API did not supply them.
 
 **Consequence.** A file exported without the groups API restores its groups on a browser that has it, with default titles and colours. The user notice now says titles and colours are unavailable rather than claiming groups are not captured.
+
+---
+
+## ADR-017: The reader is hand written, not driven by the published JSON Schema
+
+Date 2026-09-25. Status accepted. Relates to T-201 and ADR-004.
+
+**Context.** The format has a published JSON Schema, generated from the types. The obvious move is to validate imports with it, using ajv.
+
+**Options.** Bundle ajv and validate against the schema, which is one implementation and no drift, but adds a runtime dependency against AGENTS.md section 2 rule 6, and makes the reader exactly as strict as the schema. Or hand write the reader.
+
+**Decision.** Hand written, in `src/core/schema.ts`. The schema stays the contract for writers and is enforced in CI against every fixture by `scripts/schema-conformance.mjs`.
+
+**Consequence.** The reader is deliberately more forgiving than the schema in seven documented ways, listed in SPEC.md Table S6, because a format whose selling point is that a person can hand edit it cannot reject a file for a missing export time. The risk is drift between the two, which `test/unit/schema.test.ts` holds down by asserting the reader's verdict on every fixture against `expectations.json`, the same file the schema run reads.
+
+---
+
+## ADR-018: A tab that cannot be opened stays selected in the preview
+
+Date 2026-09-25. Status accepted. Relates to T-205 and to rule 7 of AGENTS.md section 2.
+
+**Context.** A pack usually holds a few addresses no extension may open, such as `chrome://settings`. The preview flags them. The question is whether they start selected.
+
+**Options.** Deselect them, which makes the restore count honest at a glance but means the restore never sees them, never reports them and never opens the placeholder page, so the user is told once in the preview and never again. Or keep them selected and let the restore report them.
+
+**Decision.** They stay selected. The restore counts them, lists them and opens the placeholder page, while the button's label counts only what will actually open.
+
+**Consequence.** The count on the button and the count in the tree differ, which the line above the tree explains: "6 of 6 selected, 1 will be skipped, 1 cannot be opened". This was found by a real browser: with the tabs deselected the placeholder page never opened, and the one lossy edge of the format was invisible.
+
+---
+
+## ADR-019: The tab groups permission is requested by a button in the preview
+
+Date 2026-09-25. Status accepted. Narrows PLAN.md Table P8.
+
+**Context.** `tabGroups` is an optional permission, requested at first use to avoid the Chrome update warning. First use is a restore of a pack that has groups.
+
+**Options.** Request it inside the restore, which is where it is needed, but the request then sits behind several awaits and a browser only grants an optional permission inside a user gesture. Or ask for it with its own control before the restore.
+
+**Decision.** A notice appears under the preview when the pack has groups and the permission is missing, with an Allow button beside it. The click is the gesture, and the sentence beside it says what is gained and that refusing still restores the tabs.
+
+**Consequence.** One more thing on the page, shown only when it applies. Refusing is a first class path: `tabs.group` needs no permission, so the tabs are still grouped, and the restore reports that the titles and colours were not applied.

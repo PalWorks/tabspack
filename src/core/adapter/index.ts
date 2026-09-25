@@ -6,12 +6,17 @@
 import type {
   BrowserAdapter,
   Capabilities,
+  CreateTabRequest,
+  CreateWindowRequest,
   DownloadRequest,
   PlatformInfo,
   RawGroup,
   RawTab,
   RawWindow,
   TabQuery,
+  UpdateGroupRequest,
+  UpdateTabRequest,
+  UpdateWindowRequest,
 } from "./types.js";
 import { UNHANDLED } from "./types.js";
 import { browser } from "./webext.js";
@@ -22,6 +27,18 @@ let badgeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return (value ?? {}) as Record<string, unknown>;
+}
+
+/**
+ * Drops undefined members. Chromium rejects a call carrying a property it does
+ * not recognise, and an explicit `undefined` counts as carrying it.
+ */
+function compact(request: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(request)) {
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
 }
 
 /**
@@ -113,6 +130,70 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
+  async createWindow(request: CreateWindowRequest): Promise<RawWindow> {
+    const created = await browser.windows.create(compact(request as unknown as Record<string, unknown>));
+    return created as RawWindow;
+  },
+
+  async createTab(request: CreateTabRequest): Promise<RawTab> {
+    const created = await browser.tabs.create(compact(request as unknown as Record<string, unknown>));
+    return created as RawTab;
+  },
+
+  async updateTab(tabId: number, request: UpdateTabRequest): Promise<void> {
+    await browser.tabs.update(tabId, compact(request as unknown as Record<string, unknown>));
+  },
+
+  async removeTabs(tabIds: number[]): Promise<void> {
+    if (tabIds.length === 0) return;
+    await browser.tabs.remove(tabIds);
+  },
+
+  /**
+   * Discarding is a courtesy to the machine, never a requirement of the restore,
+   * so a browser that refuses leaves the tab loaded and the restore continues.
+   */
+  async discardTabs(tabIds: number[]): Promise<void> {
+    if (tabIds.length === 0 || typeof browser.tabs.discard !== "function") return;
+    for (const tabId of tabIds) {
+      try {
+        await browser.tabs.discard(tabId);
+      } catch {
+        /* a tab the browser will not unload stays loaded */
+      }
+    }
+  },
+
+  async groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null> {
+    if (typeof browser.tabs.group !== "function" || request.tabIds.length === 0) return null;
+    try {
+      const options: Record<string, unknown> = { tabIds: request.tabIds };
+      if (request.windowId !== undefined) options["createProperties"] = { windowId: request.windowId };
+      return await browser.tabs.group(options);
+    } catch {
+      return null;
+    }
+  },
+
+  async updateGroup(groupId: number, request: UpdateGroupRequest): Promise<void> {
+    if (typeof browser.tabGroups?.update !== "function") return;
+    await browser.tabGroups.update(groupId, compact(request as unknown as Record<string, unknown>));
+  },
+
+  async updateWindow(windowId: number, request: UpdateWindowRequest): Promise<void> {
+    await browser.windows.update(windowId, compact(request as unknown as Record<string, unknown>));
+  },
+
+  async isAllowedFileSchemeAccess(): Promise<boolean> {
+    try {
+      const fn = browser.extension?.isAllowedFileSchemeAccess;
+      if (typeof fn !== "function") return false;
+      return await fn.call(browser.extension);
+    } catch {
+      return false;
+    }
+  },
+
   async hasPermissions(permissions: string[]): Promise<boolean> {
     try {
       return await browser.permissions.contains({ permissions });
@@ -155,6 +236,19 @@ export const realAdapter: BrowserAdapter = {
 
   async storageSet(values: Record<string, unknown>): Promise<void> {
     await browser.storage.local.set(values);
+  },
+
+  async storageRemove(keys: string[]): Promise<void> {
+    if (keys.length === 0) return;
+    await browser.storage.local.remove(keys);
+  },
+
+  /**
+   * `get(null)` is the only form that returns everything: `get({})` returns an
+   * empty object, which is a trap worth naming here rather than rediscovering.
+   */
+  async storageGetAll(): Promise<Record<string, unknown>> {
+    return await browser.storage.local.get(null);
   },
 
   async setBadge(text: string, durationMs?: number): Promise<void> {

@@ -27,21 +27,27 @@ export interface SerializeOptions {
 }
 
 export function toFile(session: Session, options: SerializeOptions): TabsPackFile {
-  const when = options.exportedAt ?? new Date(session.capturedAt);
   const counts = countSession(session);
-  const source = compact({
-    browser: session.source.browser,
-    browserVersion: session.source.browserVersion,
-    os: session.source.os,
-    extensionVersion: session.source.extensionVersion,
-  });
+  const source = withUnknown(
+    compact({
+      browser: session.source.browser,
+      browserVersion: session.source.browserVersion,
+      os: session.source.os,
+      extensionVersion: session.source.extensionVersion,
+      profile: session.source.profile,
+      deviceName: session.source.deviceName,
+    }),
+    session.source.unknown,
+  );
+  const name = options.name ?? session.name;
+  const tags = options.tags ?? session.tags;
 
   const file: TabsPackFile = {
     format: FORMAT,
     schemaVersion: SCHEMA_VERSION,
-    exportedAt: isoWithOffset(when),
-    ...(options.name ? { name: options.name } : {}),
-    ...(options.tags && options.tags.length > 0 ? { tags: [...options.tags] } : {}),
+    exportedAt: exportedAtOf(session, options),
+    ...(name ? { name } : {}),
+    ...(tags && tags.length > 0 ? { tags: [...tags] } : {}),
     ...(Object.keys(source).length > 0 ? { source } : {}),
     counts: { windows: counts.windows, tabs: counts.tabs, groups: counts.groups },
     windows: session.windows.map((win) => serializeWindow(win, options)),
@@ -65,12 +71,24 @@ function serializeWindow(win: SessionWindow, options: SerializeOptions): TabsPac
 }
 
 function serializeGroup(group: SessionGroup): TabsPackGroup {
-  return {
+  const out: TabsPackGroup = {
     id: group.key,
     ...(group.title ? { title: group.title } : {}),
     ...(group.color ? { color: group.color } : {}),
     ...(group.collapsed ? { collapsed: true } : {}),
   };
+  return withUnknown(out, group.unknown);
+}
+
+/**
+ * A pack read from a file keeps the timestamp text it arrived with, so re
+ * exporting it does not restamp it with the reader's timezone. Anything
+ * collected from the browser is stamped from the clock.
+ */
+function exportedAtOf(session: Session, options: SerializeOptions): string {
+  if (options.exportedAt) return isoWithOffset(options.exportedAt);
+  if (session.exportedAtText) return session.exportedAtText;
+  return isoWithOffset(new Date(session.capturedAt));
 }
 
 function serializeTab(tab: SessionTab, options: SerializeOptions): TabsPackTab {
@@ -87,7 +105,13 @@ function serializeTab(tab: SessionTab, options: SerializeOptions): TabsPackTab {
     ...(tab.discarded ? { discarded: true } : {}),
     ...(tab.openerIndex !== null ? { openerIndex: tab.openerIndex } : {}),
     ...(tab.cookieStoreId !== null ? { cookieStoreId: tab.cookieStoreId } : {}),
-    ...(tab.lastAccessed !== null ? { lastAccessed: isoWithOffset(new Date(tab.lastAccessed)) } : {}),
+    ...(tab.lastAccessedText
+      ? { lastAccessed: tab.lastAccessedText }
+      : tab.lastAccessed !== null
+        ? { lastAccessed: isoWithOffset(new Date(tab.lastAccessed)) }
+        : {}),
+    ...(tab.notes ? { notes: tab.notes } : {}),
+    ...(tab.tags && tab.tags.length > 0 ? { tags: [...tab.tags] } : {}),
   };
   return withUnknown(out, tab.unknown);
 }

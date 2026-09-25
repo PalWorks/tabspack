@@ -12,7 +12,7 @@
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { mkdtemp } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -52,6 +52,47 @@ function findBundledChromium() {
 function unpackedExtensionId(absolutePath) {
   const digest = createHash("sha256").update(absolutePath, "utf8").digest("hex");
   return [...digest.slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join("");
+}
+
+/**
+ * A small pack with everything the restore engine has to get right: a pinned tab,
+ * a group with a title and a colour, an active tab, a second window, and one
+ * address no extension is allowed to open.
+ */
+const SMOKE_PACK = {
+  format: "tabspack",
+  schemaVersion: 1,
+  exportedAt: "2026-09-24T08:29:40+00:00",
+  name: "Smoke pack",
+  counts: { windows: 2, tabs: 6, groups: 1 },
+  windows: [
+    {
+      id: "w1",
+      type: "normal",
+      focused: true,
+      groups: [{ id: "g1", title: "Reading", color: "green" }],
+      tabs: [
+        { index: 0, url: "https://example.com/pinned", title: "Pinned reference", pinned: true },
+        { index: 1, url: "https://example.com/grouped-a", title: "Grouped A", groupId: "g1", active: true },
+        { index: 2, url: "https://example.com/grouped-b", title: "Grouped B", groupId: "g1" },
+        { index: 3, url: "https://example.com/plain", title: "Plain page" },
+        { index: 4, url: "chrome://settings/", title: "Settings" },
+      ],
+    },
+    {
+      id: "w2",
+      type: "normal",
+      tabs: [{ index: 0, url: "https://example.net/second-window", title: "Second window", active: true }],
+    },
+  ],
+};
+
+/** The folded list of notes under the restore report, opened so it can be read. */
+async function managerIssueText(page) {
+  const details = await page.$("#restore-issues details");
+  if (!details) return "";
+  await details.evaluate((node) => node.setAttribute("open", "open"));
+  return (await page.textContent("#restore-issues")) ?? "";
 }
 
 const failures = [];
@@ -222,6 +263,220 @@ try {
   await manager.screenshot({ path: path.join(shots, "manager-light.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "dark" });
   await manager.screenshot({ path: path.join(shots, "manager-dark.png"), fullPage: true });
+  await manager.emulateMedia({ colorScheme: "light" });
+
+  /* Import and restore, M2 ------------------------------------------------ */
+
+  const packPath = path.join(root, ".tmp", "smoke", "smoke.tabspack.json");
+  await mkdir(path.dirname(packPath), { recursive: true });
+  await writeFile(packPath, `${JSON.stringify(SMOKE_PACK, null, 2)}\n`, "utf8");
+
+  await manager.click("#tab-import");
+  check(
+    "the import task opens",
+    (await manager.isVisible("#dropzone")) && !(await manager.isVisible("#panel-export")),
+  );
+
+  await manager.setInputFiles("#file", packPath);
+  await manager.waitForSelector("#preview:not([hidden])", { timeout: 10_000 });
+  const fileMeta = await manager.textContent("#file-meta");
+  check(
+    "the preview states what is in the file",
+    /2 windows · 6 tabs · 1 group/.test(fileMeta ?? ""),
+    fileMeta ?? "",
+  );
+
+  const rows = await manager.$$eval(".tree-row", (nodes) =>
+    nodes.map((node) => ({
+      kind: node.className,
+      checked: node.getAttribute("aria-checked"),
+      text: node.textContent ?? "",
+    })),
+  );
+  check("the preview tree renders the pack", rows.length >= 6, `${rows.length} rows`);
+  check(
+    "an address no extension can open is flagged rather than hidden",
+    rows.some((row) => row.text.includes("cannot be opened")),
+    rows.map((row) => row.text).join(" | "),
+  );
+  const beforeSelection = await manager.textContent("#selection-count");
+  check(
+    "the selection count names what will be skipped and why",
+    /6 of 6 selected · 1 will be skipped · 1 cannot be opened/.test(beforeSelection ?? ""),
+    beforeSelection ?? "",
+  );
+
+  // Keyboard: one tab stop into the tree, then arrows and space.
+  await manager.focus("#tree");
+  await manager.keyboard.press("ArrowDown");
+  await manager.keyboard.press("ArrowDown");
+  await manager.keyboard.press(" ");
+  const afterKeyboard = await manager.textContent("#selection-count");
+  const groupRowState = await manager.getAttribute(".tree-row.kind-group", "aria-checked");
+  check(
+    "space on a group row deselects the whole group",
+    /4 of 6 selected/.test(afterKeyboard ?? "") && groupRowState === "false",
+    `${afterKeyboard ?? ""} aria-checked=${groupRowState}`,
+  );
+  await manager.keyboard.press(" ");
+  check(
+    "pressing it again selects the group back",
+    /6 of 6 selected/.test((await manager.textContent("#selection-count")) ?? ""),
+    (await manager.textContent("#selection-count")) ?? "",
+  );
+
+  let groupsAllowed = false;
+  if (await manager.isVisible("#groups-permission")) {
+    manager.on("dialog", (dialog) => dialog.accept().catch(() => undefined));
+    await manager.click("#allow-groups");
+    await manager.waitForTimeout(800);
+    groupsAllowed = !(await manager.isVisible("#groups-permission"));
+  } else {
+    groupsAllowed = true;
+  }
+  const permissionState = await worker.evaluate(
+    async () => await chrome.permissions.contains({ permissions: ["tabGroups"] }),
+  );
+  console.log(
+    `smoke: tab groups permission ${groupsAllowed ? "granted" : "not granted"} (browser reports ${permissionState})`,
+  );
+
+  const restoreLabel = await manager.textContent("#restore");
+  check("the restore button names what it will do", /^Restore 5 tabs$/.test(restoreLabel ?? ""), restoreLabel ?? "");
+
+  const windowsBefore = await worker.evaluate(async () => (await chrome.windows.getAll({})).length);
+  await manager.click("#restore");
+  // The same live region carries progress first, so wait for the outcome itself.
+  await manager.waitForFunction(
+    () => /Restored/.test(document.querySelector("#restore-report")?.textContent ?? ""),
+    { timeout: 30_000 },
+  );
+  const restoreReport = await manager.textContent("#restore-report");
+  check("the restore report states the outcome", /Restored 5 tabs/.test(restoreReport ?? ""), restoreReport ?? "");
+
+  const state = await worker.evaluate(async () => {
+    const windows = await chrome.windows.getAll({ populate: true });
+    const groups = chrome.tabGroups ? await chrome.tabGroups.query({}) : [];
+    return {
+      windows: windows.length,
+      tabs: windows.flatMap((win) =>
+        (win.tabs ?? []).map((tab) => ({
+          url: tab.url || tab.pendingUrl || "",
+          pinned: tab.pinned,
+          index: tab.index,
+          groupId: tab.groupId,
+          windowId: tab.windowId,
+        })),
+      ),
+      groups: groups.map((group) => ({ title: group.title, color: group.color, collapsed: group.collapsed })),
+    };
+  });
+
+  check(
+    "two new windows were opened",
+    state.windows === windowsBefore + 2,
+    `${windowsBefore} before, ${state.windows} after`,
+  );
+  const restoredUrls = state.tabs.map((tab) => tab.url);
+  for (const url of [
+    "https://example.com/pinned",
+    "https://example.com/grouped-a",
+    "https://example.com/grouped-b",
+    "https://example.com/plain",
+    "https://example.net/second-window",
+  ]) {
+    check(`restored ${url}`, restoredUrls.some((candidate) => candidate.startsWith(url)), restoredUrls.join(" "));
+  }
+  check(
+    "a chrome:// address was not restored",
+    restoredUrls.every((url) => !url.startsWith("chrome://settings")),
+    restoredUrls.join(" "),
+  );
+  const pinned = state.tabs.filter((tab) => tab.pinned);
+  check(
+    "the pinned tab is pinned and holds index 0",
+    pinned.length === 1 && pinned[0].index === 0,
+    JSON.stringify(pinned),
+  );
+
+  const grouped = state.tabs.filter((tab) => typeof tab.groupId === "number" && tab.groupId > -1);
+  if (permissionState) {
+    check(
+      "the group is restored with its title and colour",
+      state.groups.some((group) => group.title === "Reading" && group.color === "green"),
+      JSON.stringify(state.groups),
+    );
+    check("both tabs of the group are in it", grouped.length === 2, JSON.stringify(grouped));
+  } else {
+    // Real behaviour found here: tabs.group needs no permission, so the tabs are
+    // grouped, and only the title and colour are refused.
+    check(
+      "without the tab groups permission the tabs are still grouped and the report says what was lost",
+      grouped.length === 2 && /titles and colours were not applied/.test(await managerIssueText(manager)),
+      `${grouped.length} grouped, notes: ${(await managerIssueText(manager)).slice(0, 200)}`,
+    );
+  }
+
+  // A tab opened by the extension in another window takes a moment to appear as
+  // a page here, and reports no URL until it does.
+  let placeholder = null;
+  for (let attempt = 0; attempt < 40 && !placeholder; attempt += 1) {
+    placeholder = context.pages().find((page) => page.url().includes("placeholder.html")) ?? null;
+    if (!placeholder) await manager.waitForTimeout(250);
+  }
+  check("the placeholder page opened", placeholder !== null, context.pages().map((page) => page.url()).join(" "));
+  if (placeholder) {
+    await placeholder.waitForSelector(".url-address", { timeout: 10_000 });
+    const listed = await placeholder.$$eval(".url-address", (nodes) => nodes.map((node) => node.textContent));
+    check(
+      "the placeholder page lists the address it could not open",
+      listed.includes("chrome://settings/"),
+      listed.join(" "),
+    );
+    const links = await placeholder.$$eval("a", (nodes) => nodes.length);
+    check("the placeholder page has no links, so nothing dangerous is one click away", links === 0);
+    await placeholder.screenshot({ path: path.join(shots, "placeholder.png"), fullPage: true });
+  }
+
+  /**
+   * NFR-005: the manager page opens a 5000 tab file. Measured here rather than
+   * asserted, and it also proves the preview is virtualised: a tree holding five
+   * thousand tabs must keep only a screenful of rows in the document.
+   */
+  const bigPack = path.join(root, "test", "fixtures", "synthetic", "synthetic-5000.tabspack.json");
+  if (existsSync(bigPack)) {
+    const started = Date.now();
+    await manager.setInputFiles("#file", bigPack);
+    await manager.waitForFunction(
+      () => /5000 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+      { timeout: 60_000 },
+    );
+    const elapsed = Date.now() - started;
+    const domRows = await manager.$$eval(".tree-row", (nodes) => nodes.length);
+    check(
+      `a 5000 tab pack previews in ${elapsed} ms without freezing`,
+      elapsed < 5_000,
+      `${elapsed} ms`,
+    );
+    check(
+      "the preview is virtualised, so only a screenful of rows is in the document",
+      domRows > 0 && domRows < 80,
+      `${domRows} rows in the document`,
+    );
+    const bigSelection = await manager.textContent("#selection-count");
+    check("the selection count matches the file", /5000 of 5000 selected/.test(bigSelection ?? ""), bigSelection ?? "");
+    await manager.setInputFiles("#file", packPath);
+    await manager.waitForFunction(
+      () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+      { timeout: 10_000 },
+    );
+  } else {
+    console.log("smoke: no 5000 tab fixture, run npm run fixtures for the NFR-005 check");
+  }
+
+  await manager.screenshot({ path: path.join(shots, "manager-import.png"), fullPage: true });
+  await manager.emulateMedia({ colorScheme: "dark" });
+  await manager.screenshot({ path: path.join(shots, "manager-import-dark.png"), fullPage: true });
 
   console.log(`smoke: screenshots in ${path.relative(root, shots)}`);
 } finally {

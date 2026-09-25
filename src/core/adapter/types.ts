@@ -87,6 +87,58 @@ export interface Capabilities {
   discardOnCreate: boolean | null;
 }
 
+/** What `tabs.create` is given. Only the fields TabsPack sets. */
+export interface CreateTabRequest {
+  windowId?: number;
+  url: string;
+  /** Omitted so the browser appends, which is what keeps pinned ordering right. */
+  index?: number;
+  active?: boolean;
+  pinned?: boolean;
+  openerTabId?: number;
+  /** Gecko only. Chromium rejects the property, which is how it is probed. */
+  discarded?: boolean;
+  /** Gecko shows this on a tab that has never rendered. */
+  title?: string;
+  cookieStoreId?: string;
+}
+
+export interface CreateWindowRequest {
+  url?: string | string[];
+  focused?: boolean;
+  incognito?: boolean;
+  state?: string;
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface UpdateTabRequest {
+  active?: boolean;
+  openerTabId?: number;
+  muted?: boolean;
+  pinned?: boolean;
+  url?: string;
+}
+
+export interface UpdateWindowRequest {
+  state?: string;
+  focused?: boolean;
+  left?: number;
+  top?: number;
+  width?: number;
+  height?: number;
+  /** Gecko only, ignored elsewhere. */
+  titlePreface?: string;
+}
+
+export interface UpdateGroupRequest {
+  title?: string;
+  color?: string;
+  collapsed?: boolean;
+}
+
 export interface DownloadRequest {
   /** A blob or data URL created by the calling page. */
   url: string;
@@ -109,12 +161,32 @@ export interface BrowserAdapter {
   queryTabs(query: TabQuery): Promise<RawTab[]>;
   /** Returns an empty array when the browser has no tab groups API. */
   queryGroups(windowId?: number): Promise<RawGroup[]>;
+  /**
+   * Creating browser state. Every one of these can reject, and the restore
+   * engine treats a rejection as a reportable event rather than a crash: see
+   * docs/ARCHITECTURE.md section 6.
+   */
+  createWindow(request: CreateWindowRequest): Promise<RawWindow>;
+  createTab(request: CreateTabRequest): Promise<RawTab>;
+  updateTab(tabId: number, request: UpdateTabRequest): Promise<void>;
+  removeTabs(tabIds: number[]): Promise<void>;
+  /** Best effort. A browser that refuses leaves the tab loaded. */
+  discardTabs(tabIds: number[]): Promise<void>;
+  /** Returns the new group id, or null when this browser cannot group tabs. */
+  groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null>;
+  updateGroup(groupId: number, request: UpdateGroupRequest): Promise<void>;
+  updateWindow(windowId: number, request: UpdateWindowRequest): Promise<void>;
+  /** Whether the browser lets this extension open `file://` URLs. */
+  isAllowedFileSchemeAccess(): Promise<boolean>;
   hasPermissions(permissions: string[]): Promise<boolean>;
   requestPermissions(permissions: string[]): Promise<boolean>;
   isAllowedIncognitoAccess(): Promise<boolean>;
   download(request: DownloadRequest): Promise<number | null>;
   storageGet<T extends Record<string, unknown>>(defaults: T): Promise<T>;
   storageSet(values: Record<string, unknown>): Promise<void>;
+  storageRemove(keys: string[]): Promise<void>;
+  /** Every stored key. `storageGet` only returns the keys it was given. */
+  storageGetAll(): Promise<Record<string, unknown>>;
   setBadge(text: string, durationMs?: number): Promise<void>;
   sendMessage<T = unknown>(message: unknown): Promise<T | undefined>;
   extensionUrl(path: string): string;

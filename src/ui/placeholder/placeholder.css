@@ -1,0 +1,89 @@
+/* The placeholder page listing addresses no extension may open. */
+
+.page.narrow {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.page-head .wordmark {
+  font-size: var(--text-heading);
+}
+
+.page-trust {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.hint {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.url-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.url-item {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border-strong);
+}
+
+.url-title {
+  margin: 0;
+  font-size: var(--text-dense);
+  font-weight: 500;
+}
+
+.url-address {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.url-reason {
+  margin: 2px 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}

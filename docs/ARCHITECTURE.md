@@ -1,6 +1,6 @@
 # Architecture
 
-Status: design, not yet implemented. Every path below is a target, not a description of existing code. When code exists and diverges from this document, fix whichever is wrong and say which in the commit.
+Status: describes the code as built through M2. When code and this document diverge, fix whichever is wrong and say which in the commit.
 
 ## 1. Shape of the thing
 
@@ -15,12 +15,13 @@ TabsPack is a browser extension with no server, no network access and no runtime
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
 | Options page | `src/ui/options/` | While open | Settings only |
 | Offscreen document | `src/offscreen/` | Milliseconds | Clipboard write on behalf of the service worker, then closes itself |
+| Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |
 
 The single most important placement decision: **import and export do not live in the popup**. A popup closes when the file picker takes focus, which is the most common cause of broken import in the extensions we studied. The popup is a launcher.
 
 ## 2. Module layout
 
-As built at the end of M1. Files marked `(M2+)` are planned, not present.
+As built at the end of M2. Files marked `(M3)` or later are planned, not present.
 
 ```
 manifest.chrome.json      Chromium, service_worker background
@@ -42,9 +43,13 @@ src/
     naming.ts             filenames and ISO timestamps with a local offset
     report.ts             export and import report objects
     settings.ts           defaults, merge on read, storage round trip
-    deserialize.ts (M2+)  TabsPackFile to Session, unknown field retention
-    schema.ts (M2+)       validate, migrate, version gate
-    restore.ts (M2+)      Session to browser state, throttle and discard policy
+    issues.ts             one shape for every validation, migration and read note
+    schema.ts             structural validation and the version gate
+    migrate.ts            the version step registry, empty until the format changes
+    deserialize.ts        TabsPackFile to Session, unknown field retention
+    import.ts             parse, migrate, validate, read: the one import entry point
+    urls.ts               which addresses an extension may open, and why not
+    restore.ts            Session to browser state, throttle and discard policy
     adapters/ (M3)        foreign format readers, one file per source
   ui/
     shared/
@@ -52,10 +57,15 @@ src/
       base.css            components
       dom.ts              element helpers, inline SVG icons, no innerHTML
       segmented.ts        radio group behaviour with arrow keys
-      report-view.ts      renders a report into a live region
+      tabs.ts             the ARIA tab pattern, for the manager's two tasks
+      report-view.ts      renders a report and an issue list into a live region
       save.ts             Blob plus downloads API, anchor fallback, clipboard
     popup/                launcher: counts, scope, one primary action
-    manager/              export, output preview. Import lands here at M2
+    manager/
+      manager.ts          the shell and the export task
+      import-panel.ts     file intake, validation display, restore controls
+      preview-tree.ts     the virtualised windows, groups and tabs tree
+    placeholder/          the page listing addresses that cannot be opened
     options/ (M5)
   offscreen/              clipboard write for the service worker
   types/
@@ -66,9 +76,10 @@ schema/
   tabspack.v1.schema.json generated, never hand edited
 scripts/                  build, lint, schema, test, fixtures, icons, perf, smoke
 test/
-  tools/                  fake adapter, scenarios, fixture generator, bench
+  tools/                  fake browser, scenarios, fixture generator, bench,
+                          the round trip harness
   unit/                   the node test suite
-  fixtures/valid|invalid|edge|foreign|synthetic
+  fixtures/valid|invalid|edge|foreign|migration|synthetic
 ```
 
 ## 3. Two models, deliberately
@@ -78,6 +89,8 @@ test/
 `Session` is the in memory model the UI and restore engine use. It may change freely between releases because nothing outside the process sees it.
 
 `serialize.ts` and `deserialize.ts` are the only bridge between them. No UI code and no restore code ever reads a raw file object. This is what keeps the published format from being dragged around by UI convenience, and it is the mistake Tab Session Manager made by persisting its internal session object as its export.
+
+`Session` keeps two things that look redundant and are not: the text of every timestamp exactly as an imported file spelled it, alongside the parsed value. A pack read in one timezone and written out again must be byte identical, and re deriving `2026-09-24T13:59:40+05:30` from an epoch in another timezone would quietly restamp a field the user never touched.
 
 ## 4. The adapter rule
 
@@ -125,12 +138,21 @@ Order of operations per window, because every one of these has a failure mode fo
 3. Create tabs with `active: false`. Track the mapping from file index to created tab id.
 4. Beyond the discard threshold, default 20, call `tabs.discard` on the created tab. On Gecko, pass `discarded: true` at creation instead, which is cheaper.
 5. Remove the placeholder tab the new window opened with, only after the first real tab exists, otherwise the window closes.
-6. Group tabs: one `tabs.group` call per group with all its tab ids, then `tabGroups.update` for title, colour and collapsed. Grouping after creation is required because `tabs.create` cannot assign a group.
+6. Group tabs: one `tabs.group` call per group with all its tab ids, then `tabGroups.update` for title and colour. Grouping after creation is required because `tabs.create` cannot assign a group.
 7. Activate the tab marked `active`, or the first tab.
-8. Open the placeholder page listing unopenable URLs, if any.
-9. Emit the report.
+8. Collapse the groups that were collapsed, and focus the window that was focused.
+9. Open the placeholder page listing unopenable URLs, if any, and emit the report.
+
+Four refinements the browsers forced, all of them found by running the engine rather than by reading documentation:
+
+- **Bounds and state are mutually exclusive.** `windows.create` refuses a `state` such as maximized together with `left`, `top`, `width` or `height`. A window whose state is not normal is created plain and its state applied afterwards, so its bounds come from the window manager rather than from the file.
+- **Collapsing happens after activating.** A browser refuses to collapse the group that holds the active tab, so every collapse is queued until step 8. A refusal is reported, not swallowed.
+- **Focus is applied once, at the end.** Every window created after the focused one takes the focus away, so the window the pack says was focused is focused after the last one exists.
+- **`title` travels only with `discarded`.** Both are Gecko only. Chromium rejects an unrecognised property on `tabs.create` outright, which is exactly what makes the single probe in step 4 reliable, and it is why nothing else is ever sent speculatively.
 
 Throttling: creation is awaited in batches, with a small delay between batches, so the browser stays responsive. NFR-004 in [../PLAN.md](../PLAN.md) is the target this exists to meet.
+
+What a restore cannot carry back, and why, is listed in [LIMITATIONS.md](LIMITATIONS.md) Table L2 and asserted as the exception list of the round trip harness in `test/tools/roundtrip.ts`.
 
 ## 7. Messaging contract
 
@@ -164,6 +186,7 @@ Restore runs in the manager page, not the service worker, because it is long run
 | `settings` | object | Defaults live in one module, merged on read, so a new setting never requires a migration |
 | `snapshots` | array of `{ id, name, tags, createdAt, counts }` | Metadata only, for fast list rendering |
 | `snapshot:<uuid>` | TabsPackFile | One key per snapshot so a large snapshot never blocks reading the list |
+| `placeholder:<uuid>` | `{ createdAt, tabs }` | The addresses a restore could not open, handed to the placeholder page. A pack can hold hundreds, which is more than a URL can carry. Pruned to the five most recent whenever that page opens |
 | `schemaVersion` | integer | Of the stored data, not of the file format |
 
 ## 9. Build
