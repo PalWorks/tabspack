@@ -13,6 +13,7 @@ import type {
   RawGroup,
   RawTab,
   RawWindow,
+  TabMove,
   TabQuery,
   UpdateGroupRequest,
   UpdateTabRequest,
@@ -150,18 +151,32 @@ export const realAdapter: BrowserAdapter = {
    * Discarding is a courtesy to the machine, never a requirement of the restore,
    * so a browser that refuses leaves the tab loaded and the restore continues.
    */
-  async discardTabs(tabIds: number[]): Promise<number[]> {
+  async getTab(tabId: number): Promise<RawTab | null> {
+    try {
+      return (await browser.tabs.get(tabId)) as RawTab;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Chromium answers with a **new tab object**, because unloading replaces the
+   * tab and its id; Gecko answers with nothing and keeps the id. Both are
+   * reported the same way, so the caller never has to know which engine it is
+   * on: see ADR-025.
+   */
+  async discardTabs(tabIds: number[]): Promise<TabMove[]> {
     if (tabIds.length === 0 || typeof browser.tabs.discard !== "function") return [];
-    const unloaded: number[] = [];
+    const moved: TabMove[] = [];
     for (const tabId of tabIds) {
       try {
-        await browser.tabs.discard(tabId);
-        unloaded.push(tabId);
+        const result = (await browser.tabs.discard(tabId)) as { id?: number } | undefined;
+        moved.push({ from: tabId, to: typeof result?.id === "number" ? result.id : tabId });
       } catch {
         /* a tab the browser will not unload stays loaded, and is not counted */
       }
     }
-    return unloaded;
+    return moved;
   },
 
   async groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null> {

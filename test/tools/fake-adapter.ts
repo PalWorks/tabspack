@@ -44,6 +44,11 @@ export interface FakeState {
   storageBytesInUse?: number | null;
   /** Makes the first `createWindow` with bounds reject, as a window manager can. */
   failBoundsOnce?: boolean;
+  /**
+   * Agrees to unload a pinned tab and then loads it anyway, which is what
+   * Firefox 156 does: measured in the cross browser matrix, ADR-025.
+   */
+  reloadsPinnedTabs?: boolean;
 }
 
 export interface FakeAdapter extends BrowserAdapter {
@@ -76,6 +81,13 @@ const DEFAULT_PLATFORM: PlatformInfo = {
 export function createFakeAdapter(state: FakeState): FakeAdapter {
   const storage: Record<string, unknown> = { ...(state.storage ?? {}) };
   let nextTabId = 10_000;
+  /**
+   * Tabs whose navigation has not committed yet. A real Chromium reports no
+   * address for these, and loses the address altogether if they are unloaded in
+   * that state. One read is enough to settle, which is what the restore engine
+   * waits for.
+   */
+  const uncommitted = new Set<number>();
   let nextWindowId = 100;
   let nextGroupId = 900;
   let boundsFailed = false;
@@ -220,6 +232,8 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
         ...(request.cookieStoreId !== undefined ? { cookieStoreId: request.cookieStoreId } : {}),
       };
       if (tab.active) for (const other of tabs) other.active = false;
+      // A tab created unloaded was never navigating, so there is nothing to wait for.
+      if (tab.discarded !== true && tab.id !== undefined) uncommitted.add(tab.id);
       tabs.push(tab);
       normalise(win);
       return tab;
@@ -254,18 +268,51 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       state.windows = state.windows.filter((win) => tabsOf(win).length > 0);
     },
 
+    async getTab(tabId: number) {
+      try {
+        const { tab } = findTab(tabId);
+        /*
+         * A freshly created tab reports no address until its navigation has
+         * committed. Modelled because Chromium does it, and because a tab
+         * unloaded before that moment loses its address for good: ADR-025.
+         */
+        if (uncommitted.has(tabId)) {
+          uncommitted.delete(tabId);
+          return { ...tab, url: "", title: "" };
+        }
+        return tab;
+      } catch {
+        return null;
+      }
+    },
+
+    /**
+     * Chromium replaces the tab when it unloads it, so the id changes, and a tab
+     * unloaded before its navigation committed comes back blank for good. Both
+     * are modelled here because both were measured in a real browser, and both
+     * were defects until 2026-09-25: ADR-025.
+     */
     async discardTabs(tabIds: number[]) {
       adapter.calls.push({ method: "discardTabs", detail: tabIds });
-      const unloaded: number[] = [];
+      const moved: { from: number; to: number }[] = [];
       for (const tabId of tabIds) {
         const { tab } = findTab(tabId);
         // A browser will not unload the tab in front of the user, and the report
         // has to say what happened rather than what was asked for.
         if (tab.active === true) continue;
-        tab.discarded = true;
-        unloaded.push(tabId);
+        if (uncommitted.has(tabId)) {
+          tab.url = "";
+          tab.title = "";
+          uncommitted.delete(tabId);
+        }
+        // Firefox loads a pinned tab straight after agreeing to unload it.
+        tab.discarded = state.reloadsPinnedTabs === true && tab.pinned === true ? false : true;
+        const to = (nextTabId += 1);
+        tab.id = to;
+        uncommitted.delete(tabId);
+        moved.push({ from: tabId, to });
       }
-      return unloaded;
+      return moved;
     },
 
     async groupTabs(request: { tabIds: number[]; windowId?: number }) {

@@ -144,7 +144,8 @@ File (picker or drag and drop)
   -> core/unsuspend.ts         the same recovery, for files written before it
   -> UI preview                windows, groups, search, per tab selection
   -> core/restore.ts           windows.create -> tabs.create (inactive)
-                               -> tabs.discard, every tab by default
+                               -> wait for the address, then tabs.discard,
+                                  following the new id Chromium hands back
                                -> tabs.group + tabGroups.update
                                -> placeholder page for unopenable URLs
   -> core/report.ts            restored, skipped, duplicate, unopenable, ungrouped

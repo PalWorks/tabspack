@@ -193,6 +193,43 @@ test("every restored tab is unloaded by default, except the one in front of the 
   assert.equal(report.discarded, tabs.length - loaded.length, "the report counts what actually unloaded");
 });
 
+test("an unloaded restore keeps every address, and the group, and the active tab", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser();
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  const blank = tabs.filter((entry) => (entry.url ?? "") === "");
+  assert.equal(
+    blank.length,
+    0,
+    `${blank.length} restored tabs came back with no address: a tab unloaded before its navigation commits loses it`,
+  );
+
+  // Grouping, openers and activation all happen after the unload, with ids the
+  // unload has changed. If those are not followed, every one of them misses.
+  assert.equal(report.ungrouped, 0, "a stale id after unloading would lose the group");
+  assert.ok(report.groups > 0, "the pack's groups were recreated");
+  for (const win of adapter.state.windows) {
+    const active = (win.tabs ?? []).filter((entry) => entry.active);
+    assert.equal(active.length, 1, "exactly one active tab per window");
+    assert.equal(active[0]?.discarded, false, "the active tab is not left unloaded");
+  }
+});
+
+test("the unloaded count is what the browser says at the end, not what was asked for", async () => {
+  const session = await referencePack();
+  // This browser agrees to unload a tab and then loads it anyway, which is what
+  // Firefox does with a pinned tab: ADR-025.
+  const adapter = emptyBrowser({ reloadsPinnedTabs: true });
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  const actuallyUnloaded = tabs.filter((entry) => entry.discarded === true).length;
+  assert.equal(report.discarded, actuallyUnloaded, "the report counts tabs the user can see are unloaded");
+  assert.ok(tabs.some((entry) => entry.pinned && entry.discarded !== true), "the pinned tab did load");
+});
+
 test("unloading is flushed per batch, so a restore never holds more loaded than a batch", async () => {
   const session = await referencePack();
   const adapter = emptyBrowser();
@@ -259,8 +296,11 @@ test("creation is throttled in batches", async () => {
   const adapter = emptyBrowser();
   const opts = options({ batchSize: 8, batchDelayMs: 25 });
   await restoreSession(adapter, session, opts);
-  // 18, 14 and 6 tabs in batches of 8: two pauses, one pause, none.
-  assert.deepEqual(opts.pauses, [25, 25, 25]);
+  // 18, 14 and 6 tabs in batches of 8: two pauses, one pause, none. The engine
+  // also pauses while it waits for a tab to report its address before unloading
+  // it, which is a different pause with a different length: ADR-025.
+  assert.deepEqual(opts.pauses.filter((ms) => ms === 25), [25, 25, 25]);
+  assert.ok(opts.pauses.includes(15), "the engine waits for an address before unloading");
 });
 
 test("a window manager that refuses the bounds is retried once and reported", async () => {

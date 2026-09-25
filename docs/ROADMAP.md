@@ -192,7 +192,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-504 | None | Assets accepted by all three stores at first upload | done |
 | T-505 | None | Justifications match PLAN Table P8 exactly, and the privacy policy is linked in all three listings | done |
 | T-506 | None | The preview tree is fully keyboard operable, focus is visible, contrast passes, the tree and reports carry ARIA roles | done |
-| T-507 | None | TESTING Table X2 fully green, result recorded in the release pull request. Automated here as far as an agent can: the Chromium half by `npm run smoke`, the Firefox install by `npm run smoke:firefox`. The rest needs a human | doing |
+| T-507 | None | TESTING Table X2 green on real Chrome 154, Edge 153 and Firefox 156, by `npm run matrix` and `npm run matrix:firefox`, which drive the installed browsers rather than a downloaded one. Four rows remain for a person: the permission prompt, a real suspender, a Firefox keyboard command, and how it all looks | done |
 | T-508 | NFR-001 to NFR-005 | All five hold on the shipped artifact | done |
 | T-509 | None | Accepted by Chrome Web Store, Edge Add-ons and AMO. Blocked on three developer accounts, which is not something an agent can hold | next |
 | T-510 | None | A bug report cannot be filed without browser, version and reproduction detail | done |
@@ -216,6 +216,9 @@ suspender and one was an `edge://` page, leaving 3 that would open anywhere.
 | T-608 | Browser proof | Test | Recovery has to survive the real thing | The smoke pack carries a suspended tab, and the restored window holds the page it stood for | done |
 | T-609 | Unloaded restores | Core, UI | 50 to 200 pages loading at once is the moment the browser stops answering | `unloadRestored` on by default, flushed per batch with one batch of lag. ADR-024 | done |
 
+| T-610 | The cross browser matrix, automated | Test | Table X2 was a list of things nobody had done, and the one row about unloading hid two defects | `scripts/matrix.mjs` and `scripts/matrix-firefox.mjs` drive real Chrome, Edge and Firefox. 25 rows each | done |
+| T-611 | What the matrix found | Core | A tab unloaded before its address commits loses it, and Chromium changes the id when it unloads | Wait for the address, follow the new id, recount the report from the browser. ADR-025 | done |
+
 **M6 exit test.** The user's own export imports with 30 addresses recovered and
 33 of its 34 tabs openable, the last being an `edge://` page no extension may
 open. Met on 2026-09-25.
@@ -233,14 +236,16 @@ open. Met on 2026-09-25.
 
 ### Table R10: The work an agent cannot finish
 
+Most of this table was emptied on 2026-09-25 by `npm run matrix`, which drives
+the installed Chrome, Edge and Firefox rather than a downloaded browser. What is
+left is what a machine genuinely cannot do.
+
 | Id | What | Why it needs a person |
 |---|---|---|
-| T-507 | Exercise export, import and restore by hand in Chrome, Edge and Firefox | Chrome 137 and later ignore `--load-extension`, and no driver can load an extension into Firefox and then use it. `npm run smoke` covers Chromium, `npm run smoke:firefox` proves the Gecko package installs, and TESTING.md lists exactly what is left |
-| T-507 | Press the keyboard shortcuts | The browser handles them before any page or driver sees them |
-| T-507 | Grant the `tabGroups` permission at the prompt | Chrome refuses `permissions.request` in an automated run |
-| T-507 | Restore a large pack with unloading on, which is now the default | One `chrome.tabs.discard` call takes the headless browser down, measured: LIMITATIONS Table L3. The browser run asserts the toggle ships on, then turns it off to restore |
+| T-507 | Grant the `tabGroups` permission at the prompt | No driver can answer a browser's own prompt. `--grant-groups` exercises everything behind it |
 | T-507 | Check a recovered suspended tab against the suspender that made it | The suspender has to be installed, and its pages exist only in a real profile |
-| T-507 | Confirm snapshots survive a browser restart | The profile is thrown away with the run |
+| T-507 | Press a keyboard command in Firefox | The key arrives and the command does not fire on a virtual display. The same key fires the same command in Chrome and Edge, so the product is not what is in doubt |
+| T-507 | Look at it | Nothing automated has an opinion about how it looks |
 | T-509 | Submit to three stores | Three developer accounts, and the fee for one of them |
 
 Everything up to those lines is done, and `docs/store/` holds the listing text and

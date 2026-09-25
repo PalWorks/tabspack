@@ -25,6 +25,7 @@ export interface WebExtApi {
   runtime2?: never;
   tabs: {
     query(query: Record<string, unknown>): Promise<unknown[]>;
+    get(tabId: number): Promise<unknown>;
     create(props: Record<string, unknown>): Promise<unknown>;
     update(tabId: number, props: Record<string, unknown>): Promise<unknown>;
     remove(tabIds: number | number[]): Promise<void>;

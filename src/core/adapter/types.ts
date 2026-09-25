@@ -145,6 +145,12 @@ export interface DownloadRequest {
   saveAs?: boolean;
 }
 
+/** A tab that changed id, which is what unloading does on Chromium. */
+export interface TabMove {
+  from: number;
+  to: number;
+}
+
 export interface BrowserAdapter {
   platform(): Promise<PlatformInfo>;
   capabilities(): Promise<Capabilities>;
@@ -162,12 +168,17 @@ export interface BrowserAdapter {
   createTab(request: CreateTabRequest): Promise<RawTab>;
   updateTab(tabId: number, request: UpdateTabRequest): Promise<void>;
   removeTabs(tabIds: number[]): Promise<void>;
+  /** One tab by id, or null when it is gone. */
+  getTab(tabId: number): Promise<RawTab | null>;
   /**
    * Best effort. A browser that refuses leaves the tab loaded, so this answers
    * with the tabs it actually unloaded: the restore report counts those, not
    * the ones it asked for.
+   *
+   * Chromium hands the tab a **new id** when it unloads it, so each entry says
+   * which id became which. A browser that keeps the id answers `from === to`.
    */
-  discardTabs(tabIds: number[]): Promise<number[]>;
+  discardTabs(tabIds: number[]): Promise<TabMove[]>;
   /** Returns the new group id, or null when this browser cannot group tabs. */
   groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null>;
   updateGroup(groupId: number, request: UpdateGroupRequest): Promise<void>;

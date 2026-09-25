@@ -116,32 +116,78 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |
 | The contrast contract | `npm run a11y`, computed from the tokens |
 
+| Exporting, importing and restoring in real Chrome, Edge and Firefox, including a 200 tab restore with unloading on and a restart | `npm run matrix`, which drives the installed browsers. How it gets in differs by browser and is the whole reason that script exists: see the table below |
+| A keyboard command actually being pressed | `npm run matrix -- --target=edge --keys`, which presses it with `xdotool` on a real window. Edge acts on it. Chrome and Firefox do not act on a synthetic key on the virtual display used here, so those two report the row as not run rather than as a failure |
+
 | Not automated | Why |
 |---|---|
-| Exporting, importing and restoring in Firefox and Edge | Neither browser can be driven with an extension loaded the way Chromium can here |
-| A keyboard shortcut actually being pressed | The browser handles it before any page or driver sees it |
-| The `tabGroups` permission prompt being granted | Chrome refuses `permissions.request` in an automated run |
-| A restore with unloading on, at scale | `chrome.tabs.discard` takes the headless browser down: LIMITATIONS Table L3 |
-| Snapshots surviving a browser restart | The profile is thrown away with the run |
+| The `tabGroups` permission prompt being granted | No driver can answer a browser's own prompt. `--grant-groups` loads a build where the permission is required instead, so everything behind the prompt is exercised; the prompt itself is a line for a person |
+| A keyboard command in Chrome and Firefox | As above: the key arrives, the command does not fire, and the same key fires the same command in Edge, so this is the rig rather than the product |
+| A tab parked by a real suspender | The suspender has to be installed and its pages exist only in a real profile. The wrapper it writes is covered by fixtures and by the browser run |
+| How any of it looks | A person still has to look at it |
+
+### Table X4: How each browser is driven
+
+| Browser | How the extension gets in | Measured |
+|---|---|---|
+| Chrome 154 | `--load-extension` is ignored entirely since Chrome 137. The CDP command `Extensions.loadUnpacked` is the supported replacement and works | 2026-09-25 |
+| Edge 153 | Still honours `--load-extension` | 2026-09-25 |
+| Firefox 156 | geckodriver's `POST /session/{id}/moz/addon/install` with `temporary: true`, against a Firefox started by hand with `--marionette -remote-allow-system-access`, because geckodriver will not pass that switch through capabilities. The extension's own pages cannot be navigated to directly at all: the run pins `extensions.webextensions.uuids` so their address is known, and opens them from the chrome context with the system principal | 2026-09-25 |
 
 ## Cross browser matrix
 
 ### Table X2: Matrix
 
-| Case | Chrome | Edge | Firefox |
+Run with `npm run matrix -- --target=chrome|edge --headed --grant-groups --keys`
+and `npm run matrix:firefox -- --headed --grant-groups --keys`. Both need the
+browser itself installed, `playwright` for the Chromium family and `geckodriver`
+for Firefox, and a display. A virtual one will do, and is what these numbers come
+from, but it needs a window manager: without one a browser has no focus, window
+bounds are whatever the browser picks and no keystroke arrives.
+
+```
+Xvfb :77 -screen 0 1920x1080x24 &
+DISPLAY=:77 metacity &
+DISPLAY=:77 npm run matrix -- --target=chrome --headed --grant-groups --keys
+```
+ Results below are
+from 2026-09-25 against Chrome 154.0.8037.57, Edge 153.0.4234.48 and Firefox
+156.0.1 on Linux, on a virtual display with a window manager, which is what the
+bounds and the keyboard rows need.
+
+| Case | Chrome 154 | Edge 153 | Firefox 156 |
 |---|---|---|---|
-| Load unpacked, clean console | Required. `npm run smoke` proves the load and a clean console | Required | Partly automated: `npm run smoke:firefox` installs the package in a real Firefox through web-ext, which proves the manifest, the permissions, the background declaration and the CSP are right for Gecko. A clean console still needs a human |
-| Export all windows | Required | Required | Required |
-| Restore into new windows with bounds | Required | Required | Required |
-| Groups restored with colour and collapsed state | Required, 89 and later | Required | Required, 139 and later. Degrades with one notice below that |
-| Discarded restore | Create then discard | Create then discard | `discarded: true` at creation |
-| Restore 200 tabs with unloading on, which is the default since ADR-024, and watch for a crash | Required, see LIMITATIONS Table L3 | Required | Required |
-| A tab parked by a suspender comes back as the page it stands for | Required, with the suspender installed | Required | Required |
-| Clipboard | From the page, on every engine. There is no offscreen document and no background clipboard write: ADR-021 | Same | Same |
-| Optional permission prompt for `tabGroups` | Required | Required | Required |
-| Keyboard commands fire, and appear in the browser's shortcut settings | Required | Required | Required |
-| Snapshots survive a browser restart | Required | Required | Required |
-| Containers | Not applicable | Not applicable | Field ignored, no error |
+| Load unpacked, no console error on any surface | pass | pass | pass |
+| Export all windows to a file | pass | pass | pass |
+| The file on disk carries the name TabsPack asked for | pass | pass | pass |
+| Pinned tabs and window bounds are captured | pass | pass | pass |
+| Groups captured with title, colour and collapsed state | pass | pass | pass |
+| Copy to the clipboard, from a page | pass | pass | not run, the driver reads no clipboard here |
+| A suspended tab is recovered on import | pass | pass | pass |
+| Restore into new windows, with the pack's bounds | pass | pass | pass |
+| Every address in the pack is opened, and no suspender page is | pass | pass | pass |
+| The pinned tab comes back pinned | pass | pass | pass |
+| The group comes back with title, colour and collapsed state | pass | pass | pass |
+| Restored tabs are unloaded, and the count is what the browser shows | pass | pass | pass, except a pinned tab, which Firefox loads anyway: ADR-025 |
+| Restore 200 tabs with unloading on, without taking the browser down | pass, 9s, 199 unloaded | pass, 13s, 199 unloaded | pass, 6s, 199 unloaded |
+| An unloaded tab still shows its title | not applicable, Chromium cannot | not applicable | pass |
+| A snapshot is written to local storage | pass | pass | pass |
+| Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |
+| Keyboard commands are declared with the shortcut the browser accepted | pass | pass | pass |
+| A keyboard command actually fires | **pass** in one run, Alt+Shift+E wrote a file and Alt+Shift+S saved a snapshot. Not run in another: this display delivers keys to Chrome only intermittently | **pass**, every run | not run, the key arrives and the command does not fire. The Alt modifier was ruled out by rebinding the command to Ctrl+Shift+U |
+| Optional permission prompt for `tabGroups` | not run, a driver cannot answer a prompt | not run | not run |
+| Containers | not applicable | not applicable | pass, the field is carried as `firefox-default` |
+
+Totals on that date, and nothing failed on any of them: Chrome 23 passed with 2
+not run, Edge 25 passed with none not run, Firefox 23 passed with 2 not run. The
+rows that did not run are the keyboard ones, and the reason is in the row.
+
+One instability worth naming rather than hiding: the small restore's rows read
+the tab strip the moment the report appears, and a tab that is still loading
+reports no address on either engine. The run waits for the addresses the pack
+names before it reads anything, and it still caught a slow one twice out of
+about a dozen runs. That is the rig, and it is also the reason the engine waits
+for an address before unloading a tab: ADR-025.
 
 ## Commands
 

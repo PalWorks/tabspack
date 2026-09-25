@@ -102,6 +102,15 @@ interface PlannedWindow {
 
 const PLACEHOLDER_URL = "about:blank";
 
+/**
+ * How long a tab is given to report its address before it is unloaded anyway,
+ * and how often it is asked. The poll is deliberately not the batch delay, so a
+ * test can tell the two kinds of pause apart.
+ */
+const COMMIT_DEADLINE_MS = 3_000;
+const COMMIT_POLL_MS = 15;
+const COMMIT_TRIES = Math.ceil(COMMIT_DEADLINE_MS / COMMIT_POLL_MS);
+
 export async function restoreSession(
   adapter: BrowserAdapter,
   session: Session,
@@ -155,8 +164,10 @@ export async function restoreSession(
     adapter,
     options,
     sleep,
+    clock,
     issues,
     report,
+    created: new Set<number>(),
     discardOnCreate: capabilities.discardOnCreate,
     containers: capabilities.containers,
     groupMeta: capabilities.tabGroups,
@@ -218,16 +229,40 @@ export async function restoreSession(
   }
 
   await maybeOpenPlaceholder(adapter, report, options, issues);
+  await countWhatIsActuallyUnloaded(runtime);
   report.ms = clock() - started;
   return report;
+}
+
+/**
+ * The unloaded count is recounted from the browser at the end, rather than
+ * trusted from the moment each tab was created.
+ *
+ * Measured on Firefox 156: a pinned tab created with `discarded: true` reports
+ * itself unloaded and then loads anyway. The report would otherwise claim three
+ * tabs were left unloaded where two were, and a count a user cannot check
+ * against their own tab strip is worth nothing: DESIGN principle 3.
+ */
+async function countWhatIsActuallyUnloaded(runtime: Runtime): Promise<void> {
+  const { report, created } = runtime;
+  if (report.discarded === 0 || created.size === 0) return;
+  const tabs = await runtime.adapter.queryTabs({}).catch(() => null);
+  if (tabs === null) return;
+  report.discarded = tabs.filter(
+    (tab) => typeof tab.id === "number" && created.has(tab.id) && tab.discarded === true,
+  ).length;
 }
 
 interface Runtime {
   adapter: BrowserAdapter;
   options: RestoreOptions;
   sleep: (ms: number) => Promise<void>;
+  /** The same clock the report is timed with, so tests never touch the wall. */
+  clock: () => number;
   issues: Issue[];
   report: RestoreReport;
+  /** Every tab this restore made, by its final id. Used for the unloaded count. */
+  created: Set<number>;
   /** Null until a restore has tried it once. See the probe in `createTabFor`. */
   discardOnCreate: boolean | null;
   containers: boolean;
@@ -418,7 +453,7 @@ async function fillWindow(
 ): Promise<void> {
   const { adapter, options, report } = runtime;
   const createdIds: (number | null)[] = [];
-  /* Created in this batch, and created in the one before it. See `unload`. */
+  /* Positions filled in this batch, and in the one before it. See `unload`. */
   let toDiscard: number[] = [];
   let waiting: number[] = [];
 
@@ -428,16 +463,41 @@ async function fillWindow(
    * sessions this size: ADR-024.
    *
    * Gecko creates a tab unloaded and none of this runs. Chromium has no such
-   * option, so the tab loads and is unloaded straight after, and doing that
-   * once per batch rather than once per window caps how many pages are ever
-   * loaded at the same time. The batch lags by one, because a tab asked to
-   * unload in the same turn it was created is a tab the browser is still
-   * navigating, and it refuses.
+   * option, so the tab is created, allowed to commit its address, and unloaded
+   * straight after. Two measured facts shape the rest of it, both in ADR-025:
+   *
+   *   A tab unloaded before its navigation commits loses its address for good.
+   *   It comes back blank, and clicking it does not bring the page back.
+   *   So every tab is waited for, briefly, before it is unloaded.
+   *
+   *   Chromium gives the tab a new id when it unloads it. Every id held after
+   *   that is stale, which silently cost the group, the opener and the active
+   *   tab of every restore that unloaded anything. So `createdIds` is rewritten
+   *   from what the unload reports, and positions rather than ids are queued.
+   *
+   * Unloading once per batch rather than once per window caps how many pages
+   * are ever loaded at the same time, and the queue lags by one batch so the
+   * wait above almost never has to wait at all.
    */
-  const unload = async (ids: number[]): Promise<void> => {
+  const unload = async (positions: number[]): Promise<void> => {
+    if (positions.length === 0) return;
+    const ids = positions
+      .map((position) => createdIds[position])
+      .filter((id): id is number => typeof id === "number");
     if (ids.length === 0) return;
-    const unloaded = await safelyValue(() => adapter.discardTabs(ids), []);
-    report.discarded += unloaded.length;
+
+    await settle(runtime, ids);
+    const moved = await safelyValue(() => adapter.discardTabs(ids), []);
+    report.discarded += moved.length;
+
+    const renamed = new Map(moved.map((move) => [move.from, move.to]));
+    for (const position of positions) {
+      const id = createdIds[position];
+      if (typeof id === "number" && renamed.has(id)) createdIds[position] = renamed.get(id) as number;
+    }
+    for (const fixup of openerFixups) {
+      if (renamed.has(fixup.tabId)) fixup.tabId = renamed.get(fixup.tabId) as number;
+    }
   };
   const openerFixups: { tabId: number; openerIndex: number }[] = [];
   const activeEntry = window.tabs.find((entry) => entry.tab.active) ?? window.tabs[0];
@@ -457,7 +517,7 @@ async function fillWindow(
       report.restored += 1;
       if (wantsDiscard) {
         if (created.discarded === true) report.discarded += 1;
-        else toDiscard.push(created.id);
+        else toDiscard.push(position);
       } else {
         runtime.loaded += 1;
       }
@@ -489,6 +549,9 @@ async function fillWindow(
 
   await unload(waiting);
   await unload(toDiscard);
+
+  // After the unloads, because Chromium hands a tab a new id when it unloads it.
+  for (const id of createdIds) if (typeof id === "number") runtime.created.add(id);
 
   // Openers refer to positions in the file, which the sort above may have moved.
   const positionOfIndex = new Map<number, number>();
@@ -704,6 +767,29 @@ function fail(
 ): RestoreReport {
   issues.push(warning(code, "$", message, "Open a browser window and try again."));
   return { ...report, ok: false, ms, issues };
+}
+
+/**
+ * Waits for each tab to report an address, which is the moment its navigation
+ * has committed and the moment it is safe to unload. Measured on Edge 153: a
+ * tab reports its address about a tenth of a second after it is created, and a
+ * tab unloaded before that loses the address permanently. The deadline is short
+ * because a tab that never commits is a tab that will not load anyway, and the
+ * restore has to finish either way.
+ */
+async function settle(runtime: Runtime, ids: number[]): Promise<void> {
+  const deadline = runtime.clock() + COMMIT_DEADLINE_MS;
+  const pending = new Set(ids);
+  // Bounded by tries as well as by the clock: a test's clock does not move, and
+  // a loop that depends on one that does not is a loop that does not end.
+  for (let attempt = 0; attempt < COMMIT_TRIES && pending.size > 0; attempt += 1) {
+    for (const id of [...pending]) {
+      const tab = await runtime.adapter.getTab(id).catch(() => null);
+      if (tab === null || (tab.url ?? "") !== "" || (tab.pendingUrl ?? "") !== "") pending.delete(id);
+    }
+    if (pending.size === 0 || runtime.clock() >= deadline) break;
+    await runtime.sleep(COMMIT_POLL_MS);
+  }
 }
 
 async function safely(action: () => Promise<unknown>): Promise<void> {

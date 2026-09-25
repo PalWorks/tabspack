@@ -360,3 +360,30 @@ Date 2026-09-25. Status accepted. Amends FR-208.
 Gecko creates a tab unloaded and nothing else happens. Chromium has no such option, so the tab is created and unloaded straight after, and that flush runs once per batch with one batch of lag rather than once per window: a tab asked to unload in the turn it was created is still navigating and the browser refuses. The lag caps how many pages are ever loaded at one time at roughly the batch size, which is the difference between a 200 tab restore costing 8 tabs of memory and costing 200.
 
 **Consequence.** A restore looks instant and costs almost nothing until a tab is opened. A recovered suspended tab comes back as an ordinary unloaded tab rather than as a page belonging to a suspender, which is the same memory result without depending on a third party extension: TabsPack never writes another extension's address into a tab. `adapter.discardTabs` now answers with the tabs it actually unloaded, so the report counts what happened rather than what was asked for. The path cannot be exercised in the headless Chromium the smoke run uses, where one `chrome.tabs.discard` call takes the browser down: measured, and recorded in `docs/LIMITATIONS.md` Table L3 and in the manual matrix, T-507.
+
+---
+
+## ADR-025: A tab is unloaded only once it has an address, and its new id is followed
+
+Date 2026-09-25. Status accepted. Amends ADR-024. Scopes T-507.
+
+**Context.** ADR-024 made every restored tab unload by default. The cross browser matrix, run against real Chrome 154, Edge 153 and Firefox 156 rather than against the headless browser the smoke run uses, found that this was quietly ruining the restore on Chromium. Both causes were measured with a probe, not deduced:
+
+| What was measured | Result |
+|---|---|
+| `tabs.create` then `tabs.discard` immediately, the way the engine did it | The tab reports **no address at all**: `url` empty, `pendingUrl` empty, `title` empty. Activating it does not bring the page back. The page is gone |
+| The same, waiting until the tab reports an address first | Address kept, title kept, unloaded as asked. The wait was **100 ms** |
+| The id, either way | **Changes.** Chromium replaces the tab when it unloads it, and `tabs.discard` answers with a different tab id |
+| Firefox, a pinned tab created with `discarded: true` | Reports itself unloaded, then loads anyway |
+
+The consequences in the product were exactly as bad as they sound. A restore with unloading on produced blank tabs. Every id held after an unload was stale, so grouping, opener relationships, muting and the final activation all silently missed their tabs: a real Edge restore reported "2 restored ungrouped" for a pack whose group it had just created. And the older default was no defence, only a smaller blast radius: before ADR-024 the same loss hit every tab past the twentieth, so a 200 tab restore came back with 20 pages and 180 blank tabs.
+
+**Options.** Unload only at the very end of a window, which keeps ids valid for the fixups but lets every tab in the window load first, which is the memory cost the feature exists to avoid. Or keep the per batch flush and deal with both facts directly.
+
+**Decision.** Three changes, all in `src/core/restore.ts` and the adapter:
+
+1. Before unloading a batch, each tab is given up to three seconds to report an address, polled every 15 ms. A tab that never reports one is unloaded anyway, because a tab that will not commit will not load either.
+2. `adapter.discardTabs` answers with `{ from, to }` for every tab it unloaded. The engine queues **positions** rather than ids and rewrites `createdIds` from that answer, so grouping, openers and activation all act on tabs that still exist.
+3. The report's unloaded count is recounted from the browser at the end rather than trusted from each creation, because of the Firefox pinned tab above. A count a user cannot check against their own tab strip is worth nothing.
+
+**Consequence.** The lag of one batch means the wait almost never waits: the previous batch has long since committed. A restore of 200 tabs takes 14 seconds in Chrome, 21 in Edge and 8 in Firefox, and leaves 199 of them unloaded, measured. The fake browser now models both Chromium behaviours and the Firefox one, so the unit suite fails without any of the three fixes: eight tests fail without the wait, nine without the id remapping, one without the recount. `npm run matrix` is what found this, and it is the reason that script exists.
