@@ -25,7 +25,8 @@ const ui = {
   copyButton: must<HTMLButtonElement>("#copy"),
   format: must<HTMLSelectElement>("#format"),
   report: must<HTMLDivElement>("#report"),
-  manager: must<HTMLButtonElement>("#open-manager"),
+  importButton: must<HTMLButtonElement>("#import"),
+  settings: must<HTMLButtonElement>("#open-settings"),
 };
 
 let settings: Settings;
@@ -57,7 +58,13 @@ async function start(): Promise<void> {
 
   ui.exportButton.addEventListener("click", () => void run("save"));
   ui.copyButton.addEventListener("click", () => void run("copy"));
-  ui.manager.addEventListener("click", () => void adapter.openExtensionPage("manager.html"));
+  /**
+   * Import is a second primary path, but it cannot happen here: a popup closes
+   * when a file picker takes focus, so the button opens the manager already on
+   * the import task rather than opening a picker this window will not survive.
+   */
+  ui.importButton.addEventListener("click", () => void adapter.openExtensionPage("manager.html#import"));
+  ui.settings.addEventListener("click", () => void adapter.openOptions());
 
   // The options page may be open in another tab while this popup is.
   adapter.onStorageChanged((keys) => {
@@ -132,6 +139,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
   }
 }
 
+/** Export and copy need tabs in scope. Import and settings never do. */
 function setEnabled(enabled: boolean): void {
   ui.exportButton.disabled = !enabled;
   ui.copyButton.disabled = !enabled;

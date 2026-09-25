@@ -32,3 +32,20 @@ body.popup {
   flex: 1 1 auto;
   min-width: 0;
 }
+
+/*
+ * Export leads and import sits beside it, because those are the two things a
+ * person opens this popup to do. Export keeps the width it earns from its own
+ * count; import is sized to its word and matched to the primary height, so the
+ * pair reads as one action row rather than a button with an afterthought.
+ */
+.actions #export {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.actions #import {
+  flex: 0 0 auto;
+  height: var(--control-h-primary);
+  padding: 0 var(--space-4);
+}

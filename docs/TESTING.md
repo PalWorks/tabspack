@@ -2,7 +2,7 @@
 
 As of the end of M5: 187 unit tests, 20 conformance fixtures, 16 foreign format
 fixtures, 38 contrast pairs, 2 performance budgets in node and 3 more measured in
-a browser, and a 59 check browser run that covers export, import, restore,
+a browser, and a 64 check browser run that covers export, import, restore,
 search, snapshots, the options page and the theme. The contract below is what
 they are for.
 
@@ -108,7 +108,7 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | Automated | How |
 |---|---|
 | Everything in `src/core/` | 187 unit tests against a writable fake browser that models the awkward parts of the real one |
-| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 59 checks against the built extension in a real Chromium |
+| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 64 checks against the built extension in a real Chromium |
 | That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
 | That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |

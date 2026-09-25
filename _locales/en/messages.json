@@ -27,8 +27,8 @@
   "placeholderTitle": {
     "message": "Addresses TabsPack could not open"
   },
-  "openManager": {
-    "message": "Open the TabsPack manager"
+  "openSettings": {
+    "message": "Open TabsPack settings"
   },
   "working": {
     "message": "Working"
@@ -183,6 +183,9 @@
   },
   "copyButton": {
     "message": "Copy"
+  },
+  "importHint": {
+    "message": "Opens the TabsPack window, where a file is previewed before anything opens"
   },
   "includeLabel": {
     "message": "Include"

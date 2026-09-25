@@ -79,7 +79,7 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 
 ```
 ┌────────────────────────────────────────────┐
-│ ▣  TabsPack                        [⤢]     │  40px  wordmark, open manager
+│ ▣  TabsPack                        [⚙]     │  40px  wordmark, settings
 ├────────────────────────────────────────────┤
 │                                            │
 │  2 windows · 37 tabs · 3 groups            │  12px muted, live
@@ -88,9 +88,9 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 │  │ All      │ This window  │ Selection  │  │  segmented, 32px
 │  └──────────┴──────────────┴────────────┘  │
 │                                            │
-│  ┌──────────────────────────────────────┐  │
-│  │          Export 37 tabs              │  │  filled primary, 40px
-│  └──────────────────────────────────────┘  │
+│  ┌───────────────────────────┐ ┌────────┐  │
+│  │      Export 37 tabs       │ │ Import │  │  primary 40px, secondary 40px
+│  └───────────────────────────┘ └────────┘  │
 │                                            │
 │  Format [ TabsPack file      ▾ ]  [Copy]   │  32px controls
 │                                            │
@@ -103,6 +103,8 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 
 Decisions behind that layout:
 
+- **Export and import sit in the same row.** They are the two reasons the popup is opened, so both are one click from the browser toolbar. Export takes the width, because it is the action that happens here; import is sized to its word, because it is a handoff. A popup cannot host a file picker at all, ADR-009, so import opens the manager page already on the import task with the file button focused. What the popup must never do is hide import behind an icon and let a first time user conclude the product only exports.
+- **The gear is settings, and only settings.** An icon in that corner is read as settings before it is read as anything else, so it opens the options page rather than the manager. The manager is still one click away through import, and its tab list carries export and snapshots from there.
 - **Segmented scope control rather than a split button.** The scope changes the primary button's label, so the user reads what will happen before clicking. A split button hides the second half of its own behaviour behind a caret.
 - **The primary button carries the count.** "Export 37 tabs" is the confirmation and the action in one place, and it makes a filtered count visible before the click rather than after.
 - **Native `<select>` for format.** A custom menu would cost keyboard and screen reader work and buy nothing. The format list is short and dull by design.
@@ -119,7 +121,7 @@ Decisions behind that layout:
 | Working | Primary button keeps its width, label becomes "Working…", `aria-busy="true"` | Fixed width prevents layout jump |
 | Success | Report line with a check in `--success`, filename on a second line, filename is selectable text | The filename is the thing a user needs to find the file |
 | Filtered something | Report adds a muted second line, "3 duplicates and 2 pinned tabs skipped" | Rule 4, nothing silent |
-| Nothing to export | Primary button disabled, report explains which filter emptied the set | A disabled control without a reason is a dead end |
+| Nothing to export | Primary button and copy disabled, report explains which filter emptied the set. Import and the gear stay enabled | A disabled control without a reason is a dead end, and nothing about an empty window makes importing a pack any less possible |
 | Failure | Report line in `--danger` with the actionable message from the core layer | |
 
 ## 4. Manager page

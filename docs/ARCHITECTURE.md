@@ -11,7 +11,7 @@ TabsPack is a browser extension with no server, no network access and no runtime
 | Context | File | Lives for | What belongs here |
 |---|---|---|---|
 | Service worker (background) | `src/background/sw.ts` | Event to event, terminated when idle | Keyboard commands, badge, opening the manager page. It writes a file directly for an export command, which is bounded work. No long lived state, because the worker is killed |
-| Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, buttons that open the manager page. Never a file dialog, never a long task |
+| Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, an import button that hands off to the manager page and a gear that opens settings. Never a file dialog, never a long task |
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
 | Options page | `src/ui/options/` | While open | Every setting, written the moment it changes. No Save button, because a settings page with one invents a state where what you see is not what is in force |
 | Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |

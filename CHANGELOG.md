@@ -42,10 +42,13 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `npm run a11y` computes the contrast of 38 token pairs from the tokens themselves and fails the build on a regression. `npm run lint:amo` runs AMO's own linter over the Firefox package. `npm run perf:browser` measures NFR-001, NFR-004 and NFR-005 against the built package. `npm run smoke:firefox` installs that package in a real Firefox
 - Decision record ADR-022: the interface is translated, and the core's validation messages are its English fallback, with the boundary visible in `src/ui/shared/wording.ts`
 
+- **The popup, after a first look at it in a real Chrome.** Import now sits beside export in the launcher, so the two things the product does are both one click from the toolbar. It cannot open a file picker there, ADR-009, so it opens the manager already on the import task with the file button focused. The header icon is a settings gear and opens the options page, which is what an icon in that corner is read as
+
 ### Fixed
 
 - A file input fired no event when the same file was chosen twice, so fixing a file and picking it again did nothing
 - `--border-strong`, the colour that marks the edge of a text field, was 1.58 to 1 against the page in light and 1.99 to 1 in dark, well under the 3 to 1 that WCAG 1.4.11 requires of a control's own boundary. Found by the contrast check on its first run, and fixed in both themes
+- The dark screenshots in the browser smoke run were taken inside the 120 ms colour transition, so a button still wore its light text and border and the shot read as a theme bug that was not there. The run waits for the transition now, and asserts a button's own ink and border in dark rather than trusting the page background
 - Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report
 
 ### Audited

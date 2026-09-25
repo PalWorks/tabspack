@@ -87,7 +87,7 @@ Two rules make it durable: a reader ignores fields it does not understand, and p
 One source tree, two manifests, no server, no network, one runtime dependency.
 
 ```
-popup            launcher: counts, one click export, opens the manager
+popup            launcher: counts, one click export, import hands off to the manager
 manager page     import, preview, selection, restore, snapshots. All file work
 options page     settings
 service worker   keyboard commands, badge, and writing a file when asked by one
@@ -168,7 +168,7 @@ Three properties get the test budget: a file round trips without loss, a malform
 
 ```bash
 npm run verify        # typecheck, lint, schema, 187 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 59 checks against the built extension in a real Chromium
+npm run smoke         # 64 checks against the built extension in a real Chromium
 npm run smoke:firefox # installs the Firefox package in a real Firefox
 npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
 ```

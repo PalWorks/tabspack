@@ -104,6 +104,18 @@ function check(name, condition, detail) {
   }
 }
 
+/**
+ * Waits for every running transition to finish. Colour changes take --dur-fast,
+ * and a screenshot or a computed style read inside that window reports the
+ * colour being left behind: a dark shot taken this way shows light button text
+ * and reads as a theme bug that is not there.
+ */
+async function settle(page) {
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => undefined))),
+  );
+}
+
 const profile = await mkdtemp(path.join(tmpdir(), "tabspack-profile-"));
 await rm(shots, { recursive: true, force: true });
 await mkdir(shots, { recursive: true });
@@ -171,8 +183,17 @@ try {
 
   await popup.screenshot({ path: path.join(shots, "popup-light.png") });
   await popup.emulateMedia({ colorScheme: "dark" });
+  await settle(popup);
   await popup.screenshot({ path: path.join(shots, "popup-dark.png") });
+  // A page can go dark while a control does not: the tokens are on :root, but a
+  // button's own colour and border are separate declarations that read them.
+  const darkInk = await popup.evaluate(() => {
+    const style = getComputedStyle(document.querySelector("#import"));
+    return `${style.color} on ${style.borderColor}`;
+  });
+  check("dark reaches a button's own ink and border, not only the page", darkInk === "rgb(232, 234, 237) on rgb(118, 125, 138)", darkInk);
   await popup.emulateMedia({ colorScheme: "light" });
+  await settle(popup);
 
   // Keyboard path: the segmented control must behave like a radio group.
   await popup.focus("#scope button[aria-checked='true']");
@@ -226,6 +247,35 @@ try {
   check("the report states the outcome", /Saved \d+ tabs?/.test(report ?? ""), report ?? "");
   await popup.screenshot({ path: path.join(shots, "popup-after-export.png") });
 
+  /**
+   * The popup's two ways out. Import cannot happen in a popup at all, so the
+   * button has to land on the import task with the picker ready; the gear has to
+   * reach the settings page. Both are one click from the launcher, so both are
+   * checked here rather than assumed.
+   */
+  const arriving = context.waitForEvent("page", { timeout: 15_000 });
+  await popup.click("#import");
+  const handoff = await arriving;
+  await handoff.waitForLoadState("domcontentloaded");
+  await handoff
+    .waitForFunction(() => document.querySelector("#tab-import")?.getAttribute("aria-selected") === "true", {
+      timeout: 10_000,
+    })
+    .catch(() => undefined);
+  const onImport = await handoff.getAttribute("#tab-import", "aria-selected");
+  check("import in the popup opens the manager on the import task", onImport === "true", `aria-selected=${onImport}`);
+  check("the manager clears the hash, so a reload is a plain visit", !handoff.url().includes("#"), handoff.url());
+  const landedOn = await handoff.evaluate(() => document.activeElement?.id ?? "");
+  check("the import task arrives with the file button focused", landedOn === "choose-file", landedOn);
+  await handoff.close();
+
+  const settingsArriving = context.waitForEvent("page", { timeout: 15_000 });
+  await popup.click("#open-settings");
+  const settingsPage = await settingsArriving;
+  await settingsPage.waitForLoadState("domcontentloaded");
+  check("the gear opens the settings page", settingsPage.url().endsWith("/options.html"), settingsPage.url());
+  await settingsPage.close();
+
   const manager = await context.newPage();
   const managerErrors = [];
   manager.on("pageerror", (error) => managerErrors.push(String(error)));
@@ -262,6 +312,7 @@ try {
   check("the output panel shows the exact bytes", output.trimStart().startsWith("{"), output.slice(0, 40));
   await manager.screenshot({ path: path.join(shots, "manager-light.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "dark" });
+  await settle(manager);
   await manager.screenshot({ path: path.join(shots, "manager-dark.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "light" });
 
@@ -619,6 +670,7 @@ try {
 
   await manager.screenshot({ path: path.join(shots, "manager-import.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "dark" });
+  await settle(manager);
   await manager.screenshot({ path: path.join(shots, "manager-import-dark.png"), fullPage: true });
 
   /* Options and the theme, M5 -------------------------------------------- */

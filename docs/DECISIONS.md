@@ -128,6 +128,8 @@ Date 2026-09-24. Status accepted.
 
 **Decision.** The popup is a launcher with one click export and a tab count. All import, preview, selection, restore and snapshot management happen on a manager page opened in a tab.
 
+**Amended 2026-09-25.** The popup still hosts no file work, but it names import. The button sits beside export and opens `manager.html#import`, which lands on the import task with the file button focused. The first version left import unnamed in the launcher, which reads as a product that only exports.
+
 **Consequence.** Two UI surfaces to build and style. Restore runs in a page context that cannot be terminated mid flight, which a service worker can be.
 
 ---

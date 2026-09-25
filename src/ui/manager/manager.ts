@@ -154,12 +154,29 @@ async function start(): Promise<void> {
 }
 
 /**
- * A keyboard command on a browser that cannot write a file from the background
- * opens this page with the export it wanted. Doing it on arrival is the point:
- * the user already asked for it, and the alternative is a page that arrives with
- * a button they have to press again.
+ * Two ways in that carry their intent in the address.
+ *
+ * `#import` comes from the popup's import button: a popup cannot host a file
+ * picker, so it sends the user here, and arriving on the export task would make
+ * them pick the task again.
+ *
+ * `#export=...` comes from a keyboard command on a browser that cannot write a
+ * file from the background. Doing it on arrival is the point: the user already
+ * asked for it, and the alternative is a page that arrives with a button they
+ * have to press again.
+ *
+ * The hash is cleared either way, so a reload is a plain visit rather than a
+ * repeat of an action the user asked for once.
  */
 async function runHashAction(select: (id: string) => void): Promise<void> {
+  if (location.hash === "#import") {
+    history.replaceState(null, "", location.pathname);
+    select("import");
+    // The user pressed import one screen ago. Landing on the control that opens
+    // the picker makes the next step one key, and shows where the task begins.
+    must<HTMLButtonElement>("#choose-file").focus();
+    return;
+  }
   const match = /^#export=(all_windows|current_window)$/.exec(location.hash);
   if (!match) return;
   history.replaceState(null, "", location.pathname);
