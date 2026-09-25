@@ -194,16 +194,20 @@ These are not the TabsPack format. They are inputs the reference implementation 
 
 | Source | Detection | Fidelity achievable |
 |---|---|---|
-| Tab Session Manager JSON | Array of objects with `windows` as an id keyed object plus `windowsInfo` | High. Windows, geometry, order, pinned, groups |
+| Tab Session Manager JSON | Array of objects, or one object, with `windows` as an id keyed object plus `windowsInfo` or `tabsNumber` | High. Windows, geometry, order, pinned, active, groups. A file holding several saved sessions imports the first and says so |
 | Session Buddy JSON | Object with a `sessions` array whose entries hold `windows` with `tabs` | High. Windows, order, pinned. Groups where present |
-| Session Buddy CSV | Header row containing a URL column | Low. URLs and titles only |
+| CSV, including Session Buddy's | Header row with a column whose name contains url, address, link, href or location | Low. URLs and titles, plus a window column when the file has one |
 | OneTab export text | Lines of `url` then a vertical bar then `title`, blank line separated groups | Medium. URLs, titles, group boundaries as windows |
-| Plain URL list | One URL per line, `#` comments ignored | Low. URLs only |
+| Plain URL list | Lines that are mostly addresses, `#` comments ignored. A line that is not an address is read as the title of the address below it | Low. URLs, and titles in the paired form |
 | Markdown link list | Lines matching `[title](url)`, headings become windows | Low. URLs, titles, window boundaries |
 | Netscape HTML bookmarks | `<!DOCTYPE NETSCAPE-Bookmark-file-1>` | Low. URLs, titles, folders become windows |
 | Flat JSON array | Array of strings, or of objects carrying a url field | Low. URLs, titles where present |
 
 An adapter MUST NOT invent fidelity. If a source has no window information, the import produces one window and says so in the preview.
+
+Detection is by document shape only, and the order runs from the most specific shape to the most general, because a Tab Session Manager export is also a JSON array and a OneTab export is also a list of lines. A JSON object that no adapter recognises is validated as a TabsPack file instead, so the reader's answer is "this file declares no format" rather than "unrecognised", which is the more useful of the two.
+
+Every adapter's output goes through the same validation and the same reader as a file that arrived as a TabsPack document. An adapter cannot produce a pack that the format's own rules would reject.
 
 ## 11. Conformance
 

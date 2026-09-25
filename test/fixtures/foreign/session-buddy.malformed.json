@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "sessions": [
+    {
+      "name": "Broken",
+      "windows": [{ "tabs": [{ "title": "A tab with no address at all" }] }]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+[
+  {
+    "windows": {
+      "12": {
+        "301": {
+          "id": 301,
+          "index": 0,
+          "windowId": 12,
+          "url": "https://example.com/handbook",
+          "title": "Team handbook",
+          "pinned": true,
+          "active": false,
+          "favIconUrl": "https://example.com/favicon.ico",
+          "groupId": -1,
+          "lastAccessed": 1759000000000
+        },
+        "302": {
+          "id": 302,
+          "index": 1,
+          "windowId": 12,
+          "url": "https://example.com/spec",
+          "title": "The specification",
+          "pinned": false,
+          "active": true,
+          "groupId": 44,
+          "mutedInfo": { "muted": false }
+        },
+        "303": {
+          "id": 303,
+          "index": 2,
+          "windowId": 12,
+          "url": "https://example.com/tests",
+          "title": "Test plan",
+          "pinned": false,
+          "active": false,
+          "groupId": 44,
+          "discarded": true
+        }
+      },
+      "13": {
+        "401": {
+          "id": 401,
+          "index": 1,
+          "windowId": 13,
+          "url": "https://example.org/roadmap",
+          "title": "Roadmap",
+          "groupId": -1
+        },
+        "400": {
+          "id": 400,
+          "index": 0,
+          "windowId": 13,
+          "url": "https://example.org/notes",
+          "title": "Notes",
+          "groupId": -1,
+          "active": true
+        }
+      }
+    },
+    "windowsNumber": 2,
+    "windowsInfo": {
+      "12": {
+        "id": 12,
+        "focused": true,
+        "top": 0,
+        "left": 0,
+        "width": 1920,
+        "height": 1080,
+        "incognito": false,
+        "type": "normal",
+        "state": "maximized"
+      },
+      "13": {
+        "id": 13,
+        "focused": false,
+        "top": 40,
+        "left": 60,
+        "width": 1280,
+        "height": 800,
+        "incognito": false,
+        "type": "normal",
+        "state": "normal"
+      }
+    },
+    "tabsNumber": 5,
+    "name": "Release week",
+    "date": 1759000123456,
+    "lastEditedTime": 1759000123456,
+    "tag": ["regular"],
+    "sessionStartTime": 1758990000000,
+    "id": "5f1c1a7e-0000-4000-8000-0123456789ab",
+    "tabGroups": [
+      { "id": 44, "windowId": 12, "title": "Shipping", "color": "cyan", "collapsed": true }
+    ]
+  }
+]

@@ -269,3 +269,17 @@ Date 2026-09-25. Status accepted. Narrows PLAN.md Table P8.
 **Decision.** A notice appears under the preview when the pack has groups and the permission is missing, with an Allow button beside it. The click is the gesture, and the sentence beside it says what is gained and that refusing still restores the tabs.
 
 **Consequence.** One more thing on the page, shown only when it applies. Refusing is a first class path: `tabs.group` needs no permission, so the tabs are still grouped, and the restore reports that the titles and colours were not applied.
+
+---
+
+## ADR-020: One file imports as one pack
+
+Date 2026-09-25. Status accepted. Relates to T-303 and T-304.
+
+**Context.** Tab Session Manager and Session Buddy both export a file that can hold many saved sessions. A TabsPack pack is one session.
+
+**Options.** Import every session and merge them into one pack, which invents a relationship between sessions the user kept apart. Import every session as several packs, which means the import surface stops being about one file and the preview has to grow a session picker. Or import the first and say so.
+
+**Decision.** One file imports as one pack. The first session is read, and a warning names how many were in the file and what to do about the others.
+
+**Consequence.** A user migrating a whole archive has to export their sessions one at a time from the other tool. That is the honest cost, and it is visible in the report rather than discovered later as a silent merge. A session picker in the preview is a reasonable M4 or later addition if anyone asks for it; it is not in Table R1 yet, deliberately.

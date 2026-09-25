@@ -1,0 +1,6 @@
+# Reading list, exported by hand
+https://example.com/paper
+https://example.com/dataset
+
+example.org/no-scheme-here
+https://example.net/inbox

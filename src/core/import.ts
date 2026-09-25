@@ -1,16 +1,19 @@
 /**
  * The one entry point the interface calls with a file's text.
  *
- * Everything the import path does happens here in order: detect what the text
- * is, migrate it forward, validate it, then read it into a `Session`. The
- * interface never calls the stages separately, so there is one place where the
- * order is defined and one object that describes the outcome.
+ * Everything the import path does happens here, in order: work out what the text
+ * is, convert it if it came from another tool, migrate it forward, validate it,
+ * then read it into a `Session`. The interface never calls the stages
+ * separately, so there is one place where the order is defined and one object
+ * that describes the outcome.
  *
- * Foreign formats are recognised at M3, which adds a detector in front of the
- * TabsPack path. Until then anything that is not a TabsPack document fails with
- * a message naming what was tried.
+ * A foreign format is converted into a `TabsPackFile` and then goes through
+ * exactly the same validation and the same reader as a file that arrived as one.
+ * An adapter cannot smuggle a malformed document past the checks.
  */
 import type { Session } from "../types/session.js";
+import { detect, inputFor, unrecognised } from "./adapters/detect.js";
+import type { AdapterInput, ForeignAdapter } from "./adapters/types.js";
 import { fromFile } from "./deserialize.js";
 import type { Issue } from "./issues.js";
 import { errors } from "./issues.js";
@@ -50,7 +53,26 @@ export interface LoadOptions {
 }
 
 export function loadPack(text: string, options: LoadOptions = {}): LoadResult {
-  const parsed = parseJson(text);
+  const input = inputFor(text);
+
+  // A TabsPack file says so in its first field. Anything else is offered to the
+  // foreign format readers first.
+  if (!isTabsPackDocument(input)) {
+    const adapter = detect(input);
+    if (adapter) return loadForeign(adapter, input, options);
+    // A JSON object that nothing recognised is far more often a TabsPack file
+    // with something wrong with it than another tool's format, and "add a format
+    // field" is a better answer than "unrecognised".
+    if (!isObject(input.json)) {
+      // Text that was meant to be JSON and is not parseable deserves the parse
+      // error naming the byte, not a list of formats it is not.
+      const looksLikeJson = /^\s*[{[]/.test(input.text);
+      const parseIssue = looksLikeJson ? parseJson(input.text).issue : undefined;
+      return { ok: false, source: null, issues: [parseIssue ?? unrecognised()] };
+    }
+  }
+
+  const parsed = parseJson(input.text);
   if (!parsed.ok) {
     return { ok: false, source: null, issues: [parsed.issue as Issue] };
   }
@@ -82,4 +104,55 @@ export function loadPack(text: string, options: LoadOptions = {}): LoadResult {
 function sourceFor(document: unknown): SourceInfo | null {
   const format = isObject(document) ? document["format"] : undefined;
   return format === TABSPACK_SOURCE.id ? TABSPACK_SOURCE : null;
+}
+
+function isTabsPackDocument(input: AdapterInput): boolean {
+  if (isObject(input.json)) return input.json["format"] === TABSPACK_SOURCE.id;
+  // Text that is not parseable JSON but starts like a JSON object is a damaged
+  // pack far more often than it is another tool's format, and the parse error
+  // naming the byte is more useful than "unrecognised".
+  return input.json === undefined && input.text.trimStart().startsWith("{");
+}
+
+/**
+ * Everything that did not arrive as a TabsPack file. The adapter converts, and
+ * from there the path is identical, which is what keeps one set of rules for
+ * what a valid pack is.
+ */
+function loadForeign(adapter: ForeignAdapter, input: AdapterInput, options: LoadOptions): LoadResult {
+  const converted = adapter.parse(input);
+  const source: SourceInfo = {
+    id: adapter.id,
+    label: adapter.label,
+    fidelity: adapter.fidelity,
+    carries: adapter.carries,
+    missing: adapter.missing,
+  };
+
+  const validated = validateFile(converted.file);
+  const issues = [...converted.issues, ...validated.issues];
+  if (!validated.ok || !validated.file) {
+    return { ok: false, source, issues };
+  }
+
+  const read = fromFile(validated.file, options);
+  const all = [...issues, ...read.issues];
+  if (errors(all).length > 0) return { ok: false, source, issues: all };
+  if (read.session.windows.length === 0) {
+    return {
+      ok: false,
+      source,
+      issues: [
+        ...all,
+        {
+          code: "detect.nothing_found",
+          severity: "error",
+          path: "$",
+          message: `This file was read as ${adapter.label.toLowerCase()}, and it holds no addresses.`,
+          fix: "Check that the file is not empty, and that its addresses start with a scheme such as https.",
+        },
+      ],
+    };
+  }
+  return { ok: true, session: read.session, source, issues: all };
 }

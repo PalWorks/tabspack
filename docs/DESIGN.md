@@ -169,7 +169,8 @@ Rules for this page:
   │  ⚠ 2 things to know about this file            (folded away)      │
   └───────────────────────────────────────────────────────────────────┘
   ┌─ Preview ─────────────────────────────────────────────────────────┐
-  │  [Select all] [Select none]   6 of 6 selected · 1 cannot be opened │
+  │  [ Search titles and addresses ] [Select all] [Select none]        │
+  │                               6 of 6 selected · 1 cannot be opened │
   │  ┌─────────────────────────────────────────────────────────────┐  │
   │  │ ▾ ☑ Window 1   5 tabs · 1 group · 1 pinned                  │  │
   │  │   ☑ Pinned reference        example.com/pinned              │  │
@@ -190,6 +191,8 @@ Decisions behind that layout:
 
 - **The file, then the preview, then the restore, then the outcome.** The page is in the order of the decisions a person makes, and each card answers one question: what is in this file, what shall I take from it, what happens when I press the button.
 - **The button counts what will actually open**, while the line above the tree counts what is selected. A tab whose address no extension may open stays selected and flagged rather than being quietly deselected, so the restore can report it: ADR-018.
+- **Search filters the tree, and "all" means what is shown.** With a search running, Select all and Select none act on the matches, because in a filtered list that is the only reading of "all" that does not surprise. The count line says how many are shown.
+- **The fidelity line is two clauses**: what came through, and what the source format has no way to hold. It turns amber for a source that cannot carry everything, so a low fidelity import is visible before the restore rather than discovered after it.
 - **Notes are folded away, never hidden.** A warning is a summary line with a count, openable in place. An error is never folded.
 - **Restore notes sit with the restore**, not with the file. Two regions, each next to the thing it describes.
 - **Nothing opens until the primary button is pressed**, and the sentence beside the button says so.
@@ -204,6 +207,7 @@ Decisions behind that layout:
 | Height | Grows with the content between 120 and 480 px, so a small pack is not a tall empty box and a large one does not push the restore controls off the screen |
 | Group rows | Carry the group's colour as an 8 px dot in the browser's own palette, its title, and its tab count |
 | Flags | A tab that cannot be opened carries a right aligned pill in `--warn`. The flag is text, never colour alone |
+| Search | Filters to matching tabs and the windows and groups that hold them, and opens collapsed rows while it runs. Matching is on title and address together |
 
 ## 5. Components
 

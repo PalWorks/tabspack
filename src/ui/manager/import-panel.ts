@@ -43,6 +43,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
     issues: must<HTMLDivElement>("#import-issues"),
     preview: must<HTMLElement>("#preview"),
     tree: must<HTMLDivElement>("#tree"),
+    search: must<HTMLInputElement>("#tree-search"),
     selectAll: must<HTMLButtonElement>("#select-all"),
     selectNone: must<HTMLButtonElement>("#select-none"),
     selection: must<HTMLSpanElement>("#selection-count"),
@@ -90,6 +91,10 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
 
   ui.selectAll.addEventListener("click", () => tree.setAll(true));
   ui.selectNone.addEventListener("click", () => tree.setAll(false));
+  ui.search.addEventListener("input", () => {
+    tree.setQuery(ui.search.value);
+    paintSelection();
+  });
   ui.target.addEventListener("change", () => {
     settings.restoreTarget = ui.target.value as RestoreTarget;
     void saveSettings(adapter, { restoreTarget: settings.restoreTarget });
@@ -138,8 +143,10 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
     clear(ui.issues);
     clear(ui.restoreIssues);
     ui.preview.hidden = true;
+    ui.search.value = "";
     ui.fileMeta.textContent = `Reading ${file.name}`;
     ui.fidelity.textContent = "";
+    delete ui.fidelity.dataset.fidelity;
 
     let text: string;
     try {
@@ -207,6 +214,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
       formatBytes(bytes),
     ].join(" · ");
     ui.fidelity.textContent = describeFidelity(loaded.source);
+    ui.fidelity.dataset.fidelity = loaded.source.fidelity;
 
     const noted = warnings(result.issues);
     if (noted.length > 0) {
@@ -239,6 +247,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): vo
     const count = restorable();
     const selected = tree.selectedCount();
     const parts = [`${selected} of ${tree.totalSelectable()} selected`];
+    if (tree.searching()) parts.push(`${tree.shownCount()} shown`);
     const skipped = selected - count;
     if (skipped > 0) parts.push(`${skipped} will be skipped`);
     if (loaded.blocked.size > 0) parts.push(`${loaded.blocked.size} cannot be opened`);

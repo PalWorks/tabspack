@@ -2,12 +2,12 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-M2%20import%20and%20restore%20complete-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-M3%20foreign%20formats%20complete-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M2 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, and imports a pack back: validate, preview, select, restore. Foreign formats are M3, snapshots are M4, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M3 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. Snapshots are M4, the options page and the store work are M5, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
 
 ## Contents
 
@@ -46,11 +46,13 @@ Working today:
 - **Restore without freezing the browser.** Tabs are created inactive in throttled batches and unloaded beyond a threshold, so a 200 tab pack does not melt the machine.
 - **Told, never guessed.** Every validation failure carries the path into the file and a suggested fix, and every restore reports what was skipped, already open, ungrouped or impossible to open. Addresses no extension may open are listed on a page of their own instead of vanishing.
 
+- **Import from other tools.** Tab Session Manager, Session Buddy JSON and CSV, OneTab, Markdown link lists, browser bookmark exports, flat JSON and plain lists of addresses, all detected by what is in the file rather than by its name. Each import states what the source format could not carry.
+- **Search and select** in the preview, for taking part of a pack rather than all of it.
+
 Planned:
 
-- **Import from competitors** (M3). Tab Session Manager JSON, Session Buddy JSON and CSV, OneTab text, Markdown link lists, Netscape HTML bookmarks and plain URL lists, detected by document shape.
-- **Search and filters in the preview** (M3), for taking part of a pack rather than all of it.
 - **Snapshots** (M4), saved locally, named and tagged, for the days when you do not want to think about where a file went.
+- **Keyboard commands** (M4), an options page, translations and the store listings (M5).
 
 Deliberately not in v1: cloud sync, accounts, encryption, AI features, bookmark management and scheduled saves. See [PLAN.md](PLAN.md) section 7.
 

@@ -72,6 +72,9 @@ async function ruleNoNetwork() {
     }
     for (const match of source.matchAll(/https?:\/\/[^\s"'`)]+/g)) {
       if (NETWORK_ALLOWLIST.includes(match[0])) continue;
+      // `https://${host}` is a scheme being put in front of a value, not a
+      // hardcoded remote resource. Anything with a host spelled out still fails.
+      if (/^https?:\/\/\$\{/.test(match[0])) continue;
       fail(file, lineOf(source, match.index), "no-remote-resource", `remote URL ${match[0]}`);
     }
   }

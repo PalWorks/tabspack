@@ -1,8 +1,9 @@
 # Testing
 
-As of the end of M2: 129 unit tests, 20 conformance fixtures, 2 performance
-budgets and a 34 check browser smoke run that now includes a real import and a
-real restore. The contract below is what they are for.
+As of the end of M3: 163 unit tests, 20 conformance fixtures, 16 foreign format
+fixtures, 2 performance budgets and a 40 check browser smoke run that includes a
+real import, a real restore and a real search. The contract below is what they
+are for.
 
 ## Philosophy
 
@@ -60,7 +61,10 @@ test/fixtures/
   edge/             the schema accepts them, but a reader must handle them
                     specially: a future version, a dangling group reference,
                     two active tabs, duplicate indices, restricted URLs
-  foreign/          one real world sample per adapter in SPEC.md Table S5 (M3)
+  foreign/          one sample per adapter in SPEC.md Table S5, each with a
+                    malformed sibling. They are reconstructions from documented
+                    shapes rather than genuine exports, which that folder's
+                    README states and LIMITATIONS.md Table L4 tracks as debt
   migration/        before and after pairs, one per schemaVersion step. The pair
                     committed now is a hypothetical 1 to 2 step that drives the
                     machinery, because version 1 is the first released version
@@ -87,6 +91,14 @@ Fixtures contain no real personal browsing data. URLs are `example.com` and well
 ## Malformed input cases that must each have a fixture
 
 Missing `format`. Wrong `format` value. Missing `schemaVersion`. `schemaVersion` higher than supported. Missing `windows`. `windows` not an array. A tab with no `url`. A `groupId` referencing a group that does not exist. An unknown group colour. Two tabs marked `active` in one window. A negative or duplicated `index`. Truncated JSON. A 20 MB file. A file containing an unrecognised field at every level, which must succeed and survive re export.
+
+## Foreign formats
+
+Every adapter is held to the same three assertions in `test/unit/adapters.test.ts`, by being listed in the `CASES` and `MALFORMED` arrays there:
+
+1. The fixture is detected by shape, with no file name in play, and imports with every address intact and every title the source carried.
+2. The adapter declares what it could not carry, and the preview shows that sentence.
+3. The malformed sibling fails with a message longer than a shrug and a suggested fix.
 
 ## Cross browser matrix
 

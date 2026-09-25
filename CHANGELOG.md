@@ -31,6 +31,9 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - The round trip harness, `test/tools/roundtrip.ts`: export, import, restore into a writable fake browser, export again, compare field by field. The documented exceptions are in `docs/TESTING.md` Table X3
 - Decision records ADR-017 to ADR-019: a hand written reader rather than a bundled validator, tabs that cannot be opened stay selected so the restore can report them, and the tab groups permission requested by a visible button
 
+- **M3 Selection and foreign formats (T-301 to T-310).** Eight readers for other tools' files, detected by document shape and never by file name: Tab Session Manager, Session Buddy JSON, any CSV with a URL column, OneTab, lists of addresses, Markdown link lists, browser bookmark files and flat JSON arrays. Each declares what it could not carry, and the preview says so before anything is restored. Search across title and address in the preview, with select all and select none acting on what the search shows. The filter controls reach the interface: order, reverse and a wildcard exclude list, all persisted
+- Decision record ADR-020: one file imports as one pack, and a file holding several saved sessions says so
+
 ### Fixed
 
 - Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report

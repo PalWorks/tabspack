@@ -438,6 +438,54 @@ try {
     await placeholder.screenshot({ path: path.join(shots, "placeholder.png"), fullPage: true });
   }
 
+  /* Search and the foreign formats, M3 ----------------------------------- */
+
+  await manager.fill("#tree-search", "grouped");
+  const searching = await manager.textContent("#selection-count");
+  const shownRows = await manager.$$eval(".tree-row", (nodes) =>
+    nodes.map((node) => node.textContent ?? ""),
+  );
+  check(
+    "search narrows the tree to the matches and their windows",
+    /2 shown/.test(searching ?? "") && shownRows.every((row) => !row.includes("Plain page")),
+    `${searching ?? ""} | ${shownRows.join(" / ")}`,
+  );
+  await manager.click("#select-none");
+  const afterNone = await manager.textContent("#selection-count");
+  check(
+    "select none acts on what the search shows, not on the whole pack",
+    /4 of 6 selected/.test(afterNone ?? ""),
+    afterNone ?? "",
+  );
+  await manager.fill("#tree-search", "");
+  await manager.click("#select-all");
+
+  const foreign = path.join(root, "test", "fixtures", "foreign", "onetab.txt");
+  await manager.setInputFiles("#file", foreign);
+  await manager.waitForFunction(
+    () => /onetab\.txt · \d+ windows/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    { timeout: 10_000 },
+  );
+  const foreignMeta = await manager.textContent("#file-meta");
+  const foreignFidelity = await manager.textContent("#fidelity");
+  check(
+    "a OneTab export is recognised by its shape, under any name",
+    /2 windows · 5 tabs/.test(foreignMeta ?? ""),
+    foreignMeta ?? "",
+  );
+  check(
+    "the preview states what the source format could not carry",
+    /OneTab export/.test(foreignFidelity ?? "") && /Not carried by this format/.test(foreignFidelity ?? ""),
+    foreignFidelity ?? "",
+  );
+  await manager.screenshot({ path: path.join(shots, "manager-foreign.png"), fullPage: true });
+
+  await manager.setInputFiles("#file", packPath);
+  await manager.waitForFunction(
+    () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    { timeout: 10_000 },
+  );
+
   /**
    * NFR-005: the manager page opens a 5000 tab file. Measured here rather than
    * asserted, and it also proves the preview is virtualised: a tree holding five

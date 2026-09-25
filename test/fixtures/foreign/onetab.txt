@@ -1,0 +1,6 @@
+https://example.com/paper | A paper worth keeping
+https://example.com/dataset | The dataset
+https://example.com/notes | Notes for later
+
+https://example.net/inbox | Inbox
+https://example.net/calendar | Calendar

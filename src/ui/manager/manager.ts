@@ -12,7 +12,13 @@
 import { realAdapter } from "../../core/adapter/index.js";
 import { buildExport, collectFiltered, type ExportPayload } from "../../core/export.js";
 import { buildExportReport, formatBytes, totalRemoved } from "../../core/report.js";
-import { loadSettings, saveSettings, type ExportFormat, type Settings } from "../../core/settings.js";
+import {
+  loadSettings,
+  saveSettings,
+  type ExportFormat,
+  type Settings,
+  type SortMode,
+} from "../../core/settings.js";
 import { countSession } from "../../types/session.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
@@ -36,6 +42,9 @@ const ui = {
   dedupe: must<HTMLInputElement>("#opt-dedupe"),
   web: must<HTMLInputElement>("#opt-web"),
   pinned: must<HTMLInputElement>("#opt-pinned"),
+  sort: must<HTMLSelectElement>("#opt-sort"),
+  sortDesc: must<HTMLInputElement>("#opt-sort-desc"),
+  exclude: must<HTMLTextAreaElement>("#opt-exclude"),
   exportButton: must<HTMLButtonElement>("#export"),
   copyButton: must<HTMLButtonElement>("#copy"),
   summary: must<HTMLSpanElement>("#summary"),
@@ -87,6 +96,22 @@ async function start(): Promise<void> {
   bindToggle(ui.dedupe, "dedupe");
   bindToggle(ui.web, "webPagesOnly");
   bindToggle(ui.pinned, "skipPinned");
+  bindToggle(ui.sortDesc, "sortDesc");
+
+  ui.sort.addEventListener("change", () => {
+    settings.sort = ui.sort.value as SortMode;
+    void persist({ sort: settings.sort });
+  });
+
+  /**
+   * The exclude list is applied when the field loses focus or the user presses
+   * enter, not on every keystroke: recollecting every tab on each character
+   * would make typing a pattern feel like wading.
+   */
+  ui.exclude.addEventListener("change", () => {
+    settings.excludeList = ui.exclude.value;
+    void persist({ excludeList: settings.excludeList });
+  });
 
   ui.exportButton.addEventListener("click", () => void run("save"));
   ui.copyButton.addEventListener("click", () => void run("copy"));
@@ -103,6 +128,9 @@ function paintSettings(): void {
   ui.dedupe.checked = settings.dedupe;
   ui.web.checked = settings.webPagesOnly;
   ui.pinned.checked = settings.skipPinned;
+  ui.sort.value = settings.sort;
+  ui.sortDesc.checked = settings.sortDesc;
+  ui.exclude.value = settings.excludeList;
 }
 
 /**

@@ -36,11 +36,11 @@ For an automated pass, `npm run smoke` loads `dist/chrome` into the Chromium tha
 
 ## 3. Add a foreign format adapter
 
-1. Obtain a real export from the source tool. Strip anything personal and commit it to `test/fixtures/foreign/`.
-2. Add a detection predicate in `src/core/adapters/detect.ts`. Detect by document shape only, never by file extension or name.
-3. Write the adapter as a pure function from parsed input to a `TabsPackFile`. No browser access, no async work beyond parsing.
+1. Obtain a real export from the source tool. Strip anything personal and commit it to `test/fixtures/foreign/`. If the file had to be reconstructed from documentation, say so in that folder's README and add a debt row in LIMITATIONS.md Table L4.
+2. Write the adapter as one file in `src/core/adapters/`, implementing `ForeignAdapter`: `detect` is a shape test, `parse` is a pure function to a `TabsPackFile`. No browser access, no async work beyond parsing.
+3. Register it in `ADAPTERS` in `src/core/adapters/detect.ts`, in the right place: the list runs from the most specific shape to the most general, and the first detector that says yes wins.
 4. Declare the fidelity in the adapter and add the row to [SPEC.md](SPEC.md) Table S5. Never invent structure the source does not carry.
-5. Add a malformed variant of the fixture and assert the error message.
+5. Add a malformed variant of the fixture and assert that it fails with a fix, in `test/unit/adapters.test.ts`. Both files are added to the `CASES` and `MALFORMED` lists there, which is what keeps every adapter held to the same standard.
 6. Surface the fidelity in the preview UI so the user knows what was lost before restoring.
 
 ## 4. Change the file format

@@ -46,6 +46,8 @@ export class PreviewTree {
   private visible: Row[] = [];
   private readonly selected = new Set<string>();
   private readonly collapsed = new Set<string>();
+  private query = "";
+  private matches: Set<string> | null = null;
   private focusIndex = 0;
   private readonly spacer: HTMLElement;
   private readonly surface: HTMLElement;
@@ -77,6 +79,8 @@ export class PreviewTree {
     this.rows = flatten(session, marks.blocked);
     this.selected.clear();
     this.collapsed.clear();
+    this.query = "";
+    this.matches = null;
     for (const row of this.rows) {
       if (row.kind === "tab") this.selected.add(row.id);
     }
@@ -89,6 +93,45 @@ export class PreviewTree {
     return new Set(this.selected);
   }
 
+  /**
+   * Search across title and address, task T-301. A window or a group stays in the
+   * list when something inside it matches, so a match is never orphaned from the
+   * window it belongs to, and collapsed rows open while a search is running.
+   */
+  setQuery(raw: string): void {
+    const query = raw.trim().toLowerCase();
+    this.query = query;
+    if (query === "") {
+      this.matches = null;
+      this.refresh();
+      return;
+    }
+    const matches = new Set<string>();
+    for (const row of this.rows) {
+      if (row.kind !== "tab") continue;
+      const haystack = `${row.label} ${row.detail}`.toLowerCase();
+      if (haystack.includes(query)) matches.add(row.id);
+    }
+    for (const row of this.rows) {
+      if (row.kind === "tab") continue;
+      if (row.tabIds.some((id) => matches.has(id))) matches.add(row.id);
+    }
+    this.matches = matches;
+    this.focusIndex = 0;
+    this.scroller.scrollTop = 0;
+    this.refresh();
+  }
+
+  /** How many tabs the current search shows. Equal to the total when not searching. */
+  shownCount(): number {
+    if (!this.matches) return this.totalSelectable();
+    return this.rows.filter((row) => row.kind === "tab" && this.matches?.has(row.id)).length;
+  }
+
+  searching(): boolean {
+    return this.query !== "";
+  }
+
   selectedCount(): number {
     return this.selected.size;
   }
@@ -97,10 +140,17 @@ export class PreviewTree {
     return this.rows.filter((row) => row.kind === "tab").length;
   }
 
+  /**
+   * With a search running these act on what is shown, which is the only reading
+   * of "all" that makes sense in a filtered list. Without one they act on the
+   * whole pack.
+   */
   setAll(on: boolean): void {
-    this.selected.clear();
-    if (on) {
-      for (const row of this.rows) if (row.kind === "tab") this.selected.add(row.id);
+    for (const row of this.rows) {
+      if (row.kind !== "tab") continue;
+      if (this.matches && !this.matches.has(row.id)) continue;
+      if (on) this.selected.add(row.id);
+      else this.selected.delete(row.id);
     }
     this.paint();
     this.callbacks.onSelectionChange();
@@ -117,6 +167,7 @@ export class PreviewTree {
   }
 
   private isVisible(row: Row): boolean {
+    if (this.matches) return this.matches.has(row.id);
     if (row.level === 0) return true;
     if (this.collapsed.has(row.windowKey)) return false;
     const groupId = row.tab ? this.groupIdOf(row) : undefined;

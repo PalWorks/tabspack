@@ -50,7 +50,16 @@ src/
     import.ts             parse, migrate, validate, read: the one import entry point
     urls.ts               which addresses an extension may open, and why not
     restore.ts            Session to browser state, throttle and discard policy
-    adapters/ (M3)        foreign format readers, one file per source
+    adapters/             foreign format readers, one file per source
+      types.ts            the adapter contract and the envelope builder
+      detect.ts           the registry, in order from specific to general
+      tsm.ts              Tab Session Manager, read from its own source
+      session-buddy.ts    Session Buddy JSON
+      csv.ts              any CSV with a URL column, including Session Buddy's
+      onetab.ts           OneTab text, one list per window
+      text.ts             lists of addresses, and Markdown links
+      netscape.ts         browser bookmark files
+      flat-json.ts        an array of addresses or of objects
   ui/
     shared/
       theme.css           tokens, light and dark

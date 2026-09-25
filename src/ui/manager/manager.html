@@ -84,6 +84,28 @@
               <label class="check"><input type="checkbox" id="opt-dedupe" /> Remove duplicates</label>
               <label class="check"><input type="checkbox" id="opt-web" /> Web pages only</label>
               <label class="check"><input type="checkbox" id="opt-pinned" /> Skip pinned</label>
+              <span class="inline-field">
+                <label for="opt-sort">Order</label>
+                <select id="opt-sort">
+                  <option value="natural">As they are</option>
+                  <option value="title">By title</option>
+                  <option value="url">By address</option>
+                  <option value="domain">By site</option>
+                </select>
+              </span>
+              <label class="check"><input type="checkbox" id="opt-sort-desc" /> Reverse</label>
+            </div>
+
+            <label class="control-label" for="opt-exclude">Exclude</label>
+            <div>
+              <textarea
+                id="opt-exclude"
+                class="exclude"
+                rows="2"
+                spellcheck="false"
+                placeholder="*mail.example.com*"
+              ></textarea>
+              <span class="hint">One pattern per line, <code>*</code> matches anything. Lines starting with <code>#</code> are ignored.</span>
             </div>
           </div>
 
@@ -116,12 +138,15 @@
           <div id="dropzone" class="dropzone">
             <p class="dropzone-lead">Drop a pack here</p>
             <button id="choose-file" class="btn btn-secondary" type="button">Choose a file</button>
-            <p class="hint">A <code>.tabspack.json</code> file. Nothing is opened until you say so.</p>
+            <p class="hint">
+              A <code>.tabspack.json</code> file, or an export from Tab Session Manager, Session Buddy,
+              OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.
+            </p>
             <input id="file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
           </div>
 
           <p id="file-meta" class="summary">No file chosen yet.</p>
-          <p id="fidelity" class="hint"></p>
+          <p id="fidelity" class="hint fidelity"></p>
           <div id="import-issues" class="report" role="status" aria-live="polite"></div>
         </section>
 
@@ -129,6 +154,15 @@
           <h2 class="legend" id="preview-legend">Preview</h2>
 
           <div class="actions preview-actions">
+            <label class="visually-hidden" for="tree-search">Search titles and addresses</label>
+            <input
+              id="tree-search"
+              class="search"
+              type="search"
+              placeholder="Search titles and addresses"
+              autocomplete="off"
+              spellcheck="false"
+            />
             <button id="select-all" class="btn btn-secondary" type="button">Select all</button>
             <button id="select-none" class="btn btn-secondary" type="button">Select none</button>
             <span id="selection-count" class="summary"></span>

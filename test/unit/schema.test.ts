@@ -100,9 +100,15 @@ test("a missing export time is a warning, not a refusal", () => {
   assert.equal(warnings(result.issues)[0]?.code, "exported_at.missing");
 });
 
-test("a list of URLs is not mistaken for a damaged TabsPack file", () => {
-  const result = loadPack('["https://example.com/a","https://example.com/b"]');
+test("a JSON object that declares no format is told what is missing, not called unrecognised", () => {
+  const result = loadPack('{"schemaVersion":1,"windows":[]}');
+  assert.equal(result.ok, false);
+  assert.equal(errors(result.issues)[0]?.code, "format.missing");
+});
+
+test("a JSON array of nothing recognisable is refused by name", () => {
+  const result = loadPack("[1,2,3]");
   assert.equal(result.ok, false);
   assert.equal(result.source, null);
-  assert.equal(errors(result.issues)[0]?.code, "root.not_object");
+  assert.equal(errors(result.issues)[0]?.code, "detect.unrecognised");
 });

@@ -123,10 +123,15 @@ export function describeRestore(report: RestoreReport): RestoreSummary {
   };
 }
 
-/** The one line a preview shows about what a source format could carry. */
+/**
+ * The one line a preview shows about what a source format could carry, task
+ * T-310. Two clauses, never one run on sentence: what came through, and what the
+ * source format has no way to hold. An adapter that declares nothing missing is
+ * claiming a full fidelity import, which only a TabsPack file can do.
+ */
 export function describeFidelity(source: SourceInfo): string {
-  if (source.missing.length === 0) return `${source.label}: everything in it can be restored.`;
-  return `${source.label}: ${source.carries.join(", ").toLowerCase()} restored, ${source.missing
-    .join(", ")
-    .toLowerCase()} not carried by this format.`;
+  if (source.missing.length === 0) return `${source.label}. Everything in it can be restored.`;
+  return `${source.label}. Carried: ${source.carries.join(", ")}. Not carried by this format: ${source.missing.join(
+    ", ",
+  )}.`;
 }

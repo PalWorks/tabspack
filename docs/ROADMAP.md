@@ -50,17 +50,17 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-207 | Import report | M2 | Restore | Silence about a skipped tab is indistinguishable from data loss | A returned report object counting restored, skipped, duplicate, unopenable and ungrouped tabs | done |
 | T-208 | Migration scaffold | M2 | Format | The first format change will arrive with nowhere to put a migration | A version keyed registry of pure migration functions, with before and after fixtures | done |
 | T-209 | Round trip harness | M2 | Quality | The product's central claim stays untested until export, import and re export are compared mechanically | Scripted field by field comparison ignoring `exportedAt`, `source` and `counts`, run on all three browsers | done |
-| T-301 | Selection and search in the preview | M3 | UI | Users usually want part of a pack, not all of it | Per window and per tab checkboxes, select all, and search across title and URL | next |
-| T-302 | Shape based format detection | M3 | Import | File extensions lie, users rename files, and competitors all use `.json` | `detect.ts` dispatching on document shape only, never on filename | todo |
-| T-303 | Tab Session Manager adapter | M3 | Import | The largest open source competitor's users have no way out of its private dump format | Read its id keyed `windows` plus `windowsInfo` and `tabGroups` into a TabsPack file at high fidelity | todo |
-| T-304 | Session Buddy adapters, JSON and CSV | M3 | Import | The largest installed competitor is closed source and its users are locked in | Two adapters, high fidelity from JSON, URLs and titles only from CSV, both declaring their fidelity | todo |
-| T-305 | OneTab adapter | M3 | Import | A very large installed base whose export is a plain text list with group boundaries | Parse the vertical bar format, treat blank line separated blocks as windows | todo |
-| T-306 | URL list and Markdown adapters | M3 | Import | The most common hand made inputs, from notes, chats and AI output | One URL per line with comment support, and `[title](url)` lines with headings as window boundaries | todo |
-| T-307 | Netscape bookmark adapter | M3 | Import | Every browser exports bookmarks in this format, so it is the universal fallback input | Parse the DOCTYPE, folders become windows, links become tabs | todo |
-| T-308 | Flat JSON adapter | M3 | Import | Scripts and other tools emit an array of URLs or objects | Accept an array of strings or of objects carrying a url field | todo |
-| T-309 | Filter UI and exclude list | M3 | UI | The filter pipeline from T-104 is useless if it is not reachable | Filter controls in the manager plus a wildcard exclude list in options | todo |
-| T-310 | Fidelity disclosure | M3 | Import | A low fidelity source silently yields a low fidelity pack, and the user blames TabsPack | The preview states what the source format carried and what it could not | todo |
-| T-401 | Snapshot storage layer | M4 | Snapshots | Files are the wrong unit for a daily habit, and a single storage key would block the list on a large snapshot | Metadata index plus one `snapshot:<uuid>` key per snapshot in `storage.local` | todo |
+| T-301 | Selection and search in the preview | M3 | UI | Users usually want part of a pack, not all of it | Per window and per tab checkboxes, select all, and search across title and URL | done |
+| T-302 | Shape based format detection | M3 | Import | File extensions lie, users rename files, and competitors all use `.json` | `detect.ts` dispatching on document shape only, never on filename | done |
+| T-303 | Tab Session Manager adapter | M3 | Import | The largest open source competitor's users have no way out of its private dump format | Read its id keyed `windows` plus `windowsInfo` and `tabGroups` into a TabsPack file at high fidelity | done |
+| T-304 | Session Buddy adapters, JSON and CSV | M3 | Import | The largest installed competitor is closed source and its users are locked in | Two adapters, high fidelity from JSON, URLs and titles only from CSV, both declaring their fidelity | done |
+| T-305 | OneTab adapter | M3 | Import | A very large installed base whose export is a plain text list with group boundaries | Parse the vertical bar format, treat blank line separated blocks as windows | done |
+| T-306 | URL list and Markdown adapters | M3 | Import | The most common hand made inputs, from notes, chats and AI output | One URL per line with comment support, and `[title](url)` lines with headings as window boundaries | done |
+| T-307 | Netscape bookmark adapter | M3 | Import | Every browser exports bookmarks in this format, so it is the universal fallback input | Parse the DOCTYPE, folders become windows, links become tabs | done |
+| T-308 | Flat JSON adapter | M3 | Import | Scripts and other tools emit an array of URLs or objects | Accept an array of strings or of objects carrying a url field | done |
+| T-309 | Filter UI and exclude list | M3 | UI | The filter pipeline from T-104 is useless if it is not reachable | Filter controls in the manager plus a wildcard exclude list in options | done |
+| T-310 | Fidelity disclosure | M3 | Import | A low fidelity source silently yields a low fidelity pack, and the user blames TabsPack | The preview states what the source format carried and what it could not | done |
+| T-401 | Snapshot storage layer | M4 | Snapshots | Files are the wrong unit for a daily habit, and a single storage key would block the list on a large snapshot | Metadata index plus one `snapshot:<uuid>` key per snapshot in `storage.local` | next |
 | T-402 | Snapshot management UI | M4 | Snapshots | A saved snapshot nobody can find, rename or delete is a leak, not a feature | List, rename, tag, delete and restore from the manager page | todo |
 | T-403 | Snapshot import and export without restore | M4 | Snapshots | Users need to move a pack between machines without opening 200 tabs to do it | Export any snapshot to a file, and import a file as a snapshot | todo |
 | T-404 | Keyboard commands | M4 | UI | The fastest users never open a popup | Commands for export all windows, export current window and save snapshot, with defaults that avoid common conflicts | todo |
@@ -157,16 +157,16 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-301 | FR-002 | Selecting 7 of 40 tabs restores exactly 7 | next |
-| T-302 | FR-106 | A renamed file of each supported type is still detected. An unrecognised file fails with a message naming what was tried | todo |
-| T-303 | FR-106 | A real Tab Session Manager export imports with windows, order, pinned and groups intact | todo |
-| T-304 | FR-106 | A real Session Buddy JSON export imports with windows and order intact. Its CSV imports URLs and titles, declared as low fidelity | todo |
-| T-305 | FR-106 | A real OneTab export imports with group boundaries as windows | todo |
-| T-306 | FR-102, FR-103 | A URL list and a Markdown list import with no loss of URL or title | todo |
-| T-307 | FR-106 | A browser bookmark export imports with folders as windows | todo |
-| T-308 | FR-103 | Both array shapes import | todo |
-| T-309 | FR-402 | Every filter reachable from the UI and persisted | todo |
-| T-310 | FR-106 | The preview names the fidelity for every adapter, and a malformed variant of each fixture fails actionably | todo |
+| T-301 | FR-002 | Selecting 7 of 40 tabs restores exactly 7 | done |
+| T-302 | FR-106 | A renamed file of each supported type is still detected. An unrecognised file fails with a message naming what was tried | done |
+| T-303 | FR-106 | A real Tab Session Manager export imports with windows, order, pinned and groups intact | done |
+| T-304 | FR-106 | A real Session Buddy JSON export imports with windows and order intact. Its CSV imports URLs and titles, declared as low fidelity | done |
+| T-305 | FR-106 | A real OneTab export imports with group boundaries as windows | done |
+| T-306 | FR-102, FR-103 | A URL list and a Markdown list import with no loss of URL or title | done |
+| T-307 | FR-106 | A browser bookmark export imports with folders as windows | done |
+| T-308 | FR-103 | Both array shapes import | done |
+| T-309 | FR-402 | Every filter reachable from the UI and persisted | done |
+| T-310 | FR-106 | The preview names the fidelity for every adapter, and a malformed variant of each fixture fails actionably | done |
 
 **M3 exit test.** Every adapter fixture imports without loss of URL or title, states its fidelity, and its malformed variant fails with an actionable message.
 
@@ -174,7 +174,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-401 | FR-301 | 50 snapshots totalling 5 MB store and list without a quota error, surviving an extension reload and a browser restart | todo |
+| T-401 | FR-301 | 50 snapshots totalling 5 MB store and list without a quota error, surviving an extension reload and a browser restart | next |
 | T-402 | FR-302 | Rename, tag and delete persist. Deleting removes the body key, not only the index entry | todo |
 | T-403 | FR-303 | A snapshot exports to a file and a file imports as a snapshot without opening a tab | todo |
 | T-404 | FR-304 | Commands work on all three browsers and are listed in the browser shortcut settings | todo |
@@ -217,6 +217,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | M0 Foundation | T-001 to T-008 | Both builds produced, clean typecheck and lint, CI workflow in place, capability probe reporting on a real Chromium |
 | M1 Export | T-101 to T-110 | 55 unit tests, 19 conformance fixtures, byte stable fixture comparison, performance budgets met with room to spare, 13 check browser smoke run |
 | M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
+| M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture
@@ -236,6 +237,13 @@ groups and on one that does not, with discarding off and on. In a real Chromium
 the same path restores the pinned tab at index 0, both grouped tabs into one
 group, two windows, and lists the one `chrome://` address on the placeholder
 page rather than dropping it.
+
+M3 exit test result: every adapter fixture imports without losing an address or
+a title, states its fidelity in the preview, and its malformed sibling fails with
+a message that says what to do. Detection is by document shape only: the suite
+reads the same bytes with no file name in play, and a renamed file is still
+recognised. The Tab Session Manager reader was written against that project's own
+`src/background/save.js` rather than against a guess.
 
 Four defects that only a real browser could find were fixed in M2 and are
 recorded in LIMITATIONS.md: `tabs.create` rejecting `title` on Chromium, a CSS

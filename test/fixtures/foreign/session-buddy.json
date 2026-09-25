@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "generated": 1759000123456,
+  "sessions": [
+    {
+      "id": 7,
+      "type": "saved",
+      "name": "Research",
+      "created": 1759000000000,
+      "modified": 1759000100000,
+      "windows": [
+        {
+          "id": 1,
+          "type": "normal",
+          "tabs": [
+            {
+              "id": 11,
+              "index": 0,
+              "url": "https://example.com/paper",
+              "title": "A paper worth keeping",
+              "pinned": true,
+              "favIconUrl": "https://example.com/favicon.ico"
+            },
+            { "id": 12, "index": 1, "url": "https://example.com/dataset", "title": "The dataset" }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "normal",
+          "tabs": [
+            { "id": 21, "index": 0, "url": "https://example.net/inbox", "title": "Inbox" },
+            { "id": 22, "index": 1, "url": "https://example.net/calendar", "title": "Calendar" }
+          ]
+        }
+      ]
+    }
+  ]
+}
