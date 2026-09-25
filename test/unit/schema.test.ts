@@ -10,6 +10,8 @@ import path from "node:path";
 import { gateVersion, parseJson, validateFile } from "../../src/core/schema.js";
 import { loadPack } from "../../src/core/import.js";
 import { errors, warnings } from "../../src/core/issues.js";
+import { loadSettings, saveSettings } from "../../src/core/settings.js";
+import { createFakeAdapter } from "../tools/fake-adapter.js";
 
 const fixtures = path.join(process.cwd(), "test", "fixtures");
 const expectations = JSON.parse(
@@ -111,4 +113,26 @@ test("a JSON array of nothing recognisable is refused by name", () => {
   assert.equal(result.ok, false);
   assert.equal(result.source, null);
   assert.equal(errors(result.issues)[0]?.code, "detect.unrecognised");
+});
+
+test("a file too large to hold in memory is refused with a sentence", () => {
+  const huge = `{"format":"tabspack","schemaVersion":1,"windows":[]}${" ".repeat(200)}`;
+  const result = loadPack(huge, { maxBytes: 100 });
+  assert.equal(result.ok, false);
+  const issue = errors(result.issues)[0];
+  assert.equal(issue?.code, "file.too_large");
+  assert.match(issue?.message ?? "", /TabsPack reads files up to/);
+});
+
+test("two settings written at once both survive", async () => {
+  const adapter = createFakeAdapter({ windows: [], groups: [] });
+  await Promise.all([
+    saveSettings(adapter, { discardThreshold: 5 }),
+    saveSettings(adapter, { restoreBatchSize: 3 }),
+    saveSettings(adapter, { theme: "dark" }),
+  ]);
+  const stored = await loadSettings(adapter);
+  assert.equal(stored.discardThreshold, 5);
+  assert.equal(stored.restoreBatchSize, 3);
+  assert.equal(stored.theme, "dark");
 });

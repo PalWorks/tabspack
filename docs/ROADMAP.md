@@ -219,7 +219,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
 | M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
-| M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | An options page driving every setting, a theme switch, 199 translated strings with a lint rule behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors, and NFR-001, NFR-004 and NFR-005 measured on the built package |
+| M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 187 unit tests and a 59 check browser run. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture
@@ -246,6 +246,12 @@ a message that says what to do. Detection is by document shape only: the suite
 reads the same bytes with no file name in play, and a renamed file is still
 recognised. The Tab Session Manager reader was written against that project's own
 `src/background/save.js` rather than against a guess.
+
+M5 exit test result: not yet met, and it cannot be met here. The test is "review
+packages accepted by all three stores, and the cross browser matrix fully green",
+and both halves need a person: three developer accounts, and hands on Chrome,
+Edge and Firefox. What was done instead is everything up to that line, and the
+table above says which parts of the matrix are now automated and which are not.
 
 M4 exit test result: fifty snapshots of a 200 tab session store and list without
 a quota error in the unit suite, and in a real Chromium a snapshot is written as

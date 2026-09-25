@@ -1,30 +1,25 @@
 /**
- * The service worker is a router, not a brain. It holds no state, because the
- * browser terminates it when idle. Long running work, including export and the
- * M2 restore, happens on the manager page.
+ * The background.
+ *
+ * It does two things: it reports what this browser can do when the extension is
+ * installed, and it runs the keyboard commands. It holds no state, because the
+ * browser terminates it when idle, and it answers no messages, because nothing
+ * sends any: every TabsPack page has the extension APIs itself, and a page is
+ * where the long running work belongs. See docs/ARCHITECTURE.md section 7.
  */
 import { events, realAdapter } from "../core/adapter/index.js";
-import { UNHANDLED } from "../core/adapter/types.js";
 import { capabilityNotices, describeCapabilities } from "../core/capabilities.js";
 import { runCommand } from "./commands.js";
 
-const MANAGER_PAGE = "manager.html";
-
-interface Message {
-  type?: string;
-  text?: string;
-  count?: number;
-  durationMs?: number;
-}
-
 events.onInstalled((reason) => {
-  void report(reason);
+  // An unhandled rejection in a worker is a log line nobody sees.
+  report(reason).catch((error: unknown) => console.error("[TabsPack] startup report failed:", error));
 });
 
 /**
- * A keyboard command is the one place the worker does real work rather than
- * routing. The badge is the only surface it has, so the count goes there and the
- * detail goes to the log, where a user who opens the worker can read it.
+ * A keyboard command is the one place the worker does real work. The badge is
+ * the only surface it has, so the count goes there and the detail goes to the
+ * log, where a user who opens the worker can read it.
  */
 events.onCommand((command) => {
   void (async () => {
@@ -43,28 +38,6 @@ function badgeFor(tabs: number): string {
   if (tabs <= 0) return "0";
   return tabs < 100 ? String(tabs) : "99+";
 }
-
-events.onMessage(async (raw) => {
-  const message = (raw ?? {}) as Message;
-  switch (message.type) {
-    case "OPEN_MANAGER":
-      await realAdapter.openExtensionPage(MANAGER_PAGE);
-      return { ok: true };
-
-    case "FLASH_BADGE": {
-      const count = Number(message.count);
-      const text = Number.isFinite(count) && count > 0 ? (count < 100 ? String(count) : "99+") : "";
-      await realAdapter.setBadge(text, message.durationMs ?? 1500);
-      return { ok: true };
-    }
-
-    case "CAPABILITIES":
-      return { ok: true, capabilities: await realAdapter.capabilities() };
-
-    default:
-      return UNHANDLED;
-  }
-});
 
 /** T-004: the probe reports a capability table on whichever engine is running. */
 async function report(reason: string | undefined): Promise<void> {

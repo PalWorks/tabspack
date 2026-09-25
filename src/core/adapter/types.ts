@@ -145,13 +145,6 @@ export interface DownloadRequest {
   saveAs?: boolean;
 }
 
-/**
- * Returned by a message handler that is not responsible for a message, so the
- * router stays silent and lets another context answer. Every extension context
- * receives every runtime message, and the first responder wins.
- */
-export const UNHANDLED = "__tabspack_unhandled__";
-
 export interface BrowserAdapter {
   platform(): Promise<PlatformInfo>;
   capabilities(): Promise<Capabilities>;
@@ -191,7 +184,6 @@ export interface BrowserAdapter {
   /** Fires when another page or the background changes stored data. */
   onStorageChanged(handler: (keys: string[]) => void): void;
   setBadge(text: string, durationMs?: number): Promise<void>;
-  sendMessage<T = unknown>(message: unknown): Promise<T | undefined>;
   extensionUrl(path: string): string;
   /** A translated string. Synchronous, because the browser's own API is. */
   getMessage(key: string, subs?: string[]): string;

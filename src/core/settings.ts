@@ -93,14 +93,27 @@ export async function loadSettings(adapter: BrowserAdapter): Promise<Settings> {
   return mergeSettings(raw);
 }
 
+/**
+ * Writes are serialised through one chain. Every control on the options page
+ * writes the moment it changes, and two of them changing within a millisecond
+ * would otherwise both read the same stored object and the second would write
+ * the first's change back out.
+ */
+let writes: Promise<unknown> = Promise.resolve();
+
 export async function saveSettings(
   adapter: BrowserAdapter,
   patch: Partial<Settings>,
 ): Promise<Settings> {
-  const current = await loadSettings(adapter);
-  const next = mergeSettings({ ...current, ...patch });
-  await adapter.storageSet({ [STORAGE_KEY]: next });
-  return next;
+  const next = writes.then(async () => {
+    const current = await loadSettings(adapter);
+    const merged = mergeSettings({ ...current, ...patch });
+    await adapter.storageSet({ [STORAGE_KEY]: merged });
+    return merged;
+  });
+  // The chain must survive a failed write, or every later write is skipped.
+  writes = next.catch(() => undefined);
+  return await next;
 }
 
 /** Unknown keys are dropped and unknown values fall back to the default. */

@@ -920,5 +920,13 @@
   },
   "optionsSaved": {
     "message": "Saved"
+  },
+  "startupFailed": {
+    "message": "TabsPack could not start on this page: $reason$",
+    "placeholders": {
+      "reason": {
+        "content": "$1"
+      }
+    }
   }
 }

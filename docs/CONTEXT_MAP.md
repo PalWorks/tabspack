@@ -20,6 +20,8 @@ Where knowledge lives, so nothing is inferred twice. Read the file that owns a q
 | What is tested, how, and what must be green before a release | [TESTING.md](TESTING.md) | |
 | How should an agent behave in this repository | [../AGENTS.md](../AGENTS.md) | |
 | What data leaves the machine | [../PRIVACY.md](../PRIVACY.md) | Short answer: nothing |
+| Where does a user facing string live | `_locales/en/messages.json`. Nothing in `src/ui/` spells an English sentence: ADR-022 |
+| What goes to the stores, and what do I answer a reviewer | [store/listing.md](store/listing.md) and [store/submission.md](store/submission.md) | An improvised justification. PLAN.md Table P8 is the source |
 | How do I report a vulnerability | [../SECURITY.md](../SECURITY.md) | |
 | What changed and when | [../CHANGELOG.md](../CHANGELOG.md) | |
 | What did the original 2026-07 product document say | [history/TabPack_BRD_PRD_v0.9.md](history/TabPack_BRD_PRD_v0.9.md) | It is superseded. Read it for history, never for current scope |

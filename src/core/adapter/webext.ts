@@ -16,18 +16,8 @@ export interface WebExtApi {
     id?: string;
     getManifest(): { version: string; name: string };
     getURL(path: string): string;
-    sendMessage(message: unknown): Promise<unknown>;
     getPlatformInfo?(): Promise<{ os: string; arch: string }>;
     getBrowserInfo?(): Promise<{ name: string; version: string }>;
-    onMessage: {
-      addListener(
-        callback: (
-          message: unknown,
-          sender: { id?: string },
-          respond: (response: unknown) => void,
-        ) => boolean | void | Promise<unknown>,
-      ): void;
-    };
     onInstalled: Listener<[{ reason?: string }]>;
     openOptionsPage?(): Promise<void>;
     lastError?: { message?: string };
@@ -90,12 +80,3 @@ export interface WebExtApi {
  * narrow surface above rather than typed `any` at every call site.
  */
 export const browser = polyfill as unknown as WebExtApi;
-
-/** True when running inside an extension context, false in a unit test. */
-export function inExtensionContext(): boolean {
-  try {
-    return typeof browser?.runtime?.id === "string";
-  } catch {
-    return false;
-  }
-}

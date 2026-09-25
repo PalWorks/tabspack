@@ -36,7 +36,9 @@ const ui = {
 
 let addresses: string[] = [];
 
-void start();
+void start().catch((error: unknown) => {
+  ui.lead.textContent = t("startupFailed", error instanceof Error ? error.message : String(error));
+});
 
 async function start(): Promise<void> {
   applyI18n();

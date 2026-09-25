@@ -70,7 +70,7 @@ let available = 0;
 /** Repaints the scope control when a setting changes somewhere else. */
 let scope: (value: string) => void = () => undefined;
 
-void start();
+void start().catch((error: unknown) => renderError(ui.report, t("startupFailed", describe(error))));
 
 async function start(): Promise<void> {
   applyI18n();

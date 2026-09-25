@@ -21,7 +21,7 @@ import type { RestoreTarget } from "../../core/restore.js";
 import type { Scope } from "../../types/session.js";
 import { el, must } from "../shared/dom.js";
 import { applyI18n, t } from "../shared/i18n.js";
-import { renderSuccess } from "../shared/report-view.js";
+import { renderError, renderSuccess } from "../shared/report-view.js";
 import { initSegmented } from "../shared/segmented.js";
 import { applyTheme } from "../shared/theme.js";
 
@@ -56,7 +56,9 @@ const ui = {
 
 let settings: Settings;
 
-void start();
+void start().catch((error: unknown) =>
+  renderError(ui.report, t("startupFailed", error instanceof Error ? error.message : String(error))),
+);
 
 async function start(): Promise<void> {
   applyI18n();

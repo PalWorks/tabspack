@@ -16,7 +16,7 @@ import { detect, inputFor, unrecognised } from "./adapters/detect.js";
 import type { AdapterInput, ForeignAdapter } from "./adapters/types.js";
 import { fromFile } from "./deserialize.js";
 import type { Issue } from "./issues.js";
-import { errors } from "./issues.js";
+import { error, errors } from "./issues.js";
 import { migrateToCurrent } from "./migrate.js";
 import { isObject, parseJson, validateFile } from "./schema.js";
 
@@ -50,9 +50,37 @@ export interface LoadResult {
 export interface LoadOptions {
   /** Used when a file carries no export time. Tests pass a fixed value. */
   now?: number;
+  /** Overridden only by the test that proves the limit. */
+  maxBytes?: number;
+}
+
+/**
+ * Above this a file is refused rather than read. A pack of five thousand tabs is
+ * about 1.4 MB, so this is forty times the largest session anyone has, and it is
+ * the difference between a sentence and a tab that runs out of memory.
+ */
+export const MAX_IMPORT_BYTES = 64 * 1024 * 1024;
+
+/**
+ * The refusal, as its own function, so the interface can say it about a file it
+ * has not read: asking whether a file is too large should not cost the memory of
+ * reading it.
+ */
+export function tooLargeIssue(bytes: number, limit = MAX_IMPORT_BYTES): Issue {
+  const mb = (value: number): string => `${Math.max(1, Math.round(value / 1024 / 1024))} MB`;
+  return error(
+    "file.too_large",
+    "$",
+    `This file is ${mb(bytes)}, and TabsPack reads files up to ${mb(limit)}.`,
+    "A pack of five thousand tabs is under two megabytes, so a file this size is probably not a pack. Check that it is the file you meant.",
+  );
 }
 
 export function loadPack(text: string, options: LoadOptions = {}): LoadResult {
+  const limit = options.maxBytes ?? MAX_IMPORT_BYTES;
+  if (text.length > limit) {
+    return { ok: false, source: null, issues: [tooLargeIssue(text.length, limit)] };
+  }
   const input = inputFor(text);
 
   // A TabsPack file says so in its first field. Anything else is offered to the

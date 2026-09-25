@@ -20,6 +20,7 @@
     "perf": "node scripts/perf.mjs",
     "verify": "npm run typecheck && npm run lint && npm run schema:check && npm test && npm run a11y && npm run perf && npm run build && npm run lint:amo",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:firefox": "node scripts/firefox-load.mjs",
     "a11y": "node scripts/a11y-contrast.mjs",
     "perf:browser": "node scripts/perf-browser.mjs",
     "lint:amo": "addons-linter dist/firefox --output text"

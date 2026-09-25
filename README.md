@@ -149,11 +149,15 @@ docs/
   PLAYBOOK.md           how to build, add an adapter, change the format, release
   TESTING.md            test layers, fixtures, cross browser matrix
   CONTEXT_MAP.md        which file answers which question
+  store/                the listing text and every answer a store asks for
   history/              superseded documents, kept for provenance
 src/                    core, adapter, ui, background: see ARCHITECTURE.md
-scripts/                build, lint, schema, test, fixtures, icons, perf, smoke
+_locales/en/            every string the interface shows
+assets/                 the mark, the generated icons and the store tiles
+scripts/                build, lint, schema, tests, fixtures, assets, contrast,
+                        budgets, and the real browser runs
 schema/                 tabspack.v1.schema.json, generated from the types
-test/                   unit suite, fake adapter, fixtures and the bench
+test/                   unit suite, fake browser, fixtures and the bench
 manifest.chrome.json    Chromium manifest
 manifest.firefox.json   Gecko manifest
 ```
@@ -161,6 +165,15 @@ manifest.firefox.json   Gecko manifest
 ## Testing
 
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
+
+```bash
+npm run verify        # typecheck, lint, schema, 187 tests, contrast, budgets, both builds, AMO's linter
+npm run smoke         # 59 checks against the built extension in a real Chromium
+npm run smoke:firefox # installs the Firefox package in a real Firefox
+npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
+```
+
+[docs/TESTING.md](docs/TESTING.md) also says plainly what these runs **cannot** reach, which is where the remaining risk is: the interface in Firefox and Edge, a keyboard shortcut actually being pressed, a permission prompt being granted, and a restore with unloading on at scale.
 
 ## Roadmap
 

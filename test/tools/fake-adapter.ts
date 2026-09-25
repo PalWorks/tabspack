@@ -344,9 +344,6 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     async setBadge(text: string, durationMs?: number) {
       adapter.badges.push({ text, durationMs });
     },
-    async sendMessage() {
-      return undefined;
-    },
     extensionUrl(path: string) {
       return `chrome-extension://fake/${path}`;
     },

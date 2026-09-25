@@ -18,7 +18,6 @@ import type {
   UpdateTabRequest,
   UpdateWindowRequest,
 } from "./types.js";
-import { UNHANDLED } from "./types.js";
 import { browser } from "./webext.js";
 
 const BADGE_COLOR = "#2563eb";
@@ -284,14 +283,6 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
-  async sendMessage<T = unknown>(message: unknown): Promise<T | undefined> {
-    try {
-      return (await browser.runtime.sendMessage(message)) as T;
-    } catch {
-      return undefined;
-    }
-  },
-
   extensionUrl(path: string): string {
     return browser.runtime.getURL(path);
   },
@@ -353,29 +344,15 @@ export const realAdapter: BrowserAdapter = {
   },
 };
 
-/** Message and lifecycle listeners, for the service worker only. */
+/**
+ * Lifecycle listeners, for the background only.
+ *
+ * There is deliberately no message listener. Nothing in TabsPack sends a runtime
+ * message: every page has the extension APIs directly, so a router would be a
+ * second way to do what the first way already does, and a listener is a surface
+ * that has to be defended.
+ */
 export const events = {
-  onMessage(
-    handler: (message: unknown, senderId: string | undefined) => Promise<unknown> | unknown,
-  ): void {
-    browser.runtime.onMessage.addListener((message, sender, respond) => {
-      if (sender?.id && sender.id !== browser.runtime.id) {
-        respond({ ok: false, error: "unauthorized_sender" });
-        return false;
-      }
-      const outcome = handler(message, sender?.id);
-      if (outcome === UNHANDLED) return false;
-      Promise.resolve(outcome)
-        .then((result) => {
-          if (result === UNHANDLED) return;
-          respond(result);
-        })
-        .catch((error: unknown) =>
-          respond({ ok: false, error: error instanceof Error ? error.message : String(error) }),
-        );
-      return true;
-    });
-  },
   onInstalled(handler: (reason: string | undefined) => void): void {
     browser.runtime.onInstalled.addListener((details) => handler(details?.reason));
   },

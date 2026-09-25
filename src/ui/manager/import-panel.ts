@@ -11,7 +11,7 @@
  * rule 4.
  */
 import type { BrowserAdapter } from "../../core/adapter/types.js";
-import { loadPack, type SourceInfo } from "../../core/import.js";
+import { loadPack, MAX_IMPORT_BYTES, tooLargeIssue, type SourceInfo } from "../../core/import.js";
 import { dedupeKey } from "../../core/filters.js";
 import type { Issue } from "../../core/issues.js";
 import { errors, warnings } from "../../core/issues.js";
@@ -221,6 +221,14 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     ui.fileMeta.textContent = t("readingFile", file.name);
     ui.fidelity.textContent = "";
     delete ui.fidelity.dataset.fidelity;
+
+    if (file.size > MAX_IMPORT_BYTES) {
+      // Checked before the read, so an enormous file costs a sentence rather
+      // than the memory of the tab it was dropped on.
+      ui.fileMeta.textContent = `${file.name} · ${formatBytes(file.size)}`;
+      renderIssues(ui.issues, [tooLargeIssue(file.size)], { headline: t("packNotImportable") });
+      return;
+    }
 
     let text: string;
     try {

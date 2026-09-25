@@ -27,14 +27,14 @@ manifest.chrome.json      Chromium, service_worker background
 manifest.firefox.json     Gecko, background.scripts, browser_specific_settings
 src/
   background/
-    sw.ts                 message router, capability report, command listener
+    sw.ts                 capability report on install, keyboard commands
     commands.ts           what each keyboard command does
     save-file.ts          writing a file from the background: blob, data URL, page
   core/
     adapter/              the only code allowed to touch browser.*
       types.ts            BrowserAdapter interface, Raw* shapes, Capabilities
       webext.ts           the one import of webextension-polyfill, narrowly typed
-      index.ts            the real adapter, plus the message and lifecycle events
+      index.ts            the real adapter, plus the lifecycle and command events
     capabilities.ts       capability table and user notices, pure
     collect.ts            browser state to Session
     filters.ts            scheme, pinned, exclude, dedupe, sort, reindex
@@ -173,29 +173,33 @@ Throttling: creation is awaited in batches, with a small delay between batches, 
 
 What a restore cannot carry back, and why, is listed in [LIMITATIONS.md](LIMITATIONS.md) Table L2 and asserted as the exception list of the round trip harness in `test/tools/roundtrip.ts`.
 
-## 7. Messaging contract
+## 7. Contexts talking to each other, and why they do not
 
-The service worker is a router, not a brain. Messages are plain objects with a `type`, and every handler replies with `{ ok: true, ... }` or `{ ok: false, error: string }`. Sender identity is checked against `runtime.id` and anything else is rejected, the pattern Copy All URLs uses.
+The background is a command handler, not a router. It registers **no message
+listener at all**, and nothing in TabsPack sends a runtime message.
 
-### Table A2: Message types
+That is worth stating, because the obvious design is the opposite. Every TabsPack
+page is an extension page with the whole extension API available to it, so a page
+that wants to read tabs reads tabs. Routing the same call through the background
+would add a second way to do what the first way already does, a listener that has
+to check who is calling it, and a context that can be terminated mid flight.
 
-| Type | Sender | Purpose |
-|---|---|---|
-| `OPEN_MANAGER` | popup | Open the manager page |
-| `FLASH_BADGE` | any page | Show a count briefly |
-| `CAPABILITIES` | any page | The capability probe, for diagnostics |
+What each context does instead:
 
-A handler that is not responsible for a message returns `UNHANDLED` rather than a
-response, because every extension context receives every runtime message and the
-first responder wins.
+- A **page** does its own work, including the long running work, because it is
+  not terminated while it is open. Restore and import live on the manager page
+  for that reason.
+- The **background** runs the keyboard commands, which arrive as browser events
+  rather than as messages, and reports the capability table on install. Its work
+  is bounded, so being terminated afterwards costs nothing.
+- Pages that need to know about each other's work watch `storage.onChanged`. That
+  is how the snapshot list follows a snapshot saved by a keyboard command, and how
+  an open manager page follows a setting changed on the options page. The data is
+  the message, and it is already the thing that had to be written.
 
-Keyboard commands do not use messages at all. The worker runs them itself, in
-`src/background/commands.ts`: collect, then either write a file or save a
-snapshot. A command that has to open a page to finish, because the pack is too
-large to write from the background, opens the manager page at
-`manager.html#export=<scope>` and the page performs the export on arrival.
-
-Restore runs in the manager page, not the service worker, because it is long running and the worker can be terminated mid flight.
+The one case where a page cannot finish the job is a keyboard export of a pack too
+large to write from the background: the background opens `manager.html#export=<scope>`
+and the page performs the export on arrival, with the intent in the URL.
 
 ## 8. Storage layout
 
@@ -209,7 +213,6 @@ Restore runs in the manager page, not the service worker, because it is long run
 | `snapshots` | array of `{ id, name, tags, createdAt, updatedAt, counts, bytes }` | Metadata only, so listing fifty snapshots reads a few kilobytes. The body is written before the entry that names it, because an orphan body can be found and an entry with no body cannot be opened |
 | `snapshot:<uuid>` | The pack as text, exactly as exporting it would write | One key per snapshot so a large snapshot never blocks reading the list |
 | `placeholder:<uuid>` | `{ createdAt, tabs }` | The addresses a restore could not open, handed to the placeholder page. A pack can hold hundreds, which is more than a URL can carry. Pruned to the five most recent whenever that page opens |
-| `schemaVersion` | integer | Of the stored data, not of the file format |
 
 ## 9. Build
 
