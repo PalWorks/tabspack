@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack">
+  <!--
+    The mark, drawn once here and rasterised by scripts/gen-assets.mjs.
+
+    A pack of tabs and an arrow leaving it: the product is a session going
+    somewhere else. The tab strip reads at 16 px because it is three bars of
+    decreasing width, which is the same shape the wordmark uses across the
+    interface, and the arrow only has to read as a direction at that size.
+  -->
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#2563eb" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#face)" />
+  <g fill="#ffffff">
+    <rect x="26" y="30" width="76" height="12" rx="6" />
+    <rect x="26" y="52" width="56" height="12" rx="6" />
+    <rect x="26" y="74" width="38" height="12" rx="6" />
+    <path d="M86 62v26h-13l20.5 22 20.5-22h-13V62z" transform="translate(-6 -2) scale(0.78) translate(24 20)" />
+  </g>
+</svg>

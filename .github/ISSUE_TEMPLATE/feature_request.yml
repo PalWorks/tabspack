@@ -1,0 +1,30 @@
+name: Feature request
+description: Something TabsPack should do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read [PLAN.md](../blob/main/PLAN.md) section 7 first. Cloud sync,
+        accounts, encryption and AI features are out of scope by decision, not by
+        oversight, and [docs/DECISIONS.md](../blob/main/docs/DECISIONS.md) says why.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you were trying to do, and what got in the way. Not the solution yet.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you would like instead
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: Including other tools, and what they did well or badly.
+    validations:
+      required: false

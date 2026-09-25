@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.1 |
+| Version | 1.2 |
 | Date | 2026-09-25 |
 | Owns | Visual tokens, component behaviour, layout, interaction states, accessibility rules for every TabsPack surface |
 | Implemented by | T-008 tokens, T-005 popup, T-108 and T-109 export UI, T-203 manager page, T-501 options, T-502 polish, T-506 accessibility |
@@ -43,7 +43,7 @@ Defined once in `src/ui/shared/theme.css` as custom properties on `:root`, redef
 | `--surface` | `#f7f8fa` | `#1e2127` | Recessed areas, inputs, code blocks |
 | `--surface-raised` | `#ffffff` | `#24282f` | Cards on the manager page |
 | `--border` | `#e3e5e8` | `#313640` | Hairlines and control borders |
-| `--border-strong` | `#c9ced6` | `#434a56` | Hover borders, dividers that must read |
+| `--border-strong` | `#878d97` | `#767d8a` | A control's own border, hover borders, dividers that must read. At least 3 to 1 against every surface it sits on, because a border is often the only thing that marks a field: WCAG 1.4.11, checked by `npm run a11y` |
 | `--text` | `#16181c` | `#e8eaed` | Primary text |
 | `--text-muted` | `#5b616e` | `#9aa1ad` | Secondary text, both above 5 to 1 on their background |
 | `--accent` | `#2563eb` | `#60a5fa` | Primary action, selected state, focus |
@@ -229,13 +229,32 @@ Decisions behind that layout:
 
 - Every interactive element is reachable and operable by keyboard in DOM order. Tab order matches visual order on every surface.
 - `:focus-visible` shows a 2 px `--focus` outline at 2 px offset. Focus is never removed, and never replaced by a colour change alone.
-- Contrast: body text at 4.5 to 1 or better, large text and glyphs at 3 to 1 or better, in both themes. The tokens in Table DS1 were chosen to meet this, and T-506 verifies it rather than discovering it.
+- Contrast: body text at 4.5 to 1 or better, large text, glyphs and the borders that identify a control at 3 to 1 or better, in both themes. `npm run a11y` computes all 38 pairs from the tokens themselves and fails the build on a regression, which is how the `--border-strong` of the first draft was found at 1.58 to 1 and fixed.
 - Status output uses `aria-live="polite"`, never an alert, and never steals focus.
 - The segmented control is a radio group, so a screen reader announces "All windows, selected, 1 of 3".
 - Disabled controls carry a visible textual reason, because `aria-disabled` alone tells a sighted user nothing.
 - Icons are inline SVG with `aria-hidden="true"` when decorative, and a text label otherwise. No icon carries meaning alone.
 - The interface is legible and usable at 200 percent browser zoom, which the popup's fixed 360 px width must tolerate by wrapping rather than clipping.
 
-## 7. Copy style
+## 7. Settings
+
+The options page is one column of cards in the order a person would ask the
+questions: what should the defaults be, what should be left out, what should a
+restore do, how should it look, and what is this thing anyway.
+
+- **No Save button.** Every control writes its setting when it changes. A
+  settings page with a Save button invents a state where what you see is not what
+  is in force, and then has to defend it with a dialog on the way out.
+- **A number outside its range falls back to the default**, and the field
+  repaints to show what was actually stored rather than leaving a value that is
+  not in effect on screen.
+- **The keyboard shortcuts are read from the browser**, not restated here, because
+  the browser owns them and the user may have changed them. A command the browser
+  refused a key for says "not set" rather than lying about a key that does nothing.
+- **The theme is three choices, System first.** It writes one attribute on the
+  root element, which the tokens already answer to: no new colour is defined for
+  a theme switch, ever.
+
+## 8. Copy style
 
 Sentence case everywhere, including buttons. Verbs for actions, "Export 37 tabs" rather than "Export tabs (37)". Numbers before nouns. Never "oops", never an exclamation mark, never an emoji. Failures state what happened and what to do, in that order, in one sentence. Counts are always exact; the interface never says "some tabs".

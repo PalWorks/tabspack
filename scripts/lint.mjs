@@ -93,6 +93,108 @@ async function ruleNoUnexplainedAny() {
   }
 }
 
+/**
+ * T-503: every string the interface shows comes from `_locales/en/messages.json`.
+ * Two halves to that promise, both checked here: no key without an entry, and no
+ * English sentence written straight into the markup or into a DOM call.
+ */
+async function ruleI18n() {
+  const locale = JSON.parse(await readFile(path.join(root, "_locales", "en", "messages.json"), "utf8"));
+  const known = new Set(Object.keys(locale));
+  const used = new Set();
+
+  const note = (file, line, key) => {
+    used.add(key);
+    if (!known.has(key)) fail(file, line, "i18n-missing-key", `${key} has no entry in _locales/en/messages.json`);
+  };
+
+  for (const file of await files("src/ui/**/*.ts")) {
+    const source = stripComments(await readFile(path.join(root, file), "utf8"));
+    for (const match of source.matchAll(/\bt\(\s*"([^"]+)"/g)) {
+      note(file, lineOf(source, match.index), match[1]);
+    }
+    // plural(count, "tabs") reads two entries, one per form.
+    for (const match of source.matchAll(/\bplural(?:Unit)?\(\s*[^,]+,\s*"([^"]+)"/g)) {
+      note(file, lineOf(source, match.index), `unit_${match[1]}_one`);
+      note(file, lineOf(source, match.index), `unit_${match[1]}_other`);
+    }
+    for (const match of source.matchAll(/\bplural(?:Unit)?\(\s*[^,]+,\s*`([^`$]+)`/g)) {
+      note(file, lineOf(source, match.index), `unit_${match[1]}_one`);
+    }
+  }
+
+  for (const file of await files("src/ui/**/*.html")) {
+    const source = await readFile(path.join(root, file), "utf8");
+    for (const match of source.matchAll(/data-i18n="([^"]+)"/g)) {
+      note(file, lineOf(source, match.index), match[1]);
+    }
+    for (const match of source.matchAll(/data-i18n-attr="([^"]+)"/g)) {
+      for (const pair of match[1].split(",")) {
+        const key = pair.split(":")[1]?.trim();
+        if (key) note(file, lineOf(source, match.index), key);
+      }
+    }
+    for (const [line, text] of visibleText(source)) {
+      fail(file, line, "i18n-hardcoded-html", `"${text.slice(0, 40)}" is not marked with data-i18n`);
+    }
+  }
+
+  for (const file of await files("src/ui/**/*.ts")) {
+    const source = stripComments(await readFile(path.join(root, file), "utf8"));
+    for (const match of source.matchAll(/\.textContent\s*=\s*"([^"]{2,})"/g)) {
+      fail(file, lineOf(source, match.index), "i18n-hardcoded", `"${match[1]}" should come from _locales`);
+    }
+    for (const match of source.matchAll(/text:\s*"([^"]{2,})"/g)) {
+      fail(file, lineOf(source, match.index), "i18n-hardcoded", `"${match[1]}" should come from _locales`);
+    }
+  }
+
+  /**
+   * Keys the interface looks up by a name it builds at runtime, from a report's
+   * own vocabulary. The families are listed rather than guessed at, so adding one
+   * is a deliberate line here.
+   */
+  const DYNAMIC = [/^unit_removed_/, /^unit_restore_/, /^cmd/, /^extName$/, /^extDescription$/];
+
+  // A key named anywhere in the interface counts as used, which covers the ones
+  // chosen by a ternary or held in a table.
+  for (const file of await files("src/ui/**/*.ts")) {
+    const source = stripComments(await readFile(path.join(root, file), "utf8"));
+    for (const match of source.matchAll(/"([A-Za-z][\w]*)"/g)) {
+      if (known.has(match[1])) used.add(match[1]);
+    }
+  }
+
+  const unused = [...known].filter(
+    (key) => !used.has(key) && !DYNAMIC.some((pattern) => pattern.test(key)),
+  );
+  for (const key of unused) {
+    fail("_locales/en/messages.json", 1, "i18n-unused-key", `${key} is not used anywhere`);
+  }
+}
+
+/**
+ * Text a person would read, with the element that holds it. Written as a small
+ * scanner rather than a parser: these files are hand written, simple, and the
+ * rule only has to catch a sentence somebody forgot to mark.
+ */
+function visibleText(html) {
+  const found = [];
+  const withoutComments = html.replace(/<!--[\s\S]*?-->/g, (match) => match.replace(/[^\n]/g, " "));
+  const body = withoutComments.replace(/<(script|style|svg)\b[\s\S]*?<\/\1>/gi, (match) =>
+    match.replace(/[^\n]/g, " "),
+  );
+  const pattern = /<([a-zA-Z][\w-]*)([^>]*)>([^<]*)/g;
+  for (const match of body.matchAll(pattern)) {
+    const attributes = match[2] ?? "";
+    const text = (match[3] ?? "").trim();
+    if (text === "" || !/[a-zA-Z]{2}/.test(text)) continue;
+    if (attributes.includes("data-i18n")) continue;
+    found.push([body.slice(0, match.index).split("\n").length, text]);
+  }
+  return found;
+}
+
 async function ruleManifests() {
   const required = ["tabs", "storage", "downloads"];
   const allowedOptional = ["tabGroups", "offscreen", "sessions"];
@@ -122,6 +224,7 @@ await ruleAdapterBoundary();
 await ruleNoHtmlInjection();
 await ruleNoNetwork();
 await ruleNoUnexplainedAny();
+await ruleI18n();
 await ruleManifests();
 
 if (failures.length === 0) {

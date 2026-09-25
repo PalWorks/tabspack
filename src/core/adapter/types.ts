@@ -193,6 +193,12 @@ export interface BrowserAdapter {
   setBadge(text: string, durationMs?: number): Promise<void>;
   sendMessage<T = unknown>(message: unknown): Promise<T | undefined>;
   extensionUrl(path: string): string;
+  /** A translated string. Synchronous, because the browser's own API is. */
+  getMessage(key: string, subs?: string[]): string;
+  /** The keyboard commands the browser knows about, with their current keys. */
+  listCommands(): Promise<{ name: string; shortcut: string; description: string }[]>;
+  /** Opens the extension's own options page, wherever the browser puts it. */
+  openOptions(): Promise<void>;
   openExtensionPage(path: string): Promise<void>;
   copyText(text: string): Promise<void>;
 }

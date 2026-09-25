@@ -29,8 +29,10 @@ export interface WebExtApi {
       ): void;
     };
     onInstalled: Listener<[{ reason?: string }]>;
+    openOptionsPage?(): Promise<void>;
     lastError?: { message?: string };
   };
+  runtime2?: never;
   tabs: {
     query(query: Record<string, unknown>): Promise<unknown[]>;
     create(props: Record<string, unknown>): Promise<unknown>;
@@ -72,6 +74,9 @@ export interface WebExtApi {
   commands?: {
     getAll(): Promise<unknown[]>;
     onCommand?: Listener<[string]>;
+  };
+  i18n?: {
+    getMessage(key: string, subs?: string[]): string;
   };
   extension?: {
     isAllowedIncognitoAccess?(): Promise<boolean>;

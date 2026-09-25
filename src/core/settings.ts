@@ -8,6 +8,7 @@ import type { RestoreTarget } from "./restore.js";
 
 export type ExportFormat = "tabspack" | "urls" | "flatjson";
 export type SortMode = "natural" | "title" | "url" | "domain";
+export type Theme = "system" | "light" | "dark";
 
 export interface Settings {
   /** Default capture scope. */
@@ -43,6 +44,9 @@ export interface Settings {
   skipOpenDuplicates: boolean;
   /** Open the page listing addresses no extension may open. FR-204. */
   openPlaceholder: boolean;
+
+  /** Light, dark or whatever the operating system says. FR-405. */
+  theme: Theme;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -65,6 +69,8 @@ export const DEFAULT_SETTINGS: Settings = {
   restoreDelayMs: 40,
   skipOpenDuplicates: true,
   openPlaceholder: true,
+
+  theme: "system",
 };
 
 /**
@@ -120,6 +126,9 @@ export function mergeSettings(raw: Partial<Settings> | undefined): Settings {
   }
   if (!["new_windows", "current_window"].includes(merged.restoreTarget)) {
     merged.restoreTarget = DEFAULT_SETTINGS.restoreTarget;
+  }
+  if (!["system", "light", "dark"].includes(merged.theme)) {
+    merged.theme = DEFAULT_SETTINGS.theme;
   }
   for (const [key, limit] of Object.entries(NUMERIC_LIMITS)) {
     const current = (merged as unknown as Record<string, unknown>)[key];

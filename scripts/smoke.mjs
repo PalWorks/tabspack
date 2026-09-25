@@ -621,6 +621,87 @@ try {
   await manager.emulateMedia({ colorScheme: "dark" });
   await manager.screenshot({ path: path.join(shots, "manager-import-dark.png"), fullPage: true });
 
+  /* Options and the theme, M5 -------------------------------------------- */
+
+  const options = await context.newPage();
+  const optionErrors = [];
+  options.on("pageerror", (error) => optionErrors.push(String(error)));
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  await options.waitForSelector("#opt-scope");
+  await options.setViewportSize({ width: 900, height: 1000 });
+  check("the options page loads without a console error", optionErrors.length === 0, optionErrors[0]);
+
+  const untranslated = await options.$$eval("[data-i18n]", (nodes) =>
+    nodes.filter((node) => (node.textContent ?? "").trim() === (node.getAttribute("data-i18n") ?? "")).length,
+  );
+  check("every string on the page came from _locales", untranslated === 0, `${untranslated} keys showed as themselves`);
+
+  const shortcuts = await options.textContent("#shortcuts");
+  check(
+    "the options page lists the keyboard shortcuts the browser reports",
+    /Alt\+Shift\+E/.test(shortcuts ?? ""),
+    shortcuts ?? "",
+  );
+
+  await options.click("#theme button[data-value='dark']");
+  // The controls transition for 120 ms, and a screenshot taken inside that reads
+  // as a bug in every later review of it.
+  await options.waitForTimeout(400);
+  const themed = await options.getAttribute("html", "data-theme");
+  const background = await options.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const selected = await options.$$eval("#theme button", (nodes) =>
+    nodes.filter((node) => node.getAttribute("aria-checked") === "true").map((node) => node.dataset.value),
+  );
+  check(
+    "choosing dark applies it at once, and the control says so",
+    themed === "dark" && background === "rgb(22, 24, 28)" && selected.join() === "dark",
+    `${themed} ${background} ${selected.join()}`,
+  );
+  await options.screenshot({ path: path.join(shots, "options-dark.png"), fullPage: true });
+
+  await options.click("#theme button[data-value='light']");
+  const storedTheme = await worker.evaluate(
+    async () => (await chrome.storage.local.get("settings")).settings?.theme,
+  );
+  check("the choice is stored", storedTheme === "light", String(storedTheme));
+
+  // A setting the manager reads: change it here, reopen there.
+  await options.fill("#opt-threshold", "7");
+  await options.dispatchEvent("#opt-threshold", "change");
+  await options.waitForTimeout(300);
+  const threshold = await worker.evaluate(
+    async () => (await chrome.storage.local.get("settings")).settings?.discardThreshold,
+  );
+  check("a number setting is stored as a number", threshold === 7, String(threshold));
+
+  await options.fill("#opt-threshold", "99999");
+  await options.dispatchEvent("#opt-threshold", "change");
+  await options.waitForTimeout(300);
+  const clamped = await options.inputValue("#opt-threshold");
+  check(
+    "a number outside its range falls back to the default and the field says so",
+    clamped === "20",
+    clamped,
+  );
+
+  await options.click("#reset");
+  await options.waitForTimeout(300);
+  const afterReset = await worker.evaluate(async () => (await chrome.storage.local.get("settings")).settings);
+  check(
+    "reset puts every setting back",
+    afterReset?.theme === "system" && afterReset?.discardThreshold === 20,
+    JSON.stringify(afterReset),
+  );
+  await options.screenshot({ path: path.join(shots, "options-light.png"), fullPage: true });
+
+  // T-501: a setting takes effect on a surface that is already open.
+  await options.click("#theme button[data-value='dark']");
+  await manager.waitForFunction(() => document.documentElement.dataset.theme === "dark", {
+    timeout: 5_000,
+  });
+  check("a setting changed here reaches a manager page that is already open", true);
+  await options.click("#theme button[data-value='system']");
+
   console.log(`smoke: screenshots in ${path.relative(root, shots)}`);
 } finally {
   await context.close();

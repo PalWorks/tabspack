@@ -24,13 +24,12 @@ Read [AGENTS.md](AGENTS.md) as well. It applies to human contributors too; only 
 ## Checklist
 
 ```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
+npm run verify        # typecheck, lint, schema, tests, contrast, budgets, both builds, AMO's linter
+npm run smoke         # the built extension driven in a real Chromium
+npm run smoke:firefox # the built package installed in a real Firefox
 ```
 
-Then, if your change touches the adapter layer, the restore engine, a permission or any UI: load `dist/chrome` in Chrome or Edge and `dist/firefox` in Firefox, and exercise the path by hand. Unit tests do not prove a permission prompt or a tab strip.
+Then, if your change touches the adapter layer, the restore engine, a permission or any UI: load `dist/chrome` in Chrome or Edge and `dist/firefox` in Firefox, and exercise the path by hand. Unit tests do not prove a permission prompt or a tab strip, and [docs/TESTING.md](docs/TESTING.md) lists exactly what the automated runs cannot reach.
 
 ## Code style
 

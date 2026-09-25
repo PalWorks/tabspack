@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "TabsPack",
+  "default_locale": "en",
+  "name": "__MSG_extName__",
   "version": "0.0.1",
-  "description": "Export, move, share and restore browser tabs across browsers using an open, offline first format.",
+  "description": "__MSG_extDescription__",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -11,7 +12,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "TabsPack",
+    "default_title": "__MSG_extName__",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -37,19 +38,23 @@
       "suggested_key": {
         "default": "Alt+Shift+E"
       },
-      "description": "Export all windows to a TabsPack file"
+      "description": "__MSG_cmdExportAll__"
     },
     "export-current-window": {
       "suggested_key": {
         "default": "Alt+Shift+D"
       },
-      "description": "Export this window to a TabsPack file"
+      "description": "__MSG_cmdExportCurrent__"
     },
     "save-snapshot": {
       "suggested_key": {
         "default": "Alt+Shift+S"
       },
-      "description": "Save a snapshot of every window"
+      "description": "__MSG_cmdSaveSnapshot__"
     }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   }
 }

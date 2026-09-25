@@ -36,6 +36,19 @@ export interface TreeCallbacks {
   onSelectionChange(): void;
 }
 
+/**
+ * The words the tree needs, supplied by the caller. Passing them in rather than
+ * reaching for the translation layer is what keeps this module testable in node:
+ * the interface hands it `_locales`, and the test hands it plain English.
+ */
+export interface TreeStrings {
+  tabs(count: number): string;
+  groups(count: number): string;
+  pinned(count: number): string;
+  window(ordinal: number): string;
+  unnamedGroup: string;
+}
+
 const ROW_HEIGHT = 28;
 const OVERSCAN = 6;
 const MIN_TREE_HEIGHT = 120;
@@ -75,8 +88,8 @@ export class PreviewTree {
    * quietly deselected on the user's behalf would be a tab they were never told
    * about.
    */
-  load(session: Session, marks: { blocked: Map<string, string> }): void {
-    this.rows = flatten(session, marks.blocked);
+  load(session: Session, marks: { blocked: Map<string, string>; strings: TreeStrings }): void {
+    this.rows = flatten(session, marks.blocked, marks.strings);
     this.selected.clear();
     this.collapsed.clear();
     this.query = "";
@@ -336,7 +349,7 @@ function glyphFor(state: "true" | "false" | "mixed"): string {
  * shown together even when the file interleaved them, because that is how the
  * browser will show them after a restore.
  */
-export function flatten(session: Session, blocked: Map<string, string>): Row[] {
+export function flatten(session: Session, blocked: Map<string, string>, strings: TreeStrings): Row[] {
   const rows: Row[] = [];
   for (const win of session.windows) {
     const windowRow: Row = {
@@ -344,8 +357,8 @@ export function flatten(session: Session, blocked: Map<string, string>): Row[] {
       id: win.key,
       windowKey: win.key,
       level: 0,
-      label: win.name ?? `Window ${rows.filter((row) => row.kind === "window").length + 1}`,
-      detail: describeWindow(win),
+      label: win.name ?? strings.window(rows.filter((row) => row.kind === "window").length + 1),
+      detail: describeWindow(win, strings),
       tabIds: win.tabs.map((tab) => tabId(win, tab)),
     };
     rows.push(windowRow);
@@ -362,8 +375,8 @@ export function flatten(session: Session, blocked: Map<string, string>): Row[] {
           id: `${win.key}/${group.key}`,
           windowKey: win.key,
           level: 1,
-          label: group.title ?? "Unnamed group",
-          detail: `${members.length} ${members.length === 1 ? "tab" : "tabs"}`,
+          label: group.title ?? strings.unnamedGroup,
+          detail: strings.tabs(members.length),
           group,
           tabIds: members.map((member) => tabId(win, member)),
           ...(group.color ? { colour: group.color } : {}),
@@ -401,11 +414,11 @@ export function tabId(win: SessionWindow, tab: SessionTab): string {
   return `${win.key}:${tab.index}`;
 }
 
-function describeWindow(win: SessionWindow): string {
-  const parts = [`${win.tabs.length} ${win.tabs.length === 1 ? "tab" : "tabs"}`];
-  if (win.groups.length > 0) parts.push(`${win.groups.length} ${win.groups.length === 1 ? "group" : "groups"}`);
+function describeWindow(win: SessionWindow, strings: TreeStrings): string {
+  const parts = [strings.tabs(win.tabs.length)];
+  if (win.groups.length > 0) parts.push(strings.groups(win.groups.length));
   const pinned = win.tabs.filter((tab) => tab.pinned).length;
-  if (pinned > 0) parts.push(`${pinned} pinned`);
+  if (pinned > 0) parts.push(strings.pinned(pinned));
   return parts.join(" · ");
 }
 

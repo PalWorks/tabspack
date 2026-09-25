@@ -1,0 +1,71 @@
+name: Bug report
+description: Something TabsPack did wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An import bug reported without its file is usually unfixable, so the file
+        matters more than the description. Strip anything private first: a pack is
+        a list of addresses, and the structure is what we need, not your browsing.
+
+        **Do not report a security issue here.** Follow [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: The whole string from your browser's About page.
+      placeholder: Firefox 142.0, or Chrome 141.0.7390.54
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: TabsPack version
+      description: Shown at the bottom of the TabsPack settings page.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: The steps, in order, starting from a fresh browser window.
+      placeholder: |
+        1. Opened the TabsPack page
+        2. Dropped the file in
+        3. Pressed Restore 40 tabs
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+      description: Include the exact wording of any message TabsPack showed.
+    validations:
+      required: true
+  - type: textarea
+    id: file
+    attributes:
+      label: The file, with anything private removed
+      description: |
+        Attach it, or paste the first few windows. Replace real addresses with
+        example.com paths that keep the same structure and counts.
+      render: json
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before you send it
+      options:
+        - label: I removed anything private from the file
+          required: true
+        - label: I am on the latest version of TabsPack
+          required: false

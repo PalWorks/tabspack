@@ -2,12 +2,12 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-M4%20snapshots%20complete-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-M5%20built%2C%20not%20yet%20submitted-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M4 are complete, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally and has keyboard commands. The options page, translations and the store work are M5, and no store submission has been made. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M5 are built, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally, has keyboard commands, an options page, a light and dark theme and a translation layer. What is left is the part an agent cannot do: the manual cross browser matrix, and submitting to three stores that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
 
 ## Contents
 
@@ -52,9 +52,7 @@ Working today:
 - **Snapshots**, saved locally, named and tagged, for the days when you do not want to think about where a file went. Export one to a file, or add a file as a snapshot without opening a single tab.
 - **Keyboard commands** for exporting all windows, exporting this window and saving a snapshot, with no page in the way.
 
-Planned:
-
-- **An options page, translations and the store listings** (M5).
+- **Settings, a theme and translations.** Every default, filter and restore policy in one place, light or dark or whatever the system says, and every string the interface shows read from `_locales`.
 
 Deliberately not in v1: cloud sync, accounts, encryption, AI features, bookmark management and scheduled saves. See [PLAN.md](PLAN.md) section 7.
 

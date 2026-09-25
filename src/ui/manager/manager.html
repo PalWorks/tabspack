@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TabsPack</title>
+    <title data-i18n="managerTitle">TabsPack</title>
     <link rel="stylesheet" href="shared/theme.css" />
     <link rel="stylesheet" href="shared/base.css" />
     <link rel="stylesheet" href="manager/manager.css" />
@@ -17,12 +17,12 @@
               d="M4 4h16a1 1 0 0 1 1 1v3H3V5a1 1 0 0 1 1-1zm-1 6h12v3H3v-3zm0 5h9v3H3v-3zm14.5 6L21 17h-2.5v-4h-2v4H14l3.5 4z"
             />
           </svg>
-          TabsPack
+          <span data-i18n="extName">TabsPack</span>
         </span>
-        <span class="page-trust">Nothing leaves your device.</span>
+        <span class="page-trust" data-i18n="trustLine">Nothing leaves your device.</span>
       </header>
 
-      <div id="tasks" class="tablist" role="tablist" aria-label="What to do">
+      <div id="tasks" class="tablist" role="tablist" data-i18n-attr="aria-label:tasksLabel">
         <button
           id="tab-export"
           class="tab"
@@ -32,7 +32,7 @@
           aria-selected="true"
           aria-controls="panel-export"
         >
-          Export
+          <span data-i18n="taskExport">Export</span>
         </button>
         <button
           id="tab-import"
@@ -43,7 +43,7 @@
           aria-selected="false"
           aria-controls="panel-import"
         >
-          Import
+          <span data-i18n="taskImport">Import</span>
         </button>
         <button
           id="tab-snapshots"
@@ -54,60 +54,60 @@
           aria-selected="false"
           aria-controls="panel-snapshots"
         >
-          Snapshots
+          <span data-i18n="taskSnapshots">Snapshots</span>
         </button>
       </div>
 
       <div id="panel-export" role="tabpanel" aria-labelledby="tab-export" class="panel">
         <section class="card" aria-labelledby="export-legend">
-          <h2 class="legend" id="export-legend">Export</h2>
+          <h2 class="legend" id="export-legend" data-i18n="taskExport">Export</h2>
 
           <div class="control-grid">
-            <span class="control-label" id="scope-label">Scope</span>
+            <span class="control-label" id="scope-label" data-i18n="scopeLabel">Scope</span>
             <div id="scope" class="segmented scope" role="radiogroup" aria-labelledby="scope-label">
-              <button type="button" role="radio" data-value="all_windows" aria-checked="true">All windows</button>
-              <button type="button" role="radio" data-value="current_window" aria-checked="false">This window</button>
-              <button type="button" role="radio" data-value="selection" aria-checked="false">Selection</button>
+              <button type="button" role="radio" data-value="all_windows" aria-checked="true" data-i18n="scopeAllWindows">All windows</button>
+              <button type="button" role="radio" data-value="current_window" aria-checked="false" data-i18n="scopeThisWindow">This window</button>
+              <button type="button" role="radio" data-value="selection" aria-checked="false" data-i18n="scopeSelectionShort">Selection</button>
             </div>
 
-            <label class="control-label" for="format">Format</label>
+            <label class="control-label" for="format" data-i18n="formatLabel">Format</label>
             <div class="row">
               <select id="format">
-                <option value="tabspack">TabsPack file, round trips</option>
-                <option value="urls">URL list, one way</option>
-                <option value="flatjson">Flat JSON, one way</option>
+                <option value="tabspack" data-i18n="formatPackRoundTrip">TabsPack file, round trips</option>
+                <option value="urls" data-i18n="formatUrls">URL list, one way</option>
+                <option value="flatjson" data-i18n="formatFlat">Flat JSON, one way</option>
               </select>
               <span id="format-note" class="hint"></span>
             </div>
 
-            <span class="control-label">Include</span>
+            <span class="control-label" data-i18n="includeLabel">Include</span>
             <div class="check-row">
-              <label class="check"><input type="checkbox" id="opt-titles" /> Titles in text export</label>
-              <label class="check"><input type="checkbox" id="opt-favicons" /> Favicon URLs</label>
+              <label class="check"><input type="checkbox" id="opt-titles" /> <span data-i18n="includeTitles">Titles in text export</span></label>
+              <label class="check"><input type="checkbox" id="opt-favicons" /> <span data-i18n="includeFavicons">Favicon URLs</span></label>
               <label class="check" id="opt-incognito-label">
-                <input type="checkbox" id="opt-incognito" /> Private windows
+                <input type="checkbox" id="opt-incognito" /> <span data-i18n="includePrivate">Private windows</span>
               </label>
               <span id="incognito-hint" class="hint"></span>
             </div>
 
-            <span class="control-label">Filters</span>
+            <span class="control-label" data-i18n="filtersLabel">Filters</span>
             <div class="check-row">
-              <label class="check"><input type="checkbox" id="opt-dedupe" /> Remove duplicates</label>
-              <label class="check"><input type="checkbox" id="opt-web" /> Web pages only</label>
-              <label class="check"><input type="checkbox" id="opt-pinned" /> Skip pinned</label>
+              <label class="check"><input type="checkbox" id="opt-dedupe" /> <span data-i18n="filterDedupe">Remove duplicates</span></label>
+              <label class="check"><input type="checkbox" id="opt-web" /> <span data-i18n="filterWebOnly">Web pages only</span></label>
+              <label class="check"><input type="checkbox" id="opt-pinned" /> <span data-i18n="filterSkipPinned">Skip pinned</span></label>
               <span class="inline-field">
-                <label for="opt-sort">Order</label>
+                <label for="opt-sort" data-i18n="orderLabel">Order</label>
                 <select id="opt-sort">
-                  <option value="natural">As they are</option>
-                  <option value="title">By title</option>
-                  <option value="url">By address</option>
-                  <option value="domain">By site</option>
+                  <option value="natural" data-i18n="orderNatural">As they are</option>
+                  <option value="title" data-i18n="orderTitle">By title</option>
+                  <option value="url" data-i18n="orderUrl">By address</option>
+                  <option value="domain" data-i18n="orderDomain">By site</option>
                 </select>
               </span>
-              <label class="check"><input type="checkbox" id="opt-sort-desc" /> Reverse</label>
+              <label class="check"><input type="checkbox" id="opt-sort-desc" /> <span data-i18n="orderReverse">Reverse</span></label>
             </div>
 
-            <label class="control-label" for="opt-exclude">Exclude</label>
+            <label class="control-label" for="opt-exclude" data-i18n="excludeLabel">Exclude</label>
             <div>
               <textarea
                 id="opt-exclude"
@@ -116,99 +116,96 @@
                 spellcheck="false"
                 placeholder="*mail.example.com*"
               ></textarea>
-              <span class="hint">One pattern per line, <code>*</code> matches anything. Lines starting with <code>#</code> are ignored.</span>
+              <span class="hint" data-i18n="excludeHint">One pattern per line, * matches anything. Lines starting with # are ignored.</span>
             </div>
           </div>
 
           <div class="actions">
-            <button id="export" class="btn btn-primary action" type="button" disabled>Export</button>
-            <button id="copy" class="btn btn-secondary" type="button" disabled>Copy</button>
-            <span id="summary" class="summary">Reading tabs</span>
+            <button id="export" class="btn btn-primary action" type="button" disabled data-i18n="exportButton">Export</button>
+            <button id="copy" class="btn btn-secondary" type="button" disabled data-i18n="copyButton">Copy</button>
+            <span id="summary" class="summary" data-i18n="readingTabs">Reading tabs</span>
           </div>
 
           <div id="report" class="report" role="status" aria-live="polite"></div>
         </section>
 
         <section class="card" aria-labelledby="output-legend">
-          <h2 class="legend" id="output-legend">Output</h2>
-          <p id="output-meta" class="summary">Nothing exported yet.</p>
+          <h2 class="legend" id="output-legend" data-i18n="outputLegend">Output</h2>
+          <p id="output-meta" class="summary" data-i18n="outputEmpty">Nothing exported yet.</p>
           <textarea
             id="output"
             class="output"
             readonly
             spellcheck="false"
-            aria-label="Exported file contents"
+            data-i18n-attr="aria-label:outputAria"
           ></textarea>
         </section>
       </div>
 
       <div id="panel-import" role="tabpanel" aria-labelledby="tab-import" class="panel" hidden>
         <section class="card" aria-labelledby="import-legend">
-          <h2 class="legend" id="import-legend">Import</h2>
+          <h2 class="legend" id="import-legend" data-i18n="taskImport">Import</h2>
 
           <div id="dropzone" class="dropzone">
-            <p class="dropzone-lead">Drop a pack here</p>
-            <button id="choose-file" class="btn btn-secondary" type="button">Choose a file</button>
-            <p class="hint">
-              A <code>.tabspack.json</code> file, or an export from Tab Session Manager, Session Buddy,
-              OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.
-            </p>
+            <p class="dropzone-lead" data-i18n="dropLead">Drop a pack here</p>
+            <button id="choose-file" class="btn btn-secondary" type="button" data-i18n="chooseFile">Choose a file</button>
+            <p class="hint" data-i18n="dropHint">A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.</p>
             <input id="file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
           </div>
 
-          <p id="file-meta" class="summary">No file chosen yet.</p>
+          <p id="file-meta" class="summary" data-i18n="noFileYet">No file chosen yet.</p>
           <p id="fidelity" class="hint fidelity"></p>
           <div id="import-issues" class="report" role="status" aria-live="polite"></div>
         </section>
 
         <section id="preview" class="card" aria-labelledby="preview-legend" hidden>
-          <h2 class="legend" id="preview-legend">Preview</h2>
+          <h2 class="legend" id="preview-legend" data-i18n="previewLegend">Preview</h2>
 
           <div class="actions preview-actions">
-            <label class="visually-hidden" for="tree-search">Search titles and addresses</label>
+            <label class="visually-hidden" for="tree-search" data-i18n="searchLabel">Search titles and addresses</label>
             <input
               id="tree-search"
               class="search"
               type="search"
-              placeholder="Search titles and addresses"
+              data-i18n-attr="placeholder:searchLabel"
               autocomplete="off"
               spellcheck="false"
             />
-            <button id="select-all" class="btn btn-secondary" type="button">Select all</button>
-            <button id="select-none" class="btn btn-secondary" type="button">Select none</button>
+            <button id="select-all" class="btn btn-secondary" type="button" data-i18n="selectAll">Select all</button>
+            <button id="select-none" class="btn btn-secondary" type="button" data-i18n="selectNone">Select none</button>
             <span id="selection-count" class="summary"></span>
           </div>
 
-          <div id="tree" class="tree" aria-label="Windows, groups and tabs in this pack"></div>
+          <div id="tree" class="tree" data-i18n-attr="aria-label:treeLabel"></div>
 
           <div id="groups-permission" class="notice" hidden>
             <p id="groups-permission-text" class="notice-text"></p>
-            <button id="allow-groups" class="btn btn-secondary" type="button">Allow tab groups</button>
+            <button id="allow-groups" class="btn btn-secondary" type="button" data-i18n="allowGroups">Allow tab groups</button>
           </div>
 
           <div class="control-grid restore-grid">
-            <label class="control-label" for="restore-target">Restore into</label>
+            <label class="control-label" for="restore-target" data-i18n="restoreIntoLabel">Restore into</label>
             <div class="row">
               <select id="restore-target">
-                <option value="new_windows">New windows, one per window in the pack</option>
-                <option value="current_window">This window</option>
+                <option value="new_windows" data-i18n="restoreIntoNew">New windows, one per window in the pack</option>
+                <option value="current_window" data-i18n="restoreIntoThis">This window</option>
               </select>
             </div>
 
-            <span class="control-label">Policy</span>
+            <span class="control-label" data-i18n="policyLabel">Policy</span>
             <div class="check-row">
-              <label class="check"><input type="checkbox" id="opt-skip-open" /> Skip tabs already open</label>
+              <label class="check"><input type="checkbox" id="opt-skip-open" /> <span data-i18n="policySkipOpenShort">Skip tabs already open</span></label>
               <span class="inline-field">
-                <label for="opt-threshold">Leave unloaded after</label>
+                <label for="opt-threshold" data-i18n="unloadAfter">Leave unloaded after</label>
                 <input id="opt-threshold" class="number" type="number" min="0" max="10000" step="1" />
-                <span>tabs</span>
+                <span data-i18n="unitTabs">tabs</span>
               </span>
             </div>
           </div>
 
           <div class="actions">
-            <button id="restore" class="btn btn-primary action" type="button" disabled>Restore</button>
-            <span class="hint">Nothing opens until you press this.</span>
+            <button id="restore" class="btn btn-primary action" type="button" disabled data-i18n="restoreButton">Restore</button>
+            <span class="hint" data-i18n="restoreHint">Nothing opens until you press this.</span>
           </div>
 
           <div id="restore-report" class="report" role="status" aria-live="polite"></div>
@@ -218,35 +215,32 @@
 
       <div id="panel-snapshots" role="tabpanel" aria-labelledby="tab-snapshots" class="panel" hidden>
         <section class="card" aria-labelledby="snapshots-legend">
-          <h2 class="legend" id="snapshots-legend">Snapshots</h2>
-          <p class="hint">
-            A snapshot is this session kept inside TabsPack, so you do not have to decide where a file
-            goes. It stays on this machine, and nothing here opens a tab on its own.
-          </p>
+          <h2 class="legend" id="snapshots-legend" data-i18n="taskSnapshots">Snapshots</h2>
+          <p class="hint" data-i18n="snapshotsLead">A snapshot is this session kept inside TabsPack, so you do not have to decide where a file goes. It stays on this machine, and nothing here opens a tab on its own.</p>
 
           <div class="actions">
-            <label class="visually-hidden" for="snapshot-name">Name for this snapshot</label>
+            <label class="visually-hidden" for="snapshot-name" data-i18n="snapshotNameLabel">Name for this snapshot</label>
             <input
               id="snapshot-name"
               class="search"
               type="text"
-              placeholder="Name it, or leave this to be named by date"
+              data-i18n-attr="placeholder:snapshotNamePlaceholder"
               autocomplete="off"
             />
-            <button id="save-snapshot" class="btn btn-primary action" type="button">Save this session</button>
+            <button id="save-snapshot" class="btn btn-primary action" type="button" data-i18n="saveSnapshot">Save this session</button>
             <span id="snapshot-usage" class="summary"></span>
           </div>
 
           <div class="row">
-            <button id="add-snapshot-file" class="btn btn-secondary" type="button">Add a file as a snapshot</button>
+            <button id="add-snapshot-file" class="btn btn-secondary" type="button" data-i18n="addFileAsSnapshot">Add a file as a snapshot</button>
             <input id="snapshot-file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
-            <span class="hint">The file is saved here for later. Nothing is opened.</span>
+            <span class="hint" data-i18n="addFileHint">The file is saved here for later. Nothing is opened.</span>
           </div>
 
           <div id="snapshot-warning" class="notice" hidden></div>
           <div id="snapshot-report" class="report" role="status" aria-live="polite"></div>
 
-          <p id="snapshot-empty" class="summary">No snapshots yet.</p>
+          <p id="snapshot-empty" class="summary" data-i18n="snapshotsEmpty">No snapshots yet.</p>
           <ul id="snapshot-list" class="snapshot-list"></ul>
         </section>
       </div>

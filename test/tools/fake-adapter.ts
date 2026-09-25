@@ -350,6 +350,15 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     extensionUrl(path: string) {
       return `chrome-extension://fake/${path}`;
     },
+    getMessage(key: string) {
+      return key;
+    },
+    async listCommands() {
+      return [];
+    },
+    async openOptions() {
+      adapter.opened.push("options.html");
+    },
     async openExtensionPage(path: string) {
       adapter.opened.push(path);
     },

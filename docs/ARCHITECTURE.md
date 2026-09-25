@@ -13,7 +13,7 @@ TabsPack is a browser extension with no server, no network access and no runtime
 | Service worker (background) | `src/background/sw.ts` | Event to event, terminated when idle | Keyboard commands, badge, opening the manager page. It writes a file directly for an export command, which is bounded work. No long lived state, because the worker is killed |
 | Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, buttons that open the manager page. Never a file dialog, never a long task |
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
-| Options page | `src/ui/options/` | While open | Settings only |
+| Options page | `src/ui/options/` | While open | Every setting, written the moment it changes. No Save button, because a settings page with one invents a state where what you see is not what is in force |
 | Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |
 
 The single most important placement decision: **import and export do not live in the popup**. A popup closes when the file picker takes focus, which is the most common cause of broken import in the extensions we studied. The popup is a launcher.
@@ -68,7 +68,10 @@ src/
       base.css            components
       dom.ts              element helpers, inline SVG icons, no innerHTML
       segmented.ts        radio group behaviour with arrow keys
-      tabs.ts             the ARIA tab pattern, for the manager's two tasks
+      tabs.ts             the ARIA tab pattern, for the manager's three tasks
+      i18n.ts             every string the interface shows, from _locales
+      wording.ts          where a report's numbers become sentences
+      theme.ts            light, dark or the system's choice, as one attribute
       report-view.ts      renders a report and an issue list into a live region
       save.ts             Blob plus downloads API, anchor fallback, clipboard
     popup/                launcher: counts, scope, one primary action
@@ -78,11 +81,16 @@ src/
       preview-tree.ts     the virtualised windows, groups and tabs tree
       snapshot-panel.ts   save, list, rename, tag, export and delete snapshots
     placeholder/          the page listing addresses that cannot be opened
-    options/ (M5)
+    options/              settings, the theme switch and the shortcut list
   types/
     tabspack.ts           the format types, the source of the JSON Schema
     session.ts            the in memory model
     webextension-polyfill.d.ts
+_locales/
+  en/messages.json        every string the interface shows
+assets/
+  icon.svg                the mark, rasterised by scripts/gen-assets.mjs
+  icons/, store/          generated, never hand edited
 schema/
   tabspack.v1.schema.json generated, never hand edited
 scripts/                  build, lint, schema, test, fixtures, icons, perf, smoke

@@ -3,32 +3,34 @@
  * colour is never the only signal: the glyph and the wording change too.
  */
 import { clear, el, icon, ICON } from "./dom.js";
-import {
-  describeRemoved,
-  formatBytes,
-  totalRemoved,
-  type ExportReport,
-  type RestoreSummary,
-} from "../../core/report.js";
+import { formatBytes, totalRemoved, type ExportReport, type RestoreSummary } from "../../core/report.js";
 import type { Issue } from "../../core/issues.js";
+import { t } from "./i18n.js";
+import { groups as groupsPhrase, removedPhrases, restoreDetails, restoreHeadline, tabs, windows } from "./wording.js";
 
 type Tone = "success" | "warn" | "error";
 
 export function renderExportReport(node: HTMLElement, report: ExportReport): void {
   const dropped = totalRemoved(report.removed);
   const tone: Tone = dropped > 0 ? "warn" : "success";
-  const summary = `${plural(report.tabs, "tab")} from ${plural(report.windows, "window")}`;
-  const headline = report.saved ? `Saved ${summary}` : `Copied ${summary}`;
-  paint(node, tone, headline, [
-    ...(dropped > 0 ? [describeRemoved(report.removed)] : []),
-    ...(report.groups > 0 ? [`${plural(report.groups, "group")} kept`] : []),
-    `${formatBytes(report.bytes)}`,
-  ].filter(Boolean).join(" · "), report.saved ? report.filename : undefined);
+  const headline = t(
+    report.saved ? "reportSaved" : "reportCopied",
+    tabs(report.tabs),
+    windows(report.windows),
+  );
+  const detail = [
+    ...removedPhrases(report.removed),
+    ...(report.groups > 0 ? [t("groupsKept", groupsPhrase(report.groups))] : []),
+    formatBytes(report.bytes),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  paint(node, tone, headline, detail, report.saved ? report.filename : undefined);
 }
 
-/** A restore outcome. The wording is built in core/report.ts so it can be tested. */
+/** A restore outcome. What happened is decided in core, the words come from here. */
 export function renderRestoreReport(node: HTMLElement, summary: RestoreSummary): void {
-  paint(node, summary.tone, summary.headline, summary.details.join(" · "), undefined);
+  paint(node, summary.tone, restoreHeadline(summary), restoreDetails(summary).join(" · "), undefined);
 }
 
 export interface IssueListOptions {
@@ -105,6 +107,4 @@ function paint(
   if (filename) node.appendChild(el("div", { class: "filename", text: filename }));
 }
 
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
+

@@ -44,6 +44,9 @@ jobs:
         env:
           TZ: UTC
 
+      - name: The contrast contract, computed from the design tokens
+        run: npm run a11y
+
       - name: Performance budgets
         run: npm run perf
 
@@ -54,3 +57,6 @@ jobs:
         run: |
           node -e "const m=require('./dist/chrome/manifest.json'); if(m.manifest_version!==3) process.exit(1)"
           node -e "const m=require('./dist/firefox/manifest.json'); if(!m.browser_specific_settings) process.exit(1)"
+
+      - name: AMO's own linter over the Firefox package
+        run: npm run lint:amo

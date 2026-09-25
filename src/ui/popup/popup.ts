@@ -9,6 +9,9 @@ import { loadSettings, saveSettings, type ExportFormat, type Settings } from "..
 import { countSession } from "../../types/session.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
+import { applyI18n, t } from "../shared/i18n.js";
+import { applyTheme } from "../shared/theme.js";
+import { countsLine, tabs as tabsPhrase } from "../shared/wording.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
 import { savePayload, copyPayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
@@ -27,14 +30,18 @@ const ui = {
 
 let settings: Settings;
 let available = 0;
+/** Repaints the scope control when a setting changes somewhere else. */
+let selectScope: (value: string) => void = () => undefined;
 
 void start();
 
 async function start(): Promise<void> {
+  applyI18n();
   settings = await loadSettings(adapter);
+  applyTheme(settings.theme);
   ui.format.value = settings.format;
 
-  initSegmented(ui.scope, settings.scope, (value) => {
+  selectScope = initSegmented(ui.scope, settings.scope, (value) => {
     settings.scope = value as Scope;
     void saveSettings(adapter, { scope: settings.scope });
     clearReport(ui.report);
@@ -50,6 +57,20 @@ async function start(): Promise<void> {
   ui.copyButton.addEventListener("click", () => void run("copy"));
   ui.manager.addEventListener("click", () => void adapter.openExtensionPage("manager.html"));
 
+  // The options page may be open in another tab while this popup is.
+  adapter.onStorageChanged((keys) => {
+    if (!keys.includes("settings")) return;
+    void (async () => {
+      const latest = await loadSettings(adapter);
+      if (JSON.stringify(latest) === JSON.stringify(settings)) return;
+      settings = latest;
+      applyTheme(settings.theme);
+      ui.format.value = settings.format;
+      selectScope(settings.scope);
+      await refresh();
+    })();
+  });
+
   await refresh();
 }
 
@@ -59,21 +80,17 @@ async function refresh(): Promise<void> {
     const { session, removed } = await collectFiltered(adapter, settings);
     const counts = countSession(session);
     available = counts.tabs;
-    ui.summary.textContent = summarise(counts.windows, counts.tabs, counts.groups);
-    ui.exportButton.textContent = counts.tabs === 0 ? "Export" : `Export ${plural(counts.tabs, "tab")}`;
+    ui.summary.textContent = countsLine(counts);
+    ui.exportButton.textContent =
+      counts.tabs === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(counts.tabs));
     setEnabled(counts.tabs > 0);
     if (counts.tabs === 0) {
-      renderNote(
-        ui.report,
-        totalRemoved(removed) > 0
-          ? "Every tab in this scope was removed by a filter."
-          : "There is nothing to export in this scope.",
-      );
+      renderNote(ui.report, t(totalRemoved(removed) > 0 ? "filtersEmptiedScope" : "nothingInScope"));
     }
   } catch (error) {
     available = 0;
     setEnabled(false);
-    ui.summary.textContent = "Tabs unavailable";
+    ui.summary.textContent = t("tabsUnavailable");
     renderError(ui.report, describe(error));
   }
 }
@@ -83,7 +100,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
   const button = mode === "save" ? ui.exportButton : ui.copyButton;
   const label = button.textContent ?? "";
   setEnabled(false);
-  button.textContent = "Working";
+  button.textContent = t("working");
   button.setAttribute("aria-busy", "true");
   clearReport(ui.report);
 
@@ -118,19 +135,9 @@ function setEnabled(enabled: boolean): void {
   ui.copyButton.disabled = !enabled;
 }
 
-function summarise(windows: number, tabs: number, groups: number): string {
-  const parts = [plural(windows, "window"), plural(tabs, "tab")];
-  if (groups > 0) parts.push(plural(groups, "group"));
-  return parts.join(" · ");
-}
-
 function badgeText(count: number): string {
   if (count <= 0) return "";
   return count < 100 ? String(count) : "99+";
-}
-
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function describe(error: unknown): string {

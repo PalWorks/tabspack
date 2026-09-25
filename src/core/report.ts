@@ -55,15 +55,20 @@ export function totalRemoved(removed: FilterCounts): number {
   return removed.scheme + removed.pinned + removed.excluded + removed.duplicate;
 }
 
-/** One sentence naming every filter that dropped something, or an empty string. */
-export function describeRemoved(removed: FilterCounts): string {
-  const parts: string[] = [];
-  if (removed.duplicate > 0) parts.push(`${plural(removed.duplicate, "duplicate")}`);
-  if (removed.pinned > 0) parts.push(`${removed.pinned} pinned`);
-  if (removed.scheme > 0) parts.push(`${removed.scheme} not a web page`);
-  if (removed.excluded > 0) parts.push(`${removed.excluded} excluded`);
-  if (parts.length === 0) return "";
-  return `${parts.join(", ")} skipped`;
+/**
+ * What each filter dropped, as data rather than as a sentence. The interface
+ * turns these into words, because the words are translated and this decision is
+ * not: see `src/ui/shared/wording.ts` and ADR-022.
+ */
+export type RemovedKind = "duplicate" | "pinned" | "scheme" | "excluded";
+
+export function removedParts(removed: FilterCounts): { kind: RemovedKind; count: number }[] {
+  const parts: { kind: RemovedKind; count: number }[] = [];
+  if (removed.duplicate > 0) parts.push({ kind: "duplicate", count: removed.duplicate });
+  if (removed.pinned > 0) parts.push({ kind: "pinned", count: removed.pinned });
+  if (removed.scheme > 0) parts.push({ kind: "scheme", count: removed.scheme });
+  if (removed.excluded > 0) parts.push({ kind: "excluded", count: removed.excluded });
+  return parts;
 }
 
 export function formatBytes(bytes: number): string {
@@ -72,9 +77,7 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
+
 
 /* Import and restore, task T-207 ----------------------------------------- */
 
@@ -84,41 +87,42 @@ function plural(count: number, noun: string): string {
  * can check against their own tab strip, which is the trust model of this
  * product.
  */
+export type RestoreDetail =
+  | "windows"
+  | "groups"
+  | "duplicates"
+  | "unopenable"
+  | "ungrouped"
+  | "unloaded";
+
 export interface RestoreSummary {
   tone: "success" | "warn" | "error";
-  headline: string;
-  details: string[];
+  /** `failed` and `nothing` carry no count. */
+  headline: "restored" | "nothing" | "failed";
+  restored: number;
+  details: { kind: RestoreDetail; count: number }[];
 }
 
+/** The shape of what happened. The interface supplies the words. */
 export function describeRestore(report: RestoreReport): RestoreSummary {
-  const details: string[] = [];
-  if (report.windows > 0) details.push(`${plural(report.windows, "window")}`);
-  if (report.groups > 0) details.push(`${plural(report.groups, "group")}`);
-  if (report.duplicates > 0) details.push(`${report.duplicates} already open`);
-  if (report.unopenable.length > 0) details.push(`${report.unopenable.length} cannot be opened`);
-  if (report.ungrouped > 0) details.push(`${report.ungrouped} restored ungrouped`);
-  if (report.discarded > 0) details.push(`${report.discarded} left unloaded`);
+  const details: { kind: RestoreDetail; count: number }[] = [];
+  if (report.windows > 0) details.push({ kind: "windows", count: report.windows });
+  if (report.groups > 0) details.push({ kind: "groups", count: report.groups });
+  if (report.duplicates > 0) details.push({ kind: "duplicates", count: report.duplicates });
+  if (report.unopenable.length > 0) details.push({ kind: "unopenable", count: report.unopenable.length });
+  if (report.ungrouped > 0) details.push({ kind: "ungrouped", count: report.ungrouped });
+  if (report.discarded > 0) details.push({ kind: "unloaded", count: report.discarded });
 
   if (!report.ok && report.restored === 0) {
-    return {
-      tone: "error",
-      headline: "Nothing was restored.",
-      details,
-    };
+    return { tone: "error", headline: "failed", restored: 0, details };
   }
   if (report.restored === 0) {
-    return {
-      tone: "warn",
-      headline: "No tabs were restored.",
-      details:
-        details.length > 0
-          ? details
-          : ["Every tab in this pack was already open, or was excluded by the selection."],
-    };
+    return { tone: "warn", headline: "nothing", restored: 0, details };
   }
   return {
     tone: report.unopenable.length > 0 || report.ungrouped > 0 || !report.ok ? "warn" : "success",
-    headline: `Restored ${plural(report.restored, "tab")}`,
+    headline: "restored",
+    restored: report.restored,
     details,
   };
 }
@@ -128,10 +132,18 @@ export function describeRestore(report: RestoreReport): RestoreSummary {
  * T-310. Two clauses, never one run on sentence: what came through, and what the
  * source format has no way to hold. An adapter that declares nothing missing is
  * claiming a full fidelity import, which only a TabsPack file can do.
+ *
+ * The adapter's own label and its lists of fields are the translatable parts,
+ * and they travel with the adapter; the frame comes from the interface.
  */
-export function describeFidelity(source: SourceInfo): string {
-  if (source.missing.length === 0) return `${source.label}. Everything in it can be restored.`;
-  return `${source.label}. Carried: ${source.carries.join(", ")}. Not carried by this format: ${source.missing.join(
-    ", ",
-  )}.`;
+export function describeFidelity(
+  source: SourceInfo,
+  frame: { complete: (label: string) => string; partial: (label: string, carried: string, missing: string) => string } = {
+    complete: (label) => `${label}. Everything in it can be restored.`,
+    partial: (label, carried, missing) =>
+      `${label}. Carried: ${carried}. Not carried by this format: ${missing}.`,
+  },
+): string {
+  if (source.missing.length === 0) return frame.complete(source.label);
+  return frame.partial(source.label, source.carries.join(", "), source.missing.join(", "));
 }

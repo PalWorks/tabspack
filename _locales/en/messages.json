@@ -1,0 +1,924 @@
+{
+  "extName": {
+    "message": "TabsPack",
+    "description": "The product name. Not translated."
+  },
+  "extDescription": {
+    "message": "Export, move, share and restore browser tabs across browsers using an open, offline first format."
+  },
+  "cmdExportAll": {
+    "message": "Export all windows to a TabsPack file"
+  },
+  "cmdExportCurrent": {
+    "message": "Export this window to a TabsPack file"
+  },
+  "cmdSaveSnapshot": {
+    "message": "Save a snapshot of every window"
+  },
+  "trustLine": {
+    "message": "Nothing leaves your device."
+  },
+  "managerTitle": {
+    "message": "TabsPack"
+  },
+  "optionsTitle": {
+    "message": "TabsPack settings"
+  },
+  "placeholderTitle": {
+    "message": "Addresses TabsPack could not open"
+  },
+  "openManager": {
+    "message": "Open the TabsPack manager"
+  },
+  "working": {
+    "message": "Working"
+  },
+  "readingTabs": {
+    "message": "Reading tabs"
+  },
+  "tabsUnavailable": {
+    "message": "Tabs unavailable"
+  },
+  "unit_tabs_one": {
+    "message": "$count$ tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_tabs_other": {
+    "message": "$count$ tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_windows_one": {
+    "message": "$count$ window",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_windows_other": {
+    "message": "$count$ windows",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_groups_one": {
+    "message": "$count$ group",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_groups_other": {
+    "message": "$count$ groups",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unitTabs": {
+    "message": "tabs",
+    "description": "The word alone, after a number field."
+  },
+  "unitMilliseconds": {
+    "message": "ms"
+  },
+  "pinnedCount": {
+    "message": "$count$ pinned",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "windowOrdinal": {
+    "message": "Window $number$",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
+  "unnamedGroup": {
+    "message": "Unnamed group"
+  },
+  "scopeLabel": {
+    "message": "Scope"
+  },
+  "scopeGroupLabel": {
+    "message": "What to export"
+  },
+  "scopeAllWindows": {
+    "message": "All windows"
+  },
+  "scopeThisWindow": {
+    "message": "This window"
+  },
+  "scopeThisTab": {
+    "message": "This tab"
+  },
+  "scopeSelection": {
+    "message": "The selected tabs"
+  },
+  "scopeSelectionShort": {
+    "message": "Selection"
+  },
+  "formatLabel": {
+    "message": "Format"
+  },
+  "formatPack": {
+    "message": "TabsPack file"
+  },
+  "formatPackRoundTrip": {
+    "message": "TabsPack file, round trips"
+  },
+  "formatUrls": {
+    "message": "URL list, one way"
+  },
+  "formatFlat": {
+    "message": "Flat JSON, one way"
+  },
+  "formatNotePack": {
+    "message": "Windows, order, pinned tabs and groups are preserved."
+  },
+  "formatNoteUrls": {
+    "message": "URLs only. This format cannot be restored faithfully."
+  },
+  "formatNoteFlat": {
+    "message": "Titles and URLs only. This format cannot be restored faithfully."
+  },
+  "taskExport": {
+    "message": "Export"
+  },
+  "taskImport": {
+    "message": "Import"
+  },
+  "taskSnapshots": {
+    "message": "Snapshots"
+  },
+  "tasksLabel": {
+    "message": "What to do"
+  },
+  "exportButton": {
+    "message": "Export"
+  },
+  "exportButtonCount": {
+    "message": "Export $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyButton": {
+    "message": "Copy"
+  },
+  "includeLabel": {
+    "message": "Include"
+  },
+  "includeTitles": {
+    "message": "Titles in text export"
+  },
+  "includeFavicons": {
+    "message": "Favicon URLs"
+  },
+  "includePrivate": {
+    "message": "Private windows"
+  },
+  "privateWindowsHint": {
+    "message": "Allow TabsPack in private windows in your browser settings first."
+  },
+  "filtersLabel": {
+    "message": "Filters"
+  },
+  "filterDedupe": {
+    "message": "Remove duplicates"
+  },
+  "filterWebOnly": {
+    "message": "Web pages only"
+  },
+  "filterSkipPinned": {
+    "message": "Skip pinned"
+  },
+  "orderLabel": {
+    "message": "Order"
+  },
+  "orderNatural": {
+    "message": "As they are"
+  },
+  "orderTitle": {
+    "message": "By title"
+  },
+  "orderUrl": {
+    "message": "By address"
+  },
+  "orderDomain": {
+    "message": "By site"
+  },
+  "orderReverse": {
+    "message": "Reverse"
+  },
+  "excludeLabel": {
+    "message": "Exclude"
+  },
+  "excludeHint": {
+    "message": "One pattern per line, * matches anything. Lines starting with # are ignored."
+  },
+  "nothingInScope": {
+    "message": "There is nothing to export in this scope."
+  },
+  "filtersEmptiedScope": {
+    "message": "Every tab in this scope was removed by a filter."
+  },
+  "outputLegend": {
+    "message": "Output"
+  },
+  "outputEmpty": {
+    "message": "Nothing exported yet."
+  },
+  "outputAria": {
+    "message": "Exported file contents"
+  },
+  "outputTruncated": {
+    "message": "Preview truncated. The saved file is complete."
+  },
+  "reportSaved": {
+    "message": "Saved $tabs$ from $windows$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "reportCopied": {
+    "message": "Copied $tabs$ from $windows$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "groupsKept": {
+    "message": "$groups$ kept",
+    "placeholders": {
+      "groups": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_duplicate_one": {
+    "message": "$count$ duplicate skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_duplicate_other": {
+    "message": "$count$ duplicates skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_pinned_one": {
+    "message": "$count$ pinned tab skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_pinned_other": {
+    "message": "$count$ pinned tabs skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_scheme_one": {
+    "message": "$count$ tab that is not a web page skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_scheme_other": {
+    "message": "$count$ tabs that are not web pages skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_excluded_one": {
+    "message": "$count$ excluded tab skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_excluded_other": {
+    "message": "$count$ excluded tabs skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dropLead": {
+    "message": "Drop a pack here"
+  },
+  "chooseFile": {
+    "message": "Choose a file"
+  },
+  "dropHint": {
+    "message": "A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so."
+  },
+  "noFileYet": {
+    "message": "No file chosen yet."
+  },
+  "readingFile": {
+    "message": "Reading $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "fileUnreadable": {
+    "message": "That file could not be read."
+  },
+  "fileUnrecognised": {
+    "message": "TabsPack does not recognise what is in this file."
+  },
+  "packNotImportable": {
+    "message": "This pack cannot be imported."
+  },
+  "unit_thingsToKnow_one": {
+    "message": "$count$ thing to know about this file",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_thingsToKnow_other": {
+    "message": "$count$ things to know about this file",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "fidelityComplete": {
+    "message": "$label$. Everything in it can be restored.",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      }
+    }
+  },
+  "fidelityPartial": {
+    "message": "$label$. Carried: $carried$. Not carried by this format: $missing$.",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "carried": {
+        "content": "$2"
+      },
+      "missing": {
+        "content": "$3"
+      }
+    }
+  },
+  "previewLegend": {
+    "message": "Preview"
+  },
+  "searchLabel": {
+    "message": "Search titles and addresses"
+  },
+  "selectAll": {
+    "message": "Select all"
+  },
+  "selectNone": {
+    "message": "Select none"
+  },
+  "treeLabel": {
+    "message": "Windows, groups and tabs in this pack"
+  },
+  "selectedOf": {
+    "message": "$selected$ of $total$ selected",
+    "placeholders": {
+      "selected": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "shownCount": {
+    "message": "$count$ shown",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "willBeSkipped": {
+    "message": "$count$ will be skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "cannotBeOpenedFlag": {
+    "message": "cannot be opened"
+  },
+  "unit_groupsPermission_one": {
+    "message": "This pack has $count$ tab group. Restoring it as a group needs one permission, which you can allow now or refuse and still restore the tabs.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_groupsPermission_other": {
+    "message": "This pack has $count$ tab groups. Restoring them as groups needs one permission, which you can allow now or refuse and still restore the tabs.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "allowGroups": {
+    "message": "Allow tab groups"
+  },
+  "groupsPermissionRefused": {
+    "message": "Tab groups were not allowed, so the tabs in this pack will be restored side by side in the right order."
+  },
+  "restoreLabel": {
+    "message": "Restore"
+  },
+  "restoreIntoLabel": {
+    "message": "Restore into"
+  },
+  "restoreIntoNew": {
+    "message": "New windows, one per window in the pack"
+  },
+  "restoreIntoThis": {
+    "message": "This window"
+  },
+  "restoreIntoCurrent": {
+    "message": "The current window"
+  },
+  "policyLabel": {
+    "message": "Policy"
+  },
+  "policySkipOpenShort": {
+    "message": "Skip tabs already open"
+  },
+  "policySkipOpen": {
+    "message": "Skip tabs that are already open"
+  },
+  "policyPlaceholder": {
+    "message": "List addresses that cannot be opened on their own page"
+  },
+  "unloadAfter": {
+    "message": "Leave unloaded after"
+  },
+  "restoreButton": {
+    "message": "Restore"
+  },
+  "restoreButtonCount": {
+    "message": "Restore $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "restoreHint": {
+    "message": "Nothing opens until you press this."
+  },
+  "restoringProgress": {
+    "message": "Restoring $done$ of $total$ tabs",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "restoreHeadline": {
+    "message": "Restored $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "restoreNothingHeadline": {
+    "message": "No tabs were restored."
+  },
+  "restoreFailedHeadline": {
+    "message": "Nothing was restored."
+  },
+  "restoreNothingDetail": {
+    "message": "Every tab in this pack was already open, or was excluded by the selection."
+  },
+  "unit_restore_windows_one": {
+    "message": "$count$ window",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_windows_other": {
+    "message": "$count$ windows",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_groups_one": {
+    "message": "$count$ group",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_groups_other": {
+    "message": "$count$ groups",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_duplicates_one": {
+    "message": "$count$ already open",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_duplicates_other": {
+    "message": "$count$ already open",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_unopenable_one": {
+    "message": "$count$ cannot be opened",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_unopenable_other": {
+    "message": "$count$ cannot be opened",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_ungrouped_one": {
+    "message": "$count$ restored ungrouped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_ungrouped_other": {
+    "message": "$count$ restored ungrouped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_unloaded_one": {
+    "message": "$count$ left unloaded",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restore_unloaded_other": {
+    "message": "$count$ left unloaded",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restoreNotes_one": {
+    "message": "$count$ note about this restore",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_restoreNotes_other": {
+    "message": "$count$ notes about this restore",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unopenableListFix": {
+    "message": "These addresses are still in the file. A browser will not let any extension open them."
+  },
+  "snapshotsLead": {
+    "message": "A snapshot is this session kept inside TabsPack, so you do not have to decide where a file goes. It stays on this machine, and nothing here opens a tab on its own."
+  },
+  "snapshotNameLabel": {
+    "message": "Name for this snapshot"
+  },
+  "snapshotNamePlaceholder": {
+    "message": "Name it, or leave this to be named by date"
+  },
+  "saveSnapshot": {
+    "message": "Save this session"
+  },
+  "addFileAsSnapshot": {
+    "message": "Add a file as a snapshot"
+  },
+  "addFileHint": {
+    "message": "The file is saved here for later. Nothing is opened."
+  },
+  "snapshotsEmpty": {
+    "message": "No snapshots yet."
+  },
+  "nothingOpenToSave": {
+    "message": "There is nothing open to save."
+  },
+  "snapshotSaved": {
+    "message": "Saved \"$name$\", $tabs$ from $windows$.",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "windows": {
+        "content": "$3"
+      }
+    }
+  },
+  "snapshotAdded": {
+    "message": "Saved \"$name$\" from $file$, $tabs$. Nothing was opened.",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "file": {
+        "content": "$2"
+      },
+      "tabs": {
+        "content": "$3"
+      }
+    }
+  },
+  "snapshotDeleted": {
+    "message": "Deleted \"$name$\".",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "snapshotUnreadable": {
+    "message": "That snapshot could not be read."
+  },
+  "snapshotNameAria": {
+    "message": "Name of the snapshot taken on $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "snapshotTagsPlaceholder": {
+    "message": "Tags, separated by commas"
+  },
+  "snapshotTagsAria": {
+    "message": "Tags for $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "previewButton": {
+    "message": "Preview"
+  },
+  "exportSnapshotButton": {
+    "message": "Export"
+  },
+  "deleteButton": {
+    "message": "Delete"
+  },
+  "deleteConfirm": {
+    "message": "Delete for good?"
+  },
+  "storageUsed": {
+    "message": "$used$ of about $cap$ used",
+    "placeholders": {
+      "used": {
+        "content": "$1"
+      },
+      "cap": {
+        "content": "$2"
+      }
+    }
+  },
+  "storageNearlyFull": {
+    "message": "Snapshot storage is nearly full. TabsPack never deletes a snapshot on its own: export the ones you want to keep, then delete them here."
+  },
+  "placeholderHeadline": {
+    "message": "Addresses that could not be reopened"
+  },
+  "placeholderReading": {
+    "message": "Reading the list"
+  },
+  "unit_placeholderLead_one": {
+    "message": "$count$ tab in the pack you restored uses an address no extension is allowed to open. It is still in your file.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_placeholderLead_other": {
+    "message": "$count$ tabs in the pack you restored use addresses no extension is allowed to open. They are still in your file.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "placeholderExpired": {
+    "message": "There is nothing to show here. This page lists the addresses a restore could not reopen, and that list has expired."
+  },
+  "placeholderWhy": {
+    "message": "These addresses are still in your pack file. They are shown as plain text, not as links, because a browser will not let an extension open them and some of them should never be opened by a click."
+  },
+  "copyAll": {
+    "message": "Copy all"
+  },
+  "untitledTab": {
+    "message": "Untitled tab"
+  },
+  "unit_copiedAddresses_one": {
+    "message": "Copied $count$ address.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_copiedAddresses_other": {
+    "message": "Copied $count$ addresses.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "clipboardRefused": {
+    "message": "The clipboard was refused. Select the addresses and copy them."
+  },
+  "optionsDefaults": {
+    "message": "Defaults"
+  },
+  "optionsExportLabel": {
+    "message": "Export"
+  },
+  "optionsFormatPack": {
+    "message": "as a TabsPack file"
+  },
+  "optionsFormatUrls": {
+    "message": "as a URL list, one way"
+  },
+  "optionsFormatFlat": {
+    "message": "as flat JSON, one way"
+  },
+  "optionsLeaveOut": {
+    "message": "Leave out"
+  },
+  "optionsDedupe": {
+    "message": "Duplicate addresses"
+  },
+  "optionsWebOnly": {
+    "message": "Anything that is not a web page"
+  },
+  "optionsSkipPinned": {
+    "message": "Pinned tabs"
+  },
+  "optionsUnloadAfter": {
+    "message": "Unload after"
+  },
+  "optionsUnloadHint": {
+    "message": "Tabs beyond this many are restored without loading, so a large pack does not slow the browser down."
+  },
+  "optionsBatchLabel": {
+    "message": "Create in batches of"
+  },
+  "optionsBatchPausing": {
+    "message": "tabs, pausing"
+  },
+  "optionsBatchHint": {
+    "message": "Smaller batches and a longer pause keep the browser more responsive on an older machine."
+  },
+  "optionsAppearance": {
+    "message": "Appearance"
+  },
+  "themeLabel": {
+    "message": "Theme"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "shortcutsLabel": {
+    "message": "Shortcuts"
+  },
+  "shortcutsHint": {
+    "message": "Change these on your browser's own extension shortcuts page."
+  },
+  "shortcutsNone": {
+    "message": "This browser does not report keyboard shortcuts."
+  },
+  "shortcutUnset": {
+    "message": "not set"
+  },
+  "optionsAbout": {
+    "message": "About"
+  },
+  "optionsVersion": {
+    "message": "TabsPack $version$.",
+    "placeholders": {
+      "version": {
+        "content": "$1"
+      }
+    }
+  },
+  "optionsPrivacy": {
+    "message": "No account, no sync, no telemetry, and no network request of any kind. Everything stays in this browser profile until you export a file yourself."
+  },
+  "optionsReset": {
+    "message": "Reset every setting"
+  },
+  "optionsResetDone": {
+    "message": "Every setting is back to its default."
+  },
+  "optionsSaved": {
+    "message": "Saved"
+  }
+}

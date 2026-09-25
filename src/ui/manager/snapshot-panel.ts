@@ -32,6 +32,8 @@ import {
 import type { Settings } from "../../core/settings.js";
 import { countSession } from "../../types/session.js";
 import { clear, el, must } from "../shared/dom.js";
+import { plural as pluralUnit, t } from "../shared/i18n.js";
+import { tabs as tabsPhrase, windows as windowsPhrase, groups as groupsPhrase } from "../shared/wording.js";
 import { clearReport, renderError, renderNote, renderSuccess } from "../shared/report-view.js";
 
 export interface SnapshotPanelHooks {
@@ -83,7 +85,7 @@ export function initSnapshotPanel(
       });
       const counts = countSession(session);
       if (counts.tabs === 0) {
-        renderNote(ui.report, "There is nothing open to save.");
+        renderNote(ui.report, t("nothingOpenToSave"));
         return;
       }
       const now = new Date();
@@ -93,10 +95,7 @@ export function initSnapshotPanel(
         now,
       });
       ui.name.value = "";
-      renderSuccess(
-        ui.report,
-        `Saved "${meta.name}", ${plural(counts.tabs, "tab")} from ${plural(counts.windows, "window")}.`,
-      );
+      renderSuccess(ui.report, t("snapshotSaved", meta.name, tabsPhrase(counts.tabs), windowsPhrase(counts.windows)));
       await refresh();
     } catch (cause) {
       renderError(ui.report, cause instanceof Error ? cause.message : String(cause));
@@ -111,14 +110,14 @@ export function initSnapshotPanel(
     try {
       const result = loadPack(await file.text());
       if (!result.ok || !result.session) {
-        renderError(ui.report, errors(result.issues)[0]?.message ?? "That file could not be read.");
+        renderError(ui.report, errors(result.issues)[0]?.message ?? t("fileUnreadable"));
         return;
       }
       const counts = countSession(result.session);
       const { meta } = await saveSnapshot(adapter, result.session, {
         name: result.session.name ?? file.name.replace(/\.(tabspack\.)?json$/i, ""),
       });
-      renderSuccess(ui.report, `Saved "${meta.name}" from ${file.name}, ${plural(counts.tabs, "tab")}. Nothing was opened.`);
+      renderSuccess(ui.report, t("snapshotAdded", meta.name, file.name, tabsPhrase(counts.tabs)));
       await refresh();
     } catch (cause) {
       renderError(ui.report, cause instanceof Error ? cause.message : String(cause));
@@ -136,16 +135,12 @@ export function initSnapshotPanel(
   }
 
   function paintUsage(room: Usage): void {
-    ui.usage.textContent = `${formatBytes(room.bytes)} of about ${formatBytes(room.cap)} used`;
+    ui.usage.textContent = t("storageUsed", formatBytes(room.bytes), formatBytes(room.cap));
     ui.warning.hidden = !room.warn;
     if (room.warn) {
       clear(ui.warning);
       ui.warning.appendChild(
-        el("p", {
-          class: "notice-text",
-          text:
-            "Snapshot storage is nearly full. TabsPack never deletes a snapshot on its own: export the ones you want to keep, then delete them here.",
-        }),
+        el("p", { class: "notice-text", text: t("storageNearlyFull") }),
       );
     }
   }
@@ -155,7 +150,7 @@ export function initSnapshotPanel(
 
     const name = el("input", { class: "snapshot-name" }) as HTMLInputElement;
     name.value = meta.name;
-    name.setAttribute("aria-label", `Name of the snapshot taken on ${readableDate(meta.createdAt)}`);
+    name.setAttribute("aria-label", t("snapshotNameAria", readableDate(meta.createdAt)));
     name.addEventListener("change", () => {
       void renameSnapshot(adapter, meta.id, name.value.trim() || meta.name).then(() => refresh());
     });
@@ -165,9 +160,9 @@ export function initSnapshotPanel(
       el("p", {
         class: "snapshot-meta",
         text: [
-          `${plural(meta.counts.windows, "window")}`,
-          `${plural(meta.counts.tabs, "tab")}`,
-          ...(meta.counts.groups > 0 ? [plural(meta.counts.groups, "group")] : []),
+          windowsPhrase(meta.counts.windows),
+          tabsPhrase(meta.counts.tabs),
+          ...(meta.counts.groups > 0 ? [groupsPhrase(meta.counts.groups)] : []),
           formatBytes(meta.bytes),
           readableDate(meta.createdAt),
         ].join(" · "),
@@ -176,8 +171,8 @@ export function initSnapshotPanel(
 
     const tags = el("input", { class: "snapshot-tags" }) as HTMLInputElement;
     tags.value = meta.tags.join(", ");
-    tags.placeholder = "Tags, separated by commas";
-    tags.setAttribute("aria-label", `Tags for ${meta.name}`);
+    tags.placeholder = t("snapshotTagsPlaceholder");
+    tags.setAttribute("aria-label", t("snapshotTagsAria", meta.name));
     tags.addEventListener("change", () => {
       void tagSnapshot(adapter, meta.id, tags.value.split(",")).then(() => refresh());
     });
@@ -185,15 +180,15 @@ export function initSnapshotPanel(
 
     const actions = el("div", { class: "snapshot-actions" });
     actions.appendChild(
-      button("Preview", async () => {
+      button(t("previewButton"), async () => {
         await hooks.preview(meta);
       }),
     );
     actions.appendChild(
-      button("Export", async () => {
+      button(t("exportSnapshotButton"), async () => {
         const text = (await readSnapshotText(adapter, meta.id)) ?? fallbackText(await readSnapshotSession(adapter, meta.id));
         if (text === null) {
-          renderError(ui.report, "That snapshot could not be read.");
+          renderError(ui.report, t("snapshotUnreadable"));
           return;
         }
         await hooks.save(text, `${fileNameOf(meta)}.tabspack.json`);
@@ -206,25 +201,25 @@ export function initSnapshotPanel(
 
   /** Two presses to delete, and the button says so in between. No modal dialog. */
   function deleteButton(meta: SnapshotMeta): HTMLButtonElement {
-    const node = el("button", { class: "btn btn-secondary danger", text: "Delete" }) as HTMLButtonElement;
+    const node = el("button", { class: "btn btn-secondary danger", text: t("deleteButton") }) as HTMLButtonElement;
     node.type = "button";
     let armed = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     node.addEventListener("click", () => {
       if (!armed) {
         armed = true;
-        node.textContent = "Delete for good?";
+        node.textContent = t("deleteConfirm");
         node.dataset.armed = "true";
         timer = setTimeout(() => {
           armed = false;
-          node.textContent = "Delete";
+          node.textContent = t("deleteButton");
           delete node.dataset.armed;
         }, CONFIRM_MS);
         return;
       }
       if (timer) clearTimeout(timer);
       void deleteSnapshot(adapter, meta.id).then(() => {
-        renderNote(ui.report, `Deleted "${meta.name}".`);
+        renderNote(ui.report, t("snapshotDeleted", meta.name));
         return refresh();
       });
     });
@@ -274,6 +269,4 @@ function readableDate(iso: string): string {
   });
 }
 
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
+

@@ -22,6 +22,9 @@ import {
 import { countSession } from "../../types/session.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
+import { applyI18n, t } from "../shared/i18n.js";
+import { applyTheme } from "../shared/theme.js";
+import { countsLine, tabs as tabsPhrase } from "../shared/wording.js";
 import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
 import { initSnapshotPanel } from "./snapshot-panel.js";
@@ -57,18 +60,22 @@ const ui = {
 };
 
 const FORMAT_NOTES: Record<ExportFormat, string> = {
-  tabspack: "Windows, order, pinned tabs and groups are preserved.",
-  urls: "URLs only. This format cannot be restored faithfully.",
-  flatjson: "Titles and URLs only. This format cannot be restored faithfully.",
+  tabspack: "formatNotePack",
+  urls: "formatNoteUrls",
+  flatjson: "formatNoteFlat",
 };
 
 let settings: Settings;
 let available = 0;
+/** Repaints the scope control when a setting changes somewhere else. */
+let scope: (value: string) => void = () => undefined;
 
 void start();
 
 async function start(): Promise<void> {
+  applyI18n();
   settings = await loadSettings(adapter);
+  applyTheme(settings.theme);
   paintSettings();
   await gateIncognito();
 
@@ -103,16 +110,17 @@ async function start(): Promise<void> {
     },
   });
 
+  watchSettings();
   await runHashAction(tabs.select);
 
-  initSegmented(ui.scope, settings.scope, (value) => {
+  scope = initSegmented(ui.scope, settings.scope, (value) => {
     settings.scope = value as Scope;
     void persist({ scope: settings.scope });
   });
 
   ui.format.addEventListener("change", () => {
     settings.format = ui.format.value as ExportFormat;
-    ui.formatNote.textContent = FORMAT_NOTES[settings.format];
+    ui.formatNote.textContent = t(FORMAT_NOTES[settings.format]);
     void persist({ format: settings.format });
   });
 
@@ -161,9 +169,40 @@ async function runHashAction(select: (id: string) => void): Promise<void> {
   await run("save");
 }
 
+/**
+ * The options page, another manager tab or a keyboard command can all change a
+ * setting while this page is open. Rather than have two versions of the truth,
+ * the page re reads them when storage says they changed, and repaints only when
+ * something actually differs: otherwise the page's own writes would bounce back
+ * and recollect every tab for nothing.
+ */
+function watchSettings(): void {
+  adapter.onStorageChanged((keys) => {
+    if (!keys.includes("settings")) return;
+    void (async () => {
+      const latest = await loadSettings(adapter);
+      if (JSON.stringify(latest) === JSON.stringify(settings)) return;
+      const rescan =
+        latest.scope !== settings.scope ||
+        latest.dedupe !== settings.dedupe ||
+        latest.webPagesOnly !== settings.webPagesOnly ||
+        latest.skipPinned !== settings.skipPinned ||
+        latest.excludeList !== settings.excludeList ||
+        latest.sort !== settings.sort ||
+        latest.sortDesc !== settings.sortDesc ||
+        latest.includeIncognito !== settings.includeIncognito;
+      settings = latest;
+      applyTheme(settings.theme);
+      paintSettings();
+      scope(settings.scope);
+      if (rescan) await refresh();
+    })();
+  });
+}
+
 function paintSettings(): void {
   ui.format.value = settings.format;
-  ui.formatNote.textContent = FORMAT_NOTES[settings.format];
+  ui.formatNote.textContent = t(FORMAT_NOTES[settings.format]);
   ui.titles.checked = settings.textIncludeTitles;
   ui.favicons.checked = settings.keepFavicons;
   ui.incognito.checked = settings.includeIncognito;
@@ -188,7 +227,7 @@ async function gateIncognito(): Promise<void> {
   ui.incognito.checked = false;
   ui.incognito.disabled = true;
   ui.incognitoLabel.dataset.disabled = "true";
-  ui.incognitoHint.textContent = "Allow TabsPack in private windows in your browser settings first.";
+  ui.incognitoHint.textContent = t("privateWindowsHint");
   if (settings.includeIncognito) {
     settings.includeIncognito = false;
     await saveSettings(adapter, { includeIncognito: false });
@@ -213,21 +252,17 @@ async function refresh(): Promise<void> {
     const { session, removed } = await collectFiltered(adapter, settings);
     const counts = countSession(session);
     available = counts.tabs;
-    ui.summary.textContent = summarise(counts.windows, counts.tabs, counts.groups);
-    ui.exportButton.textContent = counts.tabs === 0 ? "Export" : `Export ${plural(counts.tabs, "tab")}`;
+    ui.summary.textContent = countsLine(counts);
+    ui.exportButton.textContent =
+      counts.tabs === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(counts.tabs));
     setEnabled(counts.tabs > 0);
     if (counts.tabs === 0) {
-      renderNote(
-        ui.report,
-        totalRemoved(removed) > 0
-          ? "Every tab in this scope was removed by a filter."
-          : "There is nothing to export in this scope.",
-      );
+      renderNote(ui.report, t(totalRemoved(removed) > 0 ? "filtersEmptiedScope" : "nothingInScope"));
     }
   } catch (error) {
     available = 0;
     setEnabled(false);
-    ui.summary.textContent = "Tabs unavailable";
+    ui.summary.textContent = t("tabsUnavailable");
     renderError(ui.report, describe(error));
   }
 }
@@ -237,7 +272,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
   const button = mode === "save" ? ui.exportButton : ui.copyButton;
   const label = button.textContent ?? "";
   setEnabled(false);
-  button.textContent = "Working";
+  button.textContent = t("working");
   button.setAttribute("aria-busy", "true");
   clearReport(ui.report);
 
@@ -276,24 +311,14 @@ function showOutput(payload: ExportPayload): void {
   const counts = countSession(payload.session);
   const truncated = payload.text.length > PREVIEW_LIMIT;
   ui.output.value = truncated
-    ? `${payload.text.slice(0, PREVIEW_LIMIT)}\n\nPreview truncated. The saved file is complete.`
+    ? `${payload.text.slice(0, PREVIEW_LIMIT)}\n\n${t("outputTruncated")}`
     : payload.text;
-  ui.outputMeta.textContent = `${plural(counts.tabs, "tab")} · ${formatBytes(payload.bytes)} · ${payload.filename}`;
+  ui.outputMeta.textContent = `${tabsPhrase(counts.tabs)} · ${formatBytes(payload.bytes)} · ${payload.filename}`;
 }
 
 function setEnabled(enabled: boolean): void {
   ui.exportButton.disabled = !enabled;
   ui.copyButton.disabled = !enabled;
-}
-
-function summarise(windows: number, tabs: number, groups: number): string {
-  const parts = [plural(windows, "window"), plural(tabs, "tab")];
-  if (groups > 0) parts.push(plural(groups, "group"));
-  return parts.join(" · ");
-}
-
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function describe(error: unknown): string {

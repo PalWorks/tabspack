@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>TabsPack</title>
+    <title data-i18n="extName">TabsPack</title>
     <link rel="stylesheet" href="shared/theme.css" />
     <link rel="stylesheet" href="shared/base.css" />
     <link rel="stylesheet" href="popup/popup.css" />
@@ -15,9 +15,9 @@
             d="M4 4h16a1 1 0 0 1 1 1v3H3V5a1 1 0 0 1 1-1zm-1 6h12v3H3v-3zm0 5h9v3H3v-3zm14.5 6L21 17h-2.5v-4h-2v4H14l3.5 4z"
           />
         </svg>
-        TabsPack
+        <span data-i18n="extName">TabsPack</span>
       </span>
-      <button id="open-manager" class="icon-btn" type="button" aria-label="Open the TabsPack manager">
+      <button id="open-manager" class="icon-btn" type="button" data-i18n-attr="aria-label:openManager">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path
             d="M14 3v2h3.59l-9.3 9.29 1.42 1.42L19 6.41V10h2V3h-7zM19 19H5V5h5V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-2v5z"
@@ -27,30 +27,30 @@
     </header>
 
     <main>
-      <p id="summary" class="summary">Reading tabs</p>
+      <p id="summary" class="summary" data-i18n="readingTabs">Reading tabs</p>
 
-      <div id="scope" class="segmented" role="radiogroup" aria-label="What to export">
-        <button type="button" role="radio" data-value="all_windows" aria-checked="true">All windows</button>
-        <button type="button" role="radio" data-value="current_window" aria-checked="false">This window</button>
-        <button type="button" role="radio" data-value="selection" aria-checked="false">Selection</button>
+      <div id="scope" class="segmented" role="radiogroup" data-i18n-attr="aria-label:scopeGroupLabel">
+        <button type="button" role="radio" data-value="all_windows" aria-checked="true" data-i18n="scopeAllWindows">All windows</button>
+        <button type="button" role="radio" data-value="current_window" aria-checked="false" data-i18n="scopeThisWindow">This window</button>
+        <button type="button" role="radio" data-value="selection" aria-checked="false" data-i18n="scopeSelectionShort">Selection</button>
       </div>
 
-      <button id="export" class="btn btn-primary" type="button" disabled>Export</button>
+      <button id="export" class="btn btn-primary" type="button" disabled data-i18n="exportButton">Export</button>
 
       <div class="row format-row">
-        <label class="field-label" for="format">Format</label>
+        <label class="field-label" for="format" data-i18n="formatLabel">Format</label>
         <select id="format">
-          <option value="tabspack">TabsPack file</option>
-          <option value="urls">URL list, one way</option>
-          <option value="flatjson">Flat JSON, one way</option>
+          <option value="tabspack" data-i18n="formatPack">TabsPack file</option>
+          <option value="urls" data-i18n="formatUrls">URL list, one way</option>
+          <option value="flatjson" data-i18n="formatFlat">Flat JSON, one way</option>
         </select>
-        <button id="copy" class="btn btn-secondary" type="button" disabled>Copy</button>
+        <button id="copy" class="btn btn-secondary" type="button" disabled data-i18n="copyButton">Copy</button>
       </div>
 
       <div id="report" class="report" role="status" aria-live="polite"></div>
     </main>
 
-    <footer class="trust">Nothing leaves your device.</footer>
+    <footer class="trust" data-i18n="trustLine">Nothing leaves your device.</footer>
     <script src="popup/popup.js" defer></script>
   </body>
 </html>

@@ -38,10 +38,21 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - **Keyboard commands (T-404).** Export all windows, export this window, save a snapshot. The export commands write the file from the background: a blob URL where the engine has one, a data URL where it does not, and the manager page for a pack too large for either
 - Decision record ADR-021, superseding ADR-015: no offscreen document, because a Chromium service worker's downloads API accepts a data URL. That removed a whole execution context, a permission and about 35 KB from each package
 
+- **M5 Ship (T-501 to T-506, T-508, T-510).** An options page that writes every setting as it changes, including the restore policy and a light, dark or system theme. Translation: 199 strings in `_locales/en`, three lint rules holding the promise, and the interface reading every one of them from there. A generated icon set and store tiles from one SVG. Issue and pull request templates that make an unfixable bug report hard to file. Store listings and the permission justifications, written from PLAN Table P8
+- `npm run a11y` computes the contrast of 38 token pairs from the tokens themselves and fails the build on a regression. `npm run lint:amo` runs AMO's own linter over the Firefox package. `npm run perf:browser` measures NFR-001, NFR-004 and NFR-005 against the built package. `npm run smoke:firefox` installs that package in a real Firefox
+- Decision record ADR-022: the interface is translated, and the core's validation messages are its English fallback, with the boundary visible in `src/ui/shared/wording.ts`
+
 ### Fixed
 
 - A file input fired no event when the same file was chosen twice, so fixing a file and picking it again did nothing
+- `--border-strong`, the colour that marks the edge of a text field, was 1.58 to 1 against the page in light and 1.99 to 1 in dark, well under the 3 to 1 that WCAG 1.4.11 requires of a control's own boundary. Found by the contrast check on its first run, and fixed in both themes
 - Four defects a real browser found and no unit test could: `tabs.create` rejects the `title` property on Chromium, a `display: flex` rule defeated the `hidden` attribute, `tabs.group` needs no permission although its titles and colours do, and the preview silently deselected the tabs it was supposed to report
+
+### Measured
+
+- NFR-001, on the built package in a real Chromium with 200 tabs open: the popup is interactive in 38 ms, median of ten runs, against a 150 ms budget
+- NFR-004, restoring 200 tabs into four windows: no single block of the interface at all, against a 200 ms budget, over a 3.5 second restore
+- NFR-005: a 5000 tab pack previews in 70 ms once the page is open, about a second from a cold page load, with roughly thirty rows in the document
 
 ### Notes
 

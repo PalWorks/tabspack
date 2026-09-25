@@ -1,0 +1,34 @@
+name: A file TabsPack could not read
+description: An export from another tool that TabsPack does not recognise
+labels: ["import", "adapter"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every format TabsPack reads started as somebody's file. A real export is
+        worth more than a description of one, because an adapter written against
+        an imagined shape fails on contact with a real one.
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool wrote the file
+      placeholder: Session Buddy 3.6.4, Tab Session Manager 8.4.0, an export from something else
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: What TabsPack said
+      description: The exact message, including the path and the suggested fix if there was one.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: The file, with anything private removed
+      description: |
+        The structure is what matters. Replace real addresses with example.com
+        paths, keep the keys, the nesting and the counts.
+      render: json
+    validations:
+      required: true

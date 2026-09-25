@@ -6,7 +6,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { flatten, shortUrl } from "../../src/ui/manager/preview-tree.js";
+import { flatten, shortUrl, type TreeStrings } from "../../src/ui/manager/preview-tree.js";
 import type { Session, SessionTab } from "../../src/types/session.js";
 
 function tabOf(index: number, url: string, groupKey?: string): SessionTab {
@@ -24,6 +24,15 @@ function tabOf(index: number, url: string, groupKey?: string): SessionTab {
     ...(groupKey ? { groupKey } : {}),
   };
 }
+
+/** Plain English, standing in for `_locales`. */
+const STRINGS: TreeStrings = {
+  tabs: (count) => `${count} ${count === 1 ? "tab" : "tabs"}`,
+  groups: (count) => `${count} ${count === 1 ? "group" : "groups"}`,
+  pinned: (count) => `${count} pinned`,
+  window: (ordinal) => `Window ${ordinal}`,
+  unnamedGroup: "Unnamed group",
+};
 
 function sessionOf(): Session {
   return {
@@ -52,7 +61,7 @@ function sessionOf(): Session {
 }
 
 test("a window, its groups and its tabs become one flat list", () => {
-  const rows = flatten(sessionOf(), new Map());
+  const rows = flatten(sessionOf(), new Map(), STRINGS);
   assert.deepEqual(
     rows.map((row) => `${row.kind}:${row.id}`),
     [
@@ -69,7 +78,7 @@ test("a window, its groups and its tabs become one flat list", () => {
 });
 
 test("a group's tabs are shown together even when the file interleaved them", () => {
-  const rows = flatten(sessionOf(), new Map());
+  const rows = flatten(sessionOf(), new Map(), STRINGS);
   const group = rows.find((row) => row.id === "w1/g1");
   assert.deepEqual(group?.tabIds, ["w1:1", "w1:3"]);
   assert.equal(group?.detail, "2 tabs");
@@ -77,13 +86,13 @@ test("a group's tabs are shown together even when the file interleaved them", ()
 });
 
 test("a window row owns every tab under it, so selecting it selects the pack", () => {
-  const rows = flatten(sessionOf(), new Map());
+  const rows = flatten(sessionOf(), new Map(), STRINGS);
   assert.deepEqual(rows[0]?.tabIds, ["w1:0", "w1:1", "w1:2", "w1:3", "w1:4"]);
   assert.equal(rows[0]?.detail, "5 tabs · 2 groups");
 });
 
 test("a tab that cannot be opened carries its flag", () => {
-  const rows = flatten(sessionOf(), new Map([["w1:4", "cannot be opened"]]));
+  const rows = flatten(sessionOf(), new Map([["w1:4", "cannot be opened"]]), STRINGS);
   assert.equal(rows.find((row) => row.id === "w1:4")?.blocked, "cannot be opened");
   assert.equal(rows.find((row) => row.id === "w1:0")?.blocked, undefined);
 });

@@ -296,6 +296,44 @@ export const realAdapter: BrowserAdapter = {
     return browser.runtime.getURL(path);
   },
 
+  /**
+   * An empty string means the key is missing from `_locales/en/messages.json`,
+   * and the key itself is returned so a missing string is visible on screen
+   * rather than being an invisible gap.
+   */
+  getMessage(key: string, subs?: string[]): string {
+    const found = browser.i18n?.getMessage(key, subs) ?? "";
+    return found === "" ? key : found;
+  },
+
+  async listCommands(): Promise<{ name: string; shortcut: string; description: string }[]> {
+    if (typeof browser.commands?.getAll !== "function") return [];
+    try {
+      const commands = (await browser.commands.getAll()) as {
+        name?: string;
+        shortcut?: string;
+        description?: string;
+      }[];
+      return commands
+        .filter((command) => typeof command.name === "string" && !command.name.startsWith("_"))
+        .map((command) => ({
+          name: command.name as string,
+          shortcut: command.shortcut ?? "",
+          description: command.description ?? "",
+        }));
+    } catch {
+      return [];
+    }
+  },
+
+  async openOptions(): Promise<void> {
+    if (typeof browser.runtime.openOptionsPage === "function") {
+      await browser.runtime.openOptionsPage();
+      return;
+    }
+    await realAdapter.openExtensionPage("options.html");
+  },
+
   async openExtensionPage(path: string): Promise<void> {
     const url = browser.runtime.getURL(path);
     await browser.tabs.create({ url });

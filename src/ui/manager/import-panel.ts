@@ -15,14 +15,16 @@ import { loadPack, type SourceInfo } from "../../core/import.js";
 import { dedupeKey } from "../../core/filters.js";
 import type { Issue } from "../../core/issues.js";
 import { errors, warnings } from "../../core/issues.js";
-import { describeFidelity, describeRestore, formatBytes } from "../../core/report.js";
+import { describeRestore, formatBytes } from "../../core/report.js";
 import { restoreSession, type RestoreReport, type RestoreTarget } from "../../core/restore.js";
 import { saveSettings, type Settings } from "../../core/settings.js";
 import { judgeUrl, explainVerdict } from "../../core/urls.js";
 import { countSession, type Session } from "../../types/session.js";
-import { clear, el, must } from "../shared/dom.js";
+import { clear, must } from "../shared/dom.js";
+import { plural as pluralUnit, t } from "../shared/i18n.js";
+import { fidelityLine, tabs as tabsPhrase, windows as windowsPhrase, groups as groupsPhrase } from "../shared/wording.js";
 import { renderIssues, renderNote, renderRestoreReport, clearReport, renderError } from "../shared/report-view.js";
-import { PreviewTree, tabId } from "./preview-tree.js";
+import { PreviewTree, tabId, type TreeStrings } from "./preview-tree.js";
 
 interface Loaded {
   session: Session;
@@ -61,6 +63,14 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     allowGroups: must<HTMLButtonElement>("#allow-groups"),
     report: must<HTMLDivElement>("#restore-report"),
     restoreIssues: must<HTMLDivElement>("#restore-issues"),
+  };
+
+  const strings: TreeStrings = {
+    tabs: tabsPhrase,
+    groups: groupsPhrase,
+    pinned: (count) => t("pinnedCount", String(count)),
+    window: (ordinal) => t("windowOrdinal", String(ordinal)),
+    unnamedGroup: t("unnamedGroup"),
   };
 
   let loaded: Loaded | null = null;
@@ -138,8 +148,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
           ui.groupsPermission.hidden = true;
           return;
         }
-        ui.groupsPermissionText.textContent =
-          "Tab groups were not allowed, so the tabs in this pack will be restored side by side in the right order.";
+        ui.groupsPermissionText.textContent = t("groupsPermissionRefused");
       })
       .catch(() => {
         ui.groupsPermission.hidden = true;
@@ -164,14 +173,14 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     const counts = countSession(session);
     ui.fileMeta.textContent = [
       label,
-      plural(counts.windows, "window"),
-      plural(counts.tabs, "tab"),
-      ...(counts.groups > 0 ? [plural(counts.groups, "group")] : []),
+      windowsPhrase(counts.windows),
+      tabsPhrase(counts.tabs),
+      ...(counts.groups > 0 ? [groupsPhrase(counts.groups)] : []),
     ].join(" · ");
-    ui.fidelity.textContent = describeFidelity(source);
+    ui.fidelity.textContent = fidelityLine(source);
     ui.fidelity.dataset.fidelity = source.fidelity;
 
-    tree.load(session, { blocked: marks.blocked });
+    tree.load(session, { blocked: marks.blocked, strings });
     ui.preview.hidden = false;
     await gateGroupPermission(session);
     paintSelection();
@@ -195,7 +204,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       for (const tab of win.tabs) {
         const id = tabId(win, tab);
         const verdict = judgeUrl(tab.url, { fileAccess });
-        if (!verdict.openable) blocked.set(id, "cannot be opened");
+        if (!verdict.openable) blocked.set(id, t("cannotBeOpenedFlag"));
         else if (openKeys.has(dedupeKey(tab.url))) duplicates.add(id);
       }
     }
@@ -209,7 +218,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     clear(ui.restoreIssues);
     ui.preview.hidden = true;
     ui.search.value = "";
-    ui.fileMeta.textContent = `Reading ${file.name}`;
+    ui.fileMeta.textContent = t("readingFile", file.name);
     ui.fidelity.textContent = "";
     delete ui.fidelity.dataset.fidelity;
 
@@ -219,7 +228,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     } catch (cause) {
       if (token !== intake) return;
       ui.fileMeta.textContent = file.name;
-      renderError(ui.issues, cause instanceof Error ? cause.message : "That file could not be read.");
+      renderError(ui.issues, cause instanceof Error ? cause.message : t("fileUnreadable"));
       return;
     }
 
@@ -229,10 +238,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     if (!result.ok || !result.session) {
       ui.fileMeta.textContent = `${file.name} · ${formatBytes(bytes)}`;
       renderIssues(ui.issues, result.issues, {
-        headline:
-          result.source === null
-            ? "TabsPack does not recognise what is in this file."
-            : "This pack cannot be imported.",
+        headline: t(result.source === null ? "fileUnrecognised" : "packNotImportable"),
       });
       return;
     }
@@ -256,7 +262,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       for (const tab of win.tabs) {
         const id = tabId(win, tab);
         const verdict = judgeUrl(tab.url, { fileAccess });
-        if (!verdict.openable) blocked.set(id, "cannot be opened");
+        if (!verdict.openable) blocked.set(id, t("cannotBeOpenedFlag"));
         else if (openKeys.has(dedupeKey(tab.url))) duplicates.add(id);
       }
     }
@@ -273,23 +279,23 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     const counts = countSession(result.session);
     ui.fileMeta.textContent = [
       file.name,
-      `${plural(counts.windows, "window")}`,
-      `${plural(counts.tabs, "tab")}`,
-      ...(counts.groups > 0 ? [plural(counts.groups, "group")] : []),
+      windowsPhrase(counts.windows),
+      tabsPhrase(counts.tabs),
+      ...(counts.groups > 0 ? [groupsPhrase(counts.groups)] : []),
       formatBytes(bytes),
     ].join(" · ");
-    ui.fidelity.textContent = describeFidelity(loaded.source);
+    ui.fidelity.textContent = fidelityLine(loaded.source);
     ui.fidelity.dataset.fidelity = loaded.source.fidelity;
 
     const noted = warnings(result.issues);
     if (noted.length > 0) {
       renderIssues(ui.issues, noted, {
-        headline: `${plural(noted.length, "thing")} to know about this file`,
+        headline: pluralUnit(noted.length, "thingsToKnow"),
         collapsed: true,
       });
     }
 
-    tree.load(result.session, { blocked });
+    tree.load(result.session, { blocked, strings });
     ui.preview.hidden = false;
     await gateGroupPermission(loaded.session);
     paintSelection();
@@ -311,13 +317,13 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     if (!loaded) return;
     const count = restorable();
     const selected = tree.selectedCount();
-    const parts = [`${selected} of ${tree.totalSelectable()} selected`];
-    if (tree.searching()) parts.push(`${tree.shownCount()} shown`);
+    const parts = [t("selectedOf", String(selected), String(tree.totalSelectable()))];
+    if (tree.searching()) parts.push(t("shownCount", String(tree.shownCount())));
     const skipped = selected - count;
-    if (skipped > 0) parts.push(`${skipped} will be skipped`);
-    if (loaded.blocked.size > 0) parts.push(`${loaded.blocked.size} cannot be opened`);
+    if (skipped > 0) parts.push(t("willBeSkipped", String(skipped)));
+    if (loaded.blocked.size > 0) parts.push(pluralUnit(loaded.blocked.size, "restore_unopenable"));
     ui.selection.textContent = parts.join(" · ");
-    ui.restore.textContent = count === 0 ? "Restore" : `Restore ${plural(count, "tab")}`;
+    ui.restore.textContent = count === 0 ? t("restoreButton") : t("restoreButtonCount", tabsPhrase(count));
     ui.restore.disabled = count === 0;
   }
 
@@ -331,9 +337,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     const granted = await adapter.hasPermissions(["tabGroups"]).catch(() => false);
     ui.groupsPermission.hidden = granted;
     if (!granted) {
-      ui.groupsPermissionText.textContent = `This pack has ${plural(groups, "tab group")}. Restoring ${
-        groups === 1 ? "it" : "them"
-      } as groups needs one permission, which you can allow now or refuse and still restore the tabs.`;
+      ui.groupsPermissionText.textContent = pluralUnit(groups, "groupsPermission");
     }
   }
 
@@ -358,7 +362,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
         // reader on a 200 tab pack, so progress is announced in stages.
         onProgress: (done, total) => {
           if (done !== total && done % 25 !== 0) return;
-          renderNote(ui.report, `Restoring ${done} of ${total} tabs`);
+          renderNote(ui.report, t("restoringProgress", String(done), String(total)));
         },
       });
       show(report);
@@ -385,12 +389,12 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
           .slice(0, 12)
           .map((entry) => `${entry.url}${entry.explanation ? ` (${entry.explanation})` : ""}`)
           .join("\n"),
-        fix: "These addresses are still in the file. A browser will not let any extension open them.",
+        fix: t("unopenableListFix"),
       });
     }
     if (issues.length > 0) {
       renderIssues(ui.restoreIssues, issues, {
-        headline: `${plural(issues.length, "note")} about this restore`,
+        headline: pluralUnit(issues.length, "restoreNotes"),
         collapsed: true,
       });
     }
@@ -399,6 +403,4 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
   return { showSession };
 }
 
-function plural(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
+

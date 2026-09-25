@@ -299,3 +299,17 @@ Date 2026-09-25. Status accepted. Supersedes ADR-015.
 **Decision.** No offscreen document. `src/background/save-file.ts` tries a blob URL, then a data URL under 1.5 MB, then opens the manager page with the export it wanted. The offscreen source, its build entry and its 35 KB in each package are gone, and the `offscreen` permission is never requested.
 
 **Consequence.** One fewer execution context, one fewer permission a store reviewer has to be told about, and a smaller package. The clipboard is now only ever written from a page, which is where every copy in the product already happens; `copyText` from a context with no DOM throws a message saying so rather than silently doing nothing. If a future feature needs a background clipboard write, this decision is the one to supersede, and the document to restore is in the history of this repository.
+
+---
+
+## ADR-022: The interface is translated, and the core's messages are its English fallback
+
+Date 2026-09-25. Status accepted. Scopes T-503.
+
+**Context.** T-503 asks for an i18n scaffold with English complete and no hard coded user facing string. Two kinds of string exist in this product: the words the interface renders, and the sentences `src/core/` produces when it validates a file or restores a pack, each of which carries a stable code, a JSON path and a suggested fix.
+
+**Options.** Translate both, which means rewriting every core message as a parameterised template keyed by code, restructuring roughly a hundred sentences that are currently written where the decision that produces them is made, and doing it before a single second locale exists. Or translate the interface now and leave the core's messages as English defaults that a locale can override by code later.
+
+**Decision.** Every string the interface renders comes from `_locales/en/messages.json`, enforced by three lint rules: no key without an entry, no entry without a use, and no English sentence written into markup or into a DOM call. The core keeps its messages, each with a code, and `renderIssues` is the single place that would consult a translation for one.
+
+**Consequence.** A second locale translates the whole interface today and the validator's messages when someone needs them, which is the right order: the interface is what everybody sees, and an import error is what somebody sees on a bad day. The decision that produces a message stays next to the message, which is what keeps them honest, and the boundary is visible in `src/ui/shared/wording.ts`, where numbers become sentences. If the core's messages are ever translated, this decision is the one to supersede.

@@ -15,6 +15,9 @@
  */
 import { realAdapter } from "../../core/adapter/index.js";
 import { clear, el, must } from "../shared/dom.js";
+import { applyI18n, plural, t } from "../shared/i18n.js";
+import { applyTheme } from "../shared/theme.js";
+import { loadSettings } from "../../core/settings.js";
 
 interface Handoff {
   createdAt?: string;
@@ -36,6 +39,8 @@ let addresses: string[] = [];
 void start();
 
 async function start(): Promise<void> {
+  applyI18n();
+  applyTheme((await loadSettings(realAdapter)).theme);
   const id = new URLSearchParams(location.search).get("id") ?? "";
   const stored = await realAdapter.storageGetAll();
   await prune(stored, id);
@@ -44,21 +49,18 @@ async function start(): Promise<void> {
   const tabs = handoff.tabs ?? [];
 
   if (tabs.length === 0) {
-    ui.lead.textContent =
-      "There is nothing to show here. This page lists the addresses a restore could not reopen, and that list has expired.";
+    ui.lead.textContent = t("placeholderExpired");
     ui.copy.disabled = true;
     return;
   }
 
-  ui.lead.textContent = `${tabs.length} ${tabs.length === 1 ? "tab" : "tabs"} in the pack you restored ${
-    tabs.length === 1 ? "uses an address" : "use addresses"
-  } no extension is allowed to open. ${tabs.length === 1 ? "It is" : "They are"} still in your file.`;
+  ui.lead.textContent = plural(tabs.length, "placeholderLead");
 
   addresses = tabs.map((tab) => tab.url ?? "").filter((url) => url !== "");
   clear(ui.list);
   for (const tab of tabs) {
     const item = el("li", { class: "url-item" });
-    item.appendChild(el("p", { class: "url-title", text: tab.title || "Untitled tab" }));
+    item.appendChild(el("p", { class: "url-title", text: tab.title || t("untitledTab") }));
     item.appendChild(el("p", { class: "url-address", text: tab.url ?? "" }));
     if (tab.explanation) item.appendChild(el("p", { class: "url-reason", text: tab.explanation }));
     ui.list.appendChild(item);
@@ -70,9 +72,9 @@ async function start(): Promise<void> {
 async function copyAll(): Promise<void> {
   try {
     await navigator.clipboard.writeText(`${addresses.join("\n")}\n`);
-    ui.copyNote.textContent = `Copied ${addresses.length} ${addresses.length === 1 ? "address" : "addresses"}.`;
+    ui.copyNote.textContent = plural(addresses.length, "copiedAddresses");
   } catch {
-    ui.copyNote.textContent = "The clipboard was refused. Select the addresses and copy them.";
+    ui.copyNote.textContent = t("clipboardRefused");
   }
 }
 

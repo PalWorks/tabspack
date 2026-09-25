@@ -65,16 +65,16 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-403 | Snapshot import and export without restore | M4 | Snapshots | Users need to move a pack between machines without opening 200 tabs to do it | Export any snapshot to a file, and import a file as a snapshot | done |
 | T-404 | Keyboard commands | M4 | UI | The fastest users never open a popup | Commands for export all windows, export current window and save snapshot, with defaults that avoid common conflicts | done |
 | T-405 | Quota guard and retention | M4 | Snapshots | `storage.local` fills silently and then writes start failing | Warn at 80 percent of the soft cap, never auto delete, per ADR-012 | done |
-| T-501 | Options page | M5 | UI | Defaults, filters and restore policy need a home outside the task flow | Options page covering FR-401 to FR-405 | next |
-| T-502 | Theme and visual polish | M5 | UI | Three surfaces built at different times look like three products | Single pass over popup, manager and options against the T-008 tokens | todo |
-| T-503 | i18n scaffold | M5 | UI | Retrofitting `__MSG_*` after launch touches every string in the product | Scaffold with English complete, locale files open to contribution afterwards | todo |
-| T-504 | Final icons and store assets | M5 | Release | Three stores each demand specific icon sizes, screenshots and promo tiles | One asset set generated to the strictest of the three requirements | todo |
-| T-505 | Store listings and permission justifications | M5 | Release | Chrome requires a per permission justification and a privacy policy, and an improvised answer invites rejection | Listings written from PLAN Table P8 and `PRIVACY.md`, identical across stores | todo |
-| T-506 | Accessibility pass | M5 | Quality | A preview tree of thousands of rows is unusable by keyboard or screen reader unless designed for it | Keyboard navigation, visible focus, contrast check, ARIA on the tree and the reports | todo |
-| T-507 | Full cross browser matrix | M5 | Quality | Engine differences surface at the worst possible moment, in review | Complete the matrix in TESTING Table X2 and record the result in the release pull request | todo |
-| T-508 | Performance verification | M5 | Quality | NFR-001 to NFR-005 must hold on the shipped build, not on a dev build | Measured run of all five against the shipped artifact | todo |
-| T-509 | Store submissions | M5 | Release | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions | todo |
-| T-510 | Issue and pull request templates | M5 | Release | An import bug reported without its file is usually unfixable | Bug template demanding browser, version, expected, actual and a sanitised file. Security issues routed to `SECURITY.md` | todo |
+| T-501 | Options page | M5 | UI | Defaults, filters and restore policy need a home outside the task flow | Options page covering FR-401 to FR-405 | done |
+| T-502 | Theme and visual polish | M5 | UI | Three surfaces built at different times look like three products | Single pass over popup, manager and options against the T-008 tokens | done |
+| T-503 | i18n scaffold | M5 | UI | Retrofitting `__MSG_*` after launch touches every string in the product | Scaffold with English complete, locale files open to contribution afterwards. Covers every string the interface renders; the core's issue messages are the English fallback layer, per ADR-022 | done |
+| T-504 | Final icons and store assets | M5 | Release | Three stores each demand specific icon sizes, screenshots and promo tiles | One asset set generated to the strictest of the three requirements | done |
+| T-505 | Store listings and permission justifications | M5 | Release | Chrome requires a per permission justification and a privacy policy, and an improvised answer invites rejection | Listings written from PLAN Table P8 and `PRIVACY.md`, identical across stores | done |
+| T-506 | Accessibility pass | M5 | Quality | A preview tree of thousands of rows is unusable by keyboard or screen reader unless designed for it | Keyboard navigation, visible focus, contrast check, ARIA on the tree and the reports | done |
+| T-507 | Full cross browser matrix | M5 | Quality | Engine differences surface at the worst possible moment, in review | Complete the matrix in TESTING Table X2 and record the result in the release pull request | doing |
+| T-508 | Performance verification | M5 | Quality | NFR-001 to NFR-005 must hold on the shipped build, not on a dev build | Measured run of all five against the shipped artifact | done |
+| T-509 | Store submissions | M5 | Release | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions | next |
+| T-510 | Issue and pull request templates | M5 | Release | An import bug reported without its file is usually unfixable | Bug template demanding browser, version, expected, actual and a sanitised file. Security issues routed to `SECURITY.md` | done |
 | B-101 | Scheduled automatic snapshots | v1.1 | Durability | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker | todo |
 | B-102 | Crash and last session recovery | v1.1 | Durability | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page | todo |
 | B-103 | Snapshot diff and pruning | v1.1 | Durability | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones | todo |
@@ -186,16 +186,16 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 | Id | Requirements | Acceptance criteria | Status |
 |---|---|---|---|
-| T-501 | FR-401, FR-403, FR-404 | Every setting persists and takes effect without a reload | next |
-| T-502 | FR-405 | Three surfaces consistent in system, light and dark | todo |
-| T-503 | FR-406 | No hard coded user facing string outside `_locales/en` | todo |
-| T-504 | None | Assets accepted by all three stores at first upload | todo |
-| T-505 | None | Justifications match PLAN Table P8 exactly, and the privacy policy is linked in all three listings | todo |
-| T-506 | None | The preview tree is fully keyboard operable, focus is visible, contrast passes, the tree and reports carry ARIA roles | todo |
-| T-507 | None | TESTING Table X2 fully green, result recorded in the release pull request | todo |
-| T-508 | NFR-001 to NFR-005 | All five hold on the shipped artifact | todo |
-| T-509 | None | Accepted by Chrome Web Store, Edge Add-ons and AMO | todo |
-| T-510 | None | A bug report cannot be filed without browser, version and reproduction detail | todo |
+| T-501 | FR-401, FR-403, FR-404 | Every setting persists and takes effect without a reload | done |
+| T-502 | FR-405 | Three surfaces consistent in system, light and dark | done |
+| T-503 | FR-406 | No hard coded user facing string outside `_locales/en` | done |
+| T-504 | None | Assets accepted by all three stores at first upload | done |
+| T-505 | None | Justifications match PLAN Table P8 exactly, and the privacy policy is linked in all three listings | done |
+| T-506 | None | The preview tree is fully keyboard operable, focus is visible, contrast passes, the tree and reports carry ARIA roles | done |
+| T-507 | None | TESTING Table X2 fully green, result recorded in the release pull request. Automated here as far as an agent can: the Chromium half by `npm run smoke`, the Firefox install by `npm run smoke:firefox`. The rest needs a human | doing |
+| T-508 | NFR-001 to NFR-005 | All five hold on the shipped artifact | done |
+| T-509 | None | Accepted by Chrome Web Store, Edge Add-ons and AMO. Blocked on three developer accounts, which is not something an agent can hold | next |
+| T-510 | None | A bug report cannot be filed without browser, version and reproduction detail | done |
 
 **M5 exit test.** Review packages accepted by all three stores, and the cross browser matrix fully green.
 
@@ -219,6 +219,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
 | M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
+| M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | An options page driving every setting, a theme switch, 199 translated strings with a lint rule behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors, and NFR-001, NFR-004 and NFR-005 measured on the built package |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture

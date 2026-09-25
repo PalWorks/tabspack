@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildExportReport, describeRemoved, formatBytes, totalRemoved } from "../../src/core/report.js";
+import { buildExportReport, formatBytes, removedParts, totalRemoved } from "../../src/core/report.js";
 import type { Session } from "../../src/types/session.js";
 
 const session: Session = {
@@ -47,12 +47,17 @@ test("a report counts what was kept and what was dropped", () => {
 });
 
 test("every filter that dropped something is named", () => {
-  assert.equal(
-    describeRemoved({ scheme: 1, pinned: 2, excluded: 3, duplicate: 4 }),
-    "4 duplicates, 2 pinned, 1 not a web page, 3 excluded skipped",
-  );
-  assert.equal(describeRemoved({ scheme: 0, pinned: 0, excluded: 0, duplicate: 1 }), "1 duplicate skipped");
-  assert.equal(describeRemoved({ scheme: 0, pinned: 0, excluded: 0, duplicate: 0 }), "");
+  // The order is the order the interface prints them in, most surprising first.
+  assert.deepEqual(removedParts({ scheme: 1, pinned: 2, excluded: 3, duplicate: 4 }), [
+    { kind: "duplicate", count: 4 },
+    { kind: "pinned", count: 2 },
+    { kind: "scheme", count: 1 },
+    { kind: "excluded", count: 3 },
+  ]);
+  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, excluded: 0, duplicate: 1 }), [
+    { kind: "duplicate", count: 1 },
+  ]);
+  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, excluded: 0, duplicate: 0 }), []);
 });
 
 test("byte counts are rendered at a human scale", () => {

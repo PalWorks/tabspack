@@ -44,8 +44,8 @@ Do not add features that are not in [PLAN.md](PLAN.md) section 7. The out of sco
 
 ## 5. Verification, and what you may claim
 
-1. `npm run typecheck && npm run lint && npm test && npm run build` must pass.
-2. Browser behaviour is not proven by a unit test. If your change touches the adapter, the restore engine, a permission or the UI, load the extension unpacked in Chromium **and** Firefox and exercise the path before you claim it works.
+1. `npm run verify` must pass. It runs typecheck, the project lint rules, the schema check, the tests, the contrast contract, the performance budgets, both builds and AMO's own linter.
+2. Browser behaviour is not proven by a unit test. If your change touches the adapter, the restore engine, a permission or the UI, run `npm run smoke` and `npm run smoke:firefox`, then load the extension unpacked in Chromium **and** Firefox and exercise the path before you claim it works. The table in [docs/TESTING.md](docs/TESTING.md) says which parts no automated run here can reach; those are the parts that need your hands.
 3. Report what you actually ran. If you did not load a browser, say so. If a test fails, show the output. Never describe an untested path as verified.
 4. Label anything you inferred rather than verified as inference, including claims about browser API behaviour you did not exercise.
 
@@ -64,6 +64,7 @@ A change that alters behaviour updates the docs in the same commit:
 | New procedure or a procedure that turned out to be wrong | `docs/PLAYBOOK.md` |
 | Task finished | The status column in `docs/ROADMAP.md` Table R1, and its Done section |
 | New requirement | `PLAN.md` with a new FR or NFR id |
+| A new user facing string | `_locales/en/messages.json`. Nothing in `src/ui/` spells an English sentence, and three lint rules enforce it |
 
 ## 7. Commits and pull requests
 

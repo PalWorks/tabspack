@@ -100,17 +100,39 @@ Every adapter is held to the same three assertions in `test/unit/adapters.test.t
 2. The adapter declares what it could not carry, and the preview shows that sentence.
 3. The malformed sibling fails with a message longer than a shrug and a suggested fix.
 
+## What an agent can and cannot verify here
+
+Worth stating plainly, because the difference is where the remaining risk lives.
+
+| Automated | How |
+|---|---|
+| Everything in `src/core/` | 185 unit tests against a writable fake browser that models the awkward parts of the real one |
+| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 50 checks against the built extension in a real Chromium |
+| That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
+| That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
+| NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |
+| The contrast contract | `npm run a11y`, computed from the tokens |
+
+| Not automated | Why |
+|---|---|
+| Exporting, importing and restoring in Firefox and Edge | Neither browser can be driven with an extension loaded the way Chromium can here |
+| A keyboard shortcut actually being pressed | The browser handles it before any page or driver sees it |
+| The `tabGroups` permission prompt being granted | Chrome refuses `permissions.request` in an automated run |
+| A restore with unloading on, at scale | `chrome.tabs.discard` takes the headless browser down: LIMITATIONS Table L3 |
+| Snapshots surviving a browser restart | The profile is thrown away with the run |
+
 ## Cross browser matrix
 
 ### Table X2: Matrix
 
 | Case | Chrome | Edge | Firefox |
 |---|---|---|---|
-| Load unpacked, clean console | Required | Required | Required |
+| Load unpacked, clean console | Required. `npm run smoke` proves the load and a clean console | Required | Partly automated: `npm run smoke:firefox` installs the package in a real Firefox through web-ext, which proves the manifest, the permissions, the background declaration and the CSP are right for Gecko. A clean console still needs a human |
 | Export all windows | Required | Required | Required |
 | Restore into new windows with bounds | Required | Required | Required |
 | Groups restored with colour and collapsed state | Required, 89 and later | Required | Required, 139 and later. Degrades with one notice below that |
 | Discarded restore | Create then discard | Create then discard | `discarded: true` at creation |
+| Restore 200 tabs with unloading on, and watch for a crash | Required, see LIMITATIONS Table L3 | Required | Required |
 | Clipboard from the service worker | Offscreen document | Offscreen document | Page context |
 | Optional permission prompt for `tabGroups` | Required | Required | Required |
 | Keyboard commands fire, and appear in the browser's shortcut settings | Required | Required | Required |
@@ -124,10 +146,15 @@ npm run typecheck     tsc --noEmit, strict
 npm run lint          the project rules in scripts/lint.mjs
 npm run schema:check  the generated schema still matches the types
 npm test              unit suite (TZ pinned to UTC) plus schema conformance
+npm run a11y          the contrast contract, computed from the tokens
+npm run lint:amo      AMO's own linter over dist/firefox, which must be error free
 npm run perf          the performance budgets in test/tools/bench.ts
 npm run build         dist/chrome and dist/firefox
 npm run verify        all of the above, in that order
 npm run smoke         real browser checks, local only, skips without Playwright
+npm run smoke:firefox installs dist/firefox in a real Firefox, through web-ext
+npm run perf:browser  NFR-001, NFR-004 and NFR-005 against the built package
+npm run assets        the icon set and the store tiles, from assets/icon.svg
 ```
 
 `npm run smoke` loads `dist/chrome` into a real Chromium and drives the popup
