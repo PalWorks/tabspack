@@ -176,6 +176,8 @@ Browsers refuse to let an extension create tabs at most privileged schemes, incl
 
 Such URLs MUST still be written to the file verbatim, because the file is a record. On restore, a conforming implementation MUST NOT drop them silently. It MUST surface them and count them in the import report.
 
+One address that looks unrestorable usually is not. A tab suspender parks a tab on a page of its own, `chrome-extension://<id>/suspended.html#…&uri=https://…`, keeping the real address in the query or the fragment. A conforming writer SHOULD record the address the tab stands for rather than the suspender's wrapper, and a reader SHOULD recover it from a file that holds one. The reference implementation does both, by the shape of the wrapper and never by extension id, and reports how many it recovered: ADR-023.
+
 The TabsPack reference implementation opens one placeholder page listing them as **inert, selectable text, never as links**. A `javascript:` or `data:` address must never be one click away from running, and the others would not open from a link anyway. This is the one lossy edge of the format and it is deliberately visible.
 
 ## 9. Versioning and migration

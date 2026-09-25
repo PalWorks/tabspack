@@ -56,6 +56,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     selection: must<HTMLSpanElement>("#selection-count"),
     target: must<HTMLSelectElement>("#restore-target"),
     skipDuplicates: must<HTMLInputElement>("#opt-skip-open"),
+    unload: must<HTMLInputElement>("#opt-unload"),
     threshold: must<HTMLInputElement>("#opt-threshold"),
     restore: must<HTMLButtonElement>("#restore"),
     groupsPermission: must<HTMLDivElement>("#groups-permission"),
@@ -80,7 +81,9 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
 
   ui.target.value = settings.restoreTarget;
   ui.skipDuplicates.checked = settings.skipOpenDuplicates;
+  ui.unload.checked = settings.unloadRestored;
   ui.threshold.value = String(settings.discardThreshold);
+  ui.threshold.disabled = settings.unloadRestored;
 
   ui.choose.addEventListener("click", () => ui.picker.click());
   ui.picker.addEventListener("change", () => {
@@ -122,6 +125,11 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     settings.skipOpenDuplicates = ui.skipDuplicates.checked;
     void saveSettings(adapter, { skipOpenDuplicates: settings.skipOpenDuplicates });
     paintSelection();
+  });
+  ui.unload.addEventListener("change", () => {
+    settings.unloadRestored = ui.unload.checked;
+    ui.threshold.disabled = settings.unloadRestored;
+    void saveSettings(adapter, { unloadRestored: settings.unloadRestored });
   });
   ui.threshold.addEventListener("change", () => {
     const value = Number(ui.threshold.value);
@@ -241,7 +249,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     }
 
     if (token !== intake) return;
-    const result = loadPack(text);
+    const result = loadPack(text, { recoverSuspended: settings.recoverSuspended });
     const bytes = new TextEncoder().encode(text).length;
     if (!result.ok || !result.session) {
       ui.fileMeta.textContent = `${file.name} · ${formatBytes(bytes)}`;
@@ -290,6 +298,9 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       windowsPhrase(counts.windows),
       tabsPhrase(counts.tabs),
       ...(counts.groups > 0 ? [groupsPhrase(counts.groups)] : []),
+      // The addresses on screen are not the addresses in the file, so the line
+      // that describes the file says so: ADR-023.
+      ...(result.recovered ? [t("recoveredInFile", String(result.recovered))] : []),
       formatBytes(bytes),
     ].join(" · ");
     ui.fidelity.textContent = fidelityLine(loaded.source);
@@ -360,6 +371,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     try {
       const report = await restoreSession(adapter, loaded.session, {
         target: ui.target.value as RestoreTarget,
+        unloadRestored: ui.unload.checked,
         discardThreshold: settings.discardThreshold,
         batchSize: settings.restoreBatchSize,
         batchDelayMs: settings.restoreDelayMs,

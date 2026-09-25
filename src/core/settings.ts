@@ -30,11 +30,22 @@ export interface Settings {
   sortDesc: boolean;
   /** Milliseconds the toolbar badge shows a count. */
   badgeMs: number;
+  /**
+   * Recover the real address of a tab a suspender has parked on one of its own
+   * pages, on export and on import. ADR-023.
+   */
+  recoverSuspended: boolean;
 
   /* Restore policy, FR-403. Every one of these is a real browser trade off. */
   /** Where a restore puts its tabs. */
   restoreTarget: RestoreTarget;
-  /** Tabs beyond this many are restored unloaded. FR-208. */
+  /**
+   * Restore every tab unloaded, rather than only those beyond the threshold.
+   * The people who move seventy tabs between browsers are the people who cannot
+   * afford seventy pages loading at once: ADR-024.
+   */
+  unloadRestored: boolean;
+  /** Tabs beyond this many are restored unloaded, when `unloadRestored` is off. FR-208. */
   discardThreshold: number;
   /** Tabs created between yields to the browser. */
   restoreBatchSize: number;
@@ -62,8 +73,10 @@ export const DEFAULT_SETTINGS: Settings = {
   sort: "natural",
   sortDesc: false,
   badgeMs: 1500,
+  recoverSuspended: true,
 
   restoreTarget: "new_windows",
+  unloadRestored: true,
   discardThreshold: 20,
   restoreBatchSize: 8,
   restoreDelayMs: 40,

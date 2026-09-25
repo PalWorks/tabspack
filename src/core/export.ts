@@ -10,6 +10,7 @@ import type { ExportFormat, Settings } from "./settings.js";
 import type { FilterCounts } from "./filters.js";
 import { applyFilters } from "./filters.js";
 import { collectSession } from "./collect.js";
+import { unsuspendSession } from "./unsuspend.js";
 import { stringify, toFile } from "./serialize.js";
 import { toFlatJson, toUrlList } from "./exporters.js";
 import { exportFilename, textFilename } from "./naming.js";
@@ -22,6 +23,8 @@ export interface ExportPayload {
   bytes: number;
   session: Session;
   removed: FilterCounts;
+  /** Tabs whose real address was recovered from a suspender. ADR-023. */
+  recovered: number;
 }
 
 export interface BuildExportOptions {
@@ -35,8 +38,8 @@ export async function buildExport(
   options: BuildExportOptions = {},
 ): Promise<ExportPayload> {
   const when = options.now ?? new Date();
-  const { session, removed } = await collectFiltered(adapter, settings, when);
-  return renderExport(session, removed, settings, when);
+  const { session, removed, recovered } = await collectFiltered(adapter, settings, when);
+  return renderExport(session, removed, settings, when, recovered);
 }
 
 /**
@@ -47,13 +50,22 @@ export async function collectFiltered(
   adapter: BrowserAdapter,
   settings: Settings,
   when: Date = new Date(),
-): Promise<{ session: Session; removed: FilterCounts }> {
+): Promise<{ session: Session; removed: FilterCounts; recovered: number }> {
   const collected = await collectSession(adapter, {
     scope: settings.scope,
     includeIncognito: settings.includeIncognito,
     now: when.getTime(),
   });
-  return applyFilters(collected, settings);
+  /*
+   * Recovery runs before the filters, never after. A suspended tab reads as an
+   * extension page, so web-pages-only would drop it, dedupe would not see it as
+   * the same page as the live copy, and a sort by address would file it under
+   * the suspender. Every one of those is wrong about the tab the user has.
+   */
+  const { session: real, recovered } = settings.recoverSuspended
+    ? unsuspendSession(collected)
+    : { session: collected, recovered: 0 };
+  return { ...applyFilters(real, settings), recovered };
 }
 
 /** The serialization half, split out so tests can drive it without an adapter. */
@@ -62,6 +74,7 @@ export function renderExport(
   removed: FilterCounts,
   settings: Settings,
   when: Date,
+  recovered = 0,
 ): ExportPayload {
   let text: string;
   let filename: string;
@@ -94,6 +107,7 @@ export function renderExport(
     bytes: byteLength(text),
     session,
     removed,
+    recovered,
   };
 }
 

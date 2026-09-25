@@ -315,3 +315,48 @@ Date 2026-09-25. Status accepted. Scopes T-503.
 **Decision.** Every string the interface renders comes from `_locales/en/messages.json`, enforced by three lint rules: no key without an entry, no entry without a use, and no English sentence written into markup or into a DOM call. The core keeps its messages, each with a code, and `renderIssues` is the single place that would consult a translation for one.
 
 **Consequence.** A second locale translates the whole interface today and the validator's messages when someone needs them, which is the right order: the interface is what everybody sees, and an import error is what somebody sees on a bad day. The decision that produces a message stays next to the message, which is what keeps them honest, and the boundary is visible in `src/ui/shared/wording.ts`, where numbers become sentences. If the core's messages are ever translated, this decision is the one to supersede.
+
+---
+
+## ADR-023: A suspended tab is recovered to the page it stands for
+
+Date 2026-09-25. Status accepted. Scopes T-601 to T-609.
+
+**Context.** A tab suspender frees memory by replacing a tab's address with one of its own pages and keeping the real address inside it. To the browser, and therefore to every honest export, that tab is an extension page. It cannot be reopened by any other browser, it dedupes against nothing, `web pages only` drops it, and a sort by address files it under the suspender. A real export from a real session made this concrete: 34 tabs, of which 30 were parked by The Great Suspender (notrack) and 1 was an `edge://` page, leaving 3 that would open anywhere. A product whose promise is not losing tabs was losing seven out of eight.
+
+**What the suspenders actually do**, read from their own source rather than assumed:
+
+| Family | Page | Carrier |
+|---|---|---|
+| The Great Suspender and its forks, including (notrack) and The Marvellous Suspender | `suspended.html` | `#ttl=<enc>&pos=<n>&uri=<raw>`, with a legacy encoded `url=`. The `uri` value is not encoded and runs to the end of the string |
+| Tiny Suspender | `suspend.html` | `?url=<enc>&title=<enc>&favIconUrl=<enc>`, with a legacy `#uri=&title=` |
+| Auto Tab Discard, v2 dummy mode only | `plugins/dummy/page.html` | `?title=<enc>&href=<enc>&icon=<enc>` |
+| Firefox reader mode | `about:reader` | `?url=<enc>` |
+
+Chrome's Memory Saver, Edge's sleeping tabs, Firefox's tab unloading, and Auto Tab Discard's current build all use the native discard API, which keeps the address. They need nothing from us.
+
+**Options.** Match on a list of extension ids, which is exact and stale the day a fork ships, and your own suspender is a fork of a fork. Or match on the shape of the address, as `core/adapters/detect.ts` already does for foreign formats. Or do nothing and leave the user to unsuspend every tab by hand before exporting.
+
+**Decision.** Recover by shape, in `src/core/unsuspend.ts`, at two call sites: before the filters on export, and at the import boundary for files already written and for other tools' exports. Four named rules for the families above, then a generic rule for any extension page carrying an absolute http or https address in a parameter named `uri`, `url`, `u`, `href`, `target` or `originalUrl`. On by default, with a setting. Every recovery is counted and named, in the export report and on the line that describes an imported file.
+
+The address that comes back is always an ordinary web address. An intermediate may be another wrapper, up to three deep, but `javascript:`, `data:`, `file:` and a browser's own pages stop the chain, so a recovery can never manufacture a dangerous address out of a harmless one. `src/core/urls.ts` judges it again before anything opens.
+
+**What is not recorded.** The pack holds the page's address and nothing about the wrapper. A `suspendedFrom` field would add a v1 field no reader will use, for provenance the report already states. The scroll position a suspender keeps is dropped, because TabsPack does not model scroll and inventing a field for it would put it in the format forever. The suspender's own favicon is dropped, since a sleep icon beside a recovered page is a picture of something no longer true; a favicon the wrapper carried for the real page is kept.
+
+**Consequence.** The generic rule is the one that can do damage: an extension page that legitimately carries a `?url=` would be rewritten. It is contained by requiring an absolute http or https value, by reporting every recovery rather than performing it silently, and by the setting. Twelve negative cases are in the suite, including an extension's own options page, and the risk is named in `docs/LIMITATIONS.md`. The user's own file is the regression test: 30 recovered, 33 of 34 openable, the `edge://` page the only one left behind.
+
+---
+
+## ADR-024: A restored tab is created unloaded
+
+Date 2026-09-25. Status accepted. Amends FR-208.
+
+**Context.** The default was to load the first 20 tabs of a restore and unload the rest. The people this product is for do not have 20 tabs. They have 50 to 200, which is why they are moving a session between browsers at all, and 20 pages loading at once on a machine already holding their working set is the moment the browser stops answering.
+
+**Options.** Keep the threshold and document a recommendation nobody reads. Make the threshold zero, which reads as a magic number. Or state the behaviour as what it is, a toggle, and keep the threshold for the person who wants the old shape.
+
+**Decision.** `unloadRestored` is on by default: every restored tab is created unloaded, except the one active tab per window, which no browser will leave unloaded. The threshold stays for when the toggle is off, and the options page disables it while the toggle is on rather than hiding it, so the number a user chose is still legible.
+
+Gecko creates a tab unloaded and nothing else happens. Chromium has no such option, so the tab is created and unloaded straight after, and that flush runs once per batch with one batch of lag rather than once per window: a tab asked to unload in the turn it was created is still navigating and the browser refuses. The lag caps how many pages are ever loaded at one time at roughly the batch size, which is the difference between a 200 tab restore costing 8 tabs of memory and costing 200.
+
+**Consequence.** A restore looks instant and costs almost nothing until a tab is opened. A recovered suspended tab comes back as an ordinary unloaded tab rather than as a page belonging to a suspender, which is the same memory result without depending on a third party extension: TabsPack never writes another extension's address into a tab. `adapter.discardTabs` now answers with the tabs it actually unloaded, so the report counts what happened rather than what was asked for. The path cannot be exercised in the headless Chromium the smoke run uses, where one `chrome.tabs.discard` call takes the browser down: measured, and recorded in `docs/LIMITATIONS.md` Table L3 and in the manual matrix, T-507.

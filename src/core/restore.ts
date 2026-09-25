@@ -28,7 +28,13 @@ export type RestoreTarget = "new_windows" | "current_window";
 
 export interface RestorePolicy {
   target: RestoreTarget;
-  /** Tabs beyond this many are created unloaded. FR-208, default 20. */
+  /**
+   * Create every tab unloaded, rather than only those past the threshold.
+   * On by default: see ADR-024. The window's active tab is the exception, since
+   * a browser will not hold its foreground tab unloaded.
+   */
+  unloadRestored: boolean;
+  /** Tabs beyond this many are created unloaded, when `unloadRestored` is off. FR-208. */
   discardThreshold: number;
   /** Tabs created between yields to the browser. */
   batchSize: number;
@@ -40,6 +46,7 @@ export interface RestorePolicy {
 
 export const DEFAULT_RESTORE_POLICY: RestorePolicy = {
   target: "new_windows",
+  unloadRestored: true,
   discardThreshold: 20,
   batchSize: 8,
   batchDelayMs: 40,
@@ -411,7 +418,27 @@ async function fillWindow(
 ): Promise<void> {
   const { adapter, options, report } = runtime;
   const createdIds: (number | null)[] = [];
-  const toDiscard: number[] = [];
+  /* Created in this batch, and created in the one before it. See `unload`. */
+  let toDiscard: number[] = [];
+  let waiting: number[] = [];
+
+  /**
+   * Unloading is what keeps a restore of two hundred tabs from costing two
+   * hundred tabs of memory, which is the whole point for the people who move
+   * sessions this size: ADR-024.
+   *
+   * Gecko creates a tab unloaded and none of this runs. Chromium has no such
+   * option, so the tab loads and is unloaded straight after, and doing that
+   * once per batch rather than once per window caps how many pages are ever
+   * loaded at the same time. The batch lags by one, because a tab asked to
+   * unload in the same turn it was created is a tab the browser is still
+   * navigating, and it refuses.
+   */
+  const unload = async (ids: number[]): Promise<void> => {
+    if (ids.length === 0) return;
+    const unloaded = await safelyValue(() => adapter.discardTabs(ids), []);
+    report.discarded += unloaded.length;
+  };
   const openerFixups: { tabId: number; openerIndex: number }[] = [];
   const activeEntry = window.tabs.find((entry) => entry.tab.active) ?? window.tabs[0];
   let placeholderRemoved = placeholderTabId === null;
@@ -420,7 +447,8 @@ async function fillWindow(
     const entry = window.tabs[position] as PlannedTab;
     const willBeActive = entry === activeEntry;
     const wantsDiscard =
-      !willBeActive && (entry.tab.discarded || runtime.loaded >= options.discardThreshold);
+      !willBeActive &&
+      (options.unloadRestored || entry.tab.discarded || runtime.loaded >= options.discardThreshold);
 
     const created = await createTabFor(runtime, entry.tab, windowId, wantsDiscard);
     createdIds.push(created?.id ?? null);
@@ -451,13 +479,16 @@ async function fillWindow(
     options.onProgress?.(runtime.done, runtime.total);
 
     const endOfBatch = (position + 1) % Math.max(1, options.batchSize) === 0;
-    if (endOfBatch && position + 1 < window.tabs.length) await runtime.sleep(options.batchDelayMs);
+    if (endOfBatch) {
+      await unload(waiting);
+      waiting = toDiscard;
+      toDiscard = [];
+      if (position + 1 < window.tabs.length) await runtime.sleep(options.batchDelayMs);
+    }
   }
 
-  if (toDiscard.length > 0) {
-    await safely(() => adapter.discardTabs(toDiscard));
-    report.discarded += toDiscard.length;
-  }
+  await unload(waiting);
+  await unload(toDiscard);
 
   // Openers refer to positions in the file, which the sort above may have moved.
   const positionOfIndex = new Map<number, number>();
@@ -680,6 +711,15 @@ async function safely(action: () => Promise<unknown>): Promise<void> {
     await action();
   } catch {
     /* every caller here treats a refusal as nothing to do */
+  }
+}
+
+/** The same, for a call whose answer the report needs. */
+async function safelyValue<T>(action: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await action();
+  } catch {
+    return fallback;
   }
 }
 

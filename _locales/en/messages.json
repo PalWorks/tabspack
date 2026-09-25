@@ -181,6 +181,32 @@
       }
     }
   },
+  "policyUnload": {
+    "message": "Open restored tabs unloaded"
+  },
+  "policyUnloadShort": {
+    "message": "Open tabs unloaded"
+  },
+  "policyUnloadHint": {
+    "message": "A restored tab holds no memory until you open it. The tab you land on in each window loads, because a browser will not leave the tab in front of you unloaded."
+  },
+  "optionsRecoverLabel": {
+    "message": "Suspended tabs"
+  },
+  "optionsRecover": {
+    "message": "Recover the real address"
+  },
+  "optionsRecoverHint": {
+    "message": "A tab suspender parks a tab on a page of its own and keeps the real address inside it. With this on, TabsPack reads the real address, on export and on import, and says how many it recovered."
+  },
+  "recoveredInFile": {
+    "message": "$count$ recovered from a tab suspender",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
   "copyButton": {
     "message": "Copy"
   },
@@ -282,6 +308,22 @@
     "message": "$groups$ kept",
     "placeholders": {
       "groups": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_recovered_one": {
+    "message": "$count$ suspended tab recovered",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_recovered_other": {
+    "message": "$count$ suspended tabs recovered",
+    "placeholders": {
+      "count": {
         "content": "$1"
       }
     }
@@ -863,7 +905,7 @@
     "message": "Unload after"
   },
   "optionsUnloadHint": {
-    "message": "Tabs beyond this many are restored without loading, so a large pack does not slow the browser down."
+    "message": "Used only when the box above is clear: tabs beyond this many are restored without loading."
   },
   "optionsBatchLabel": {
     "message": "Create in batches of"

@@ -108,7 +108,7 @@ export function initSnapshotPanel(
   async function addFile(file: File): Promise<void> {
     clearReport(ui.report);
     try {
-      const result = loadPack(await file.text());
+      const result = loadPack(await file.text(), { recoverSuspended: settings.recoverSuspended });
       if (!result.ok || !result.session) {
         renderError(ui.report, errors(result.issues)[0]?.message ?? t("fileUnreadable"));
         return;

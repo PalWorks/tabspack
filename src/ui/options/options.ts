@@ -44,6 +44,8 @@ const ui = {
   target: must<HTMLSelectElement>("#opt-target"),
   skipOpen: must<HTMLInputElement>("#opt-skip-open"),
   placeholder: must<HTMLInputElement>("#opt-placeholder"),
+  recover: must<HTMLInputElement>("#opt-recover"),
+  unload: must<HTMLInputElement>("#opt-unload"),
   threshold: must<HTMLInputElement>("#opt-threshold"),
   batch: must<HTMLInputElement>("#opt-batch"),
   delay: must<HTMLInputElement>("#opt-delay"),
@@ -85,6 +87,13 @@ async function start(): Promise<void> {
   bindCheck(ui.sortDesc, "sortDesc");
   bindCheck(ui.skipOpen, "skipOpenDuplicates");
   bindCheck(ui.placeholder, "openPlaceholder");
+  bindCheck(ui.recover, "recoverSuspended");
+  bindCheck(ui.unload, "unloadRestored");
+  // The threshold has nothing to say while everything is unloaded, and a control
+  // that does nothing has to look like one the moment the toggle moves.
+  ui.unload.addEventListener("change", () => {
+    ui.threshold.disabled = ui.unload.checked;
+  });
 
   bindNumber(ui.threshold, "discardThreshold");
   bindNumber(ui.batch, "restoreBatchSize");
@@ -125,7 +134,13 @@ function paint(): void {
   ui.target.value = settings.restoreTarget;
   ui.skipOpen.checked = settings.skipOpenDuplicates;
   ui.placeholder.checked = settings.openPlaceholder;
+  ui.recover.checked = settings.recoverSuspended;
+  ui.unload.checked = settings.unloadRestored;
   ui.threshold.value = String(settings.discardThreshold);
+  // The threshold is the rule for what to unload when not everything is, so it
+  // has nothing to say while everything is. Disabled rather than hidden, so the
+  // setting a user chose is still legible when they turn the toggle back off.
+  ui.threshold.disabled = settings.unloadRestored;
   ui.batch.value = String(settings.restoreBatchSize);
   ui.delay.value = String(settings.restoreDelayMs);
 }

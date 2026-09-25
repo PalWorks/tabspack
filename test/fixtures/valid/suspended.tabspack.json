@@ -1,0 +1,49 @@
+{
+  "format": "tabspack",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-25T04:00:00.000Z",
+  "name": "A session a tab suspender got to first",
+  "source": {
+    "browser": "Microsoft Edge",
+    "browserVersion": "153",
+    "os": "linux",
+    "extensionVersion": "0.0.1"
+  },
+  "counts": { "windows": 1, "tabs": 5, "groups": 0 },
+  "windows": [
+    {
+      "id": "w1",
+      "type": "normal",
+      "focused": true,
+      "tabs": [
+        {
+          "index": 0,
+          "url": "chrome-extension://ahkbmjhfoplmfkpncgoedjgkajkehcgo/suspended.html#ttl=%F0%9F%92%A4%20Inbox&pos=0&uri=https://mail.example.com/mail/u/0/#inbox/FMfcgz",
+          "title": "💤 Inbox",
+          "pinned": true
+        },
+        {
+          "index": 1,
+          "url": "chrome-extension://ahkbmjhfoplmfkpncgoedjgkajkehcgo/suspended.html#ttl=Search&url=https%3A%2F%2Fexample.com%2Flegacy",
+          "title": "Search"
+        },
+        {
+          "index": 2,
+          "url": "chrome-extension://bbomjaikkcabgmfaomdichgcodnaeecf/suspend.html?url=https%3A%2F%2Fexample.com%2Ftiny&title=Tiny&favIconUrl=https%3A%2F%2Fexample.com%2Ff.ico&scroll_x=0&scroll_y=90",
+          "title": "Tiny"
+        },
+        {
+          "index": 3,
+          "url": "https://example.com/never-suspended",
+          "title": "Never suspended",
+          "active": true
+        },
+        {
+          "index": 4,
+          "url": "chrome-extension://abcdefghijklmnopabcdefghijklmnop/options.html?tab=2",
+          "title": "Some extension's own page"
+        }
+      ]
+    }
+  ]
+}

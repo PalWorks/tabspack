@@ -126,6 +126,7 @@ Export:
 ```
 UI intent (scope, filters)
   -> core/collect.ts        adapter/windows.getAll(populate), adapter/groups.query
+  -> core/unsuspend.ts      a suspender's wrapper -> the page it stands for
   -> core/filters.ts        dedupe, scheme, skip pinned, exclude, sort
   -> core/serialize.ts      Session -> TabsPackFile, strip data favicons
   -> adapter/downloads.ts   write tabspack-YYYYMMDD-HHmm.tabspack.json
@@ -140,9 +141,10 @@ File (picker or drag and drop)
   -> the matching adapter      foreign -> TabsPackFile
   -> core/schema.ts            validate, migrate to current version
   -> core/deserialize.ts       TabsPackFile -> Session (unknown fields retained)
+  -> core/unsuspend.ts         the same recovery, for files written before it
   -> UI preview                windows, groups, search, per tab selection
   -> core/restore.ts           windows.create -> tabs.create (inactive)
-                               -> tabs.discard beyond threshold
+                               -> tabs.discard, every tab by default
                                -> tabs.group + tabGroups.update
                                -> placeholder page for unopenable URLs
   -> core/report.ts            restored, skipped, duplicate, unopenable, ungrouped

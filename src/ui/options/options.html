@@ -41,6 +41,12 @@
             </select>
           </div>
 
+          <span class="control-label" data-i18n="optionsRecoverLabel">Suspended tabs</span>
+          <div class="check-row">
+            <label class="check"><input type="checkbox" id="opt-recover" /> <span data-i18n="optionsRecover">Recover the real address</span></label>
+            <span class="hint" data-i18n="optionsRecoverHint">A tab suspender parks a tab on a page of its own and keeps the real address inside it. With this on, TabsPack reads the real address, on export and on import, and says how many it recovered.</span>
+          </div>
+
           <span class="control-label" data-i18n="includeLabel">Include</span>
           <div class="check-row">
             <label class="check"><input type="checkbox" id="opt-titles" /> <span data-i18n="includeTitles">Titles in text exports</span></label>
@@ -97,6 +103,8 @@
           <div class="check-row">
             <label class="check"><input type="checkbox" id="opt-skip-open" /> <span data-i18n="policySkipOpen">Skip tabs that are already open</span></label>
             <label class="check"><input type="checkbox" id="opt-placeholder" /> <span data-i18n="policyPlaceholder">List addresses that cannot be opened on their own page</span></label>
+            <label class="check"><input type="checkbox" id="opt-unload" /> <span data-i18n="policyUnload">Open restored tabs unloaded</span></label>
+            <span id="unload-hint" class="hint" data-i18n="policyUnloadHint">A restored tab holds no memory until you open it. The tab you land on in each window loads, because a browser will not leave the tab in front of you unloaded.</span>
           </div>
 
           <label class="control-label" for="opt-threshold" data-i18n="optionsUnloadAfter">Unload after</label>

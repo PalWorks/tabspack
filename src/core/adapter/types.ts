@@ -162,8 +162,12 @@ export interface BrowserAdapter {
   createTab(request: CreateTabRequest): Promise<RawTab>;
   updateTab(tabId: number, request: UpdateTabRequest): Promise<void>;
   removeTabs(tabIds: number[]): Promise<void>;
-  /** Best effort. A browser that refuses leaves the tab loaded. */
-  discardTabs(tabIds: number[]): Promise<void>;
+  /**
+   * Best effort. A browser that refuses leaves the tab loaded, so this answers
+   * with the tabs it actually unloaded: the restore report counts those, not
+   * the ones it asked for.
+   */
+  discardTabs(tabIds: number[]): Promise<number[]>;
   /** Returns the new group id, or null when this browser cannot group tabs. */
   groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null>;
   updateGroup(groupId: number, request: UpdateGroupRequest): Promise<void>;

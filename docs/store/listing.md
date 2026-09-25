@@ -35,6 +35,12 @@ in today's meeting.
 - Read other tools' exports: Tab Session Manager, Session Buddy, OneTab, your
   browser's own bookmarks, Markdown link lists, CSV and plain lists of addresses.
   Recognised by what is in the file, not by its name.
+- Bring back tabs a suspender had parked. The Great Suspender, Tiny Suspender,
+  Auto Tab Discard and the forks of each replace a tab's address with one of
+  their own pages, which no other browser can reopen. TabsPack reads the real
+  address back out, on export and on import, and tells you how many it found.
+- Restore without the memory. Tabs come back unloaded, so a pack of two hundred
+  costs nothing until you open one.
 - Keep named snapshots inside the extension for the days you do not want to think
   about where a file goes.
 - Keyboard shortcuts for exporting and for saving a snapshot.

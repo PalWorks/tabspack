@@ -256,11 +256,16 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
 
     async discardTabs(tabIds: number[]) {
       adapter.calls.push({ method: "discardTabs", detail: tabIds });
+      const unloaded: number[] = [];
       for (const tabId of tabIds) {
         const { tab } = findTab(tabId);
+        // A browser will not unload the tab in front of the user, and the report
+        // has to say what happened rather than what was asked for.
         if (tab.active === true) continue;
         tab.discarded = true;
+        unloaded.push(tabId);
       }
+      return unloaded;
     },
 
     async groupTabs(request: { tabIds: number[]; windowId?: number }) {

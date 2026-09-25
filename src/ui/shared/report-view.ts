@@ -5,7 +5,7 @@
 import { clear, el, icon, ICON } from "./dom.js";
 import { formatBytes, totalRemoved, type ExportReport, type RestoreSummary } from "../../core/report.js";
 import type { Issue } from "../../core/issues.js";
-import { t } from "./i18n.js";
+import { plural, t } from "./i18n.js";
 import { groups as groupsPhrase, removedPhrases, restoreDetails, restoreHeadline, tabs, windows } from "./wording.js";
 
 type Tone = "success" | "warn" | "error";
@@ -20,6 +20,9 @@ export function renderExportReport(node: HTMLElement, report: ExportReport): voi
   );
   const detail = [
     ...removedPhrases(report.removed),
+    // A recovery changed what the file says a tab is, so it is stated with the
+    // rest of what happened rather than left for the user to notice.
+    ...(report.recovered > 0 ? [plural(report.recovered, "recovered")] : []),
     ...(report.groups > 0 ? [t("groupsKept", groupsPhrase(report.groups))] : []),
     formatBytes(report.bytes),
   ]

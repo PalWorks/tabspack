@@ -106,6 +106,7 @@ async function start(): Promise<void> {
         bytes: text.length,
         session: { windows: [], source: {}, capturedAt: 0 },
         removed: { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 },
+        recovered: 0,
       });
     },
   });
@@ -309,6 +310,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
       buildExportReport({
         session: payload.session,
         removed: payload.removed,
+        recovered: payload.recovered,
         format: payload.format,
         bytes: payload.bytes,
         filename: payload.filename,

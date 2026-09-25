@@ -150,15 +150,18 @@ export const realAdapter: BrowserAdapter = {
    * Discarding is a courtesy to the machine, never a requirement of the restore,
    * so a browser that refuses leaves the tab loaded and the restore continues.
    */
-  async discardTabs(tabIds: number[]): Promise<void> {
-    if (tabIds.length === 0 || typeof browser.tabs.discard !== "function") return;
+  async discardTabs(tabIds: number[]): Promise<number[]> {
+    if (tabIds.length === 0 || typeof browser.tabs.discard !== "function") return [];
+    const unloaded: number[] = [];
     for (const tabId of tabIds) {
       try {
         await browser.tabs.discard(tabId);
+        unloaded.push(tabId);
       } catch {
-        /* a tab the browser will not unload stays loaded */
+        /* a tab the browser will not unload stays loaded, and is not counted */
       }
     }
+    return unloaded;
   },
 
   async groupTabs(request: { tabIds: number[]; windowId?: number }): Promise<number | null> {

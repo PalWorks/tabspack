@@ -16,6 +16,7 @@ Why this file exists: most bugs in this category of extension come from assuming
 | Group id | A numeric runtime id | Like tab ids, meaningless across sessions. The file uses its own `g1` style ids |
 | Discarded | A tab whose page has been unloaded to free memory, tab strip entry retained | Chromium cannot create a tab already discarded, it must be created then discarded. Gecko accepts `discarded: true` at creation |
 | Unloaded or pending tab | A restored tab that has never been rendered, so `url` may be empty and `pendingUrl` holds the target | Reading `url` alone loses these tabs. Always fall back to `pendingUrl`, the bug Copy All URLs handles and the others do not |
+| Suspended tab | A tab a third party suspender has parked on a page of its own, keeping the real address inside that page's query or fragment | To the browser it is an extension page, so it is unopenable and it dedupes against nothing. TabsPack recovers the address it stands for, by the shape of the wrapper and never by extension id: ADR-023 |
 | Container, contextual identity | Gecko feature isolating cookies per identity, exposed as `cookieStoreId` | No Chromium equivalent. Carry the field, ignore it on import |
 | Incognito or private window | A window whose tabs are not persisted by the browser | The extension cannot see these at all unless the user grants incognito access in browser settings. Excluded by default |
 | Restricted URL | A URL an extension is not permitted to open, such as `chrome://`, `about:`, `view-source:`, `javascript:`, `data:` | `tabs.create` rejects or silently produces a blank tab. Must be reported, never dropped silently. See SPEC section 8 |
@@ -47,3 +48,5 @@ Why this file exists: most bugs in this category of extension come from assuming
 3. Rules for lossy conversion: an import from a lower fidelity source never invents structure. One window in, one window out.
 4. The user chooses what to restore. Nothing opens without an explicit action after the preview.
 5. Silence is a bug. Every skipped, deduplicated, ungrouped or unopenable tab appears in a report.
+6. A pack records the page a tab stands for. Where a suspender has parked a tab on one of its own pages, the pack holds the page's own address, and the count of what was recovered is reported: ADR-023.
+7. A restore costs the machine as little as the browser allows. Tabs are created unloaded unless the user says otherwise, because the people who move a session of this size are the people who cannot afford it loading at once: ADR-024.

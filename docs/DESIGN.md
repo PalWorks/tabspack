@@ -182,7 +182,8 @@ Rules for this page:
   │  └─────────────────────────────────────────────────────────────┘  │
   │  This pack has 1 tab group ...            [ Allow tab groups ]    │
   │  Restore into [ New windows ▾ ]                                   │
-  │  Policy  ☑ Skip tabs already open   Leave unloaded after [20] tabs │
+  │  Policy  ☑ Skip tabs already open   ☑ Open tabs unloaded          │
+  │          Leave unloaded after [20] tabs         (disabled above)  │
   │  [ Restore 5 tabs ]   Nothing opens until you press this.          │
   │  ✓ Restored 5 tabs · 2 windows · 1 group · 1 cannot be opened      │
   │  ⚠ 3 notes about this restore                  (folded away)      │
@@ -192,6 +193,7 @@ Rules for this page:
 Decisions behind that layout:
 
 - **The file, then the preview, then the restore, then the outcome.** The page is in the order of the decisions a person makes, and each card answers one question: what is in this file, what shall I take from it, what happens when I press the button.
+- **Unloading is a toggle, not a number.** Every restored tab is created unloaded, ADR-024, because the person moving fifty tabs is the person who cannot afford fifty pages loading. The threshold stays for the other shape of the same idea and is disabled, not hidden, while the toggle is on: a control that can do nothing must look like one, and the number the user chose is still legible.
 - **The button counts what will actually open**, while the line above the tree counts what is selected. A tab whose address no extension may open stays selected and flagged rather than being quietly deselected, so the restore can report it: ADR-018.
 - **Search filters the tree, and "all" means what is shown.** With a search running, Select all and Select none act on the matches, because in a filtered list that is the only reading of "all" that does not surprise. The count line says how many are shown.
 - **The fidelity line is two clauses**: what came through, and what the source format has no way to hold. It turns amber for a source that cannot carry everything, so a low fidelity import is visible before the restore rather than discovered after it.

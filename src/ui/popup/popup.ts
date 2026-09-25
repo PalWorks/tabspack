@@ -123,6 +123,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
     const report = buildExportReport({
       session: payload.session,
       removed: payload.removed,
+      recovered: payload.recovered,
       format: payload.format,
       bytes: payload.bytes,
       filename: payload.filename,

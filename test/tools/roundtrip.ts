@@ -78,6 +78,10 @@ export async function roundTrip(options: RoundTripOptions): Promise<RoundTripOut
     ...DEFAULT_RESTORE_POLICY,
     skipDuplicates: false,
     openPlaceholder: false,
+    // The harness compares what came back, so it restores the way the file says
+    // rather than the way the product prefers: unloading is a policy, not a
+    // property of the pack. TESTING Table X3.
+    unloadRestored: false,
     discardThreshold: options.discardThreshold ?? DEFAULT_RESTORE_POLICY.discardThreshold,
     sleep: async () => undefined,
     now: () => WHEN.getTime(),

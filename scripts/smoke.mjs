@@ -64,7 +64,7 @@ const SMOKE_PACK = {
   schemaVersion: 1,
   exportedAt: "2026-09-24T08:29:40+00:00",
   name: "Smoke pack",
-  counts: { windows: 2, tabs: 6, groups: 1 },
+  counts: { windows: 2, tabs: 7, groups: 1 },
   windows: [
     {
       id: "w1",
@@ -82,7 +82,16 @@ const SMOKE_PACK = {
     {
       id: "w2",
       type: "normal",
-      tabs: [{ index: 0, url: "https://example.net/second-window", title: "Second window", active: true }],
+      tabs: [
+        { index: 0, url: "https://example.net/second-window", title: "Second window", active: true },
+        {
+          index: 1,
+          // What a tab suspender leaves behind. ADR-023: the address inside it is
+          // the tab, and the restore has to open that.
+          url: "chrome-extension://ahkbmjhfoplmfkpncgoedjgkajkehcgo/suspended.html#ttl=%F0%9F%92%A4%20Parked&pos=0&uri=https://example.com/was-suspended",
+          title: "💤 Parked",
+        },
+      ],
     },
   ],
 };
@@ -333,8 +342,22 @@ try {
   const fileMeta = await manager.textContent("#file-meta");
   check(
     "the preview states what is in the file",
-    /2 windows · 6 tabs · 1 group/.test(fileMeta ?? ""),
+    /2 windows · 7 tabs · 1 group/.test(fileMeta ?? ""),
     fileMeta ?? "",
+  );
+  check(
+    "a suspended tab is recovered on import, and the file line says so",
+    /1 recovered from a tab suspender/.test(fileMeta ?? ""),
+    fileMeta ?? "",
+  );
+  const previewUrls = await manager.$$eval(".tree-row .tree-detail", (nodes) =>
+    nodes.map((node) => node.textContent ?? ""),
+  );
+  check(
+    "the preview shows the real address, not the suspender's",
+    previewUrls.some((url) => url.includes("example.com/was-suspended")) &&
+      previewUrls.every((url) => !url.includes("suspended.html")),
+    previewUrls.join(" "),
   );
 
   const rows = await manager.$$eval(".tree-row", (nodes) =>
@@ -353,7 +376,7 @@ try {
   const beforeSelection = await manager.textContent("#selection-count");
   check(
     "the selection count names what will be skipped and why",
-    /6 of 6 selected · 1 will be skipped · 1 cannot be opened/.test(beforeSelection ?? ""),
+    /7 of 7 selected · 1 will be skipped · 1 cannot be opened/.test(beforeSelection ?? ""),
     beforeSelection ?? "",
   );
 
@@ -366,13 +389,13 @@ try {
   const groupRowState = await manager.getAttribute(".tree-row.kind-group", "aria-checked");
   check(
     "space on a group row deselects the whole group",
-    /4 of 6 selected/.test(afterKeyboard ?? "") && groupRowState === "false",
+    /5 of 7 selected/.test(afterKeyboard ?? "") && groupRowState === "false",
     `${afterKeyboard ?? ""} aria-checked=${groupRowState}`,
   );
   await manager.keyboard.press(" ");
   check(
     "pressing it again selects the group back",
-    /6 of 6 selected/.test((await manager.textContent("#selection-count")) ?? ""),
+    /7 of 7 selected/.test((await manager.textContent("#selection-count")) ?? ""),
     (await manager.textContent("#selection-count")) ?? "",
   );
 
@@ -393,7 +416,26 @@ try {
   );
 
   const restoreLabel = await manager.textContent("#restore");
-  check("the restore button names what it will do", /^Restore 5 tabs$/.test(restoreLabel ?? ""), restoreLabel ?? "");
+  check("the restore button names what it will do", /^Restore 6 tabs$/.test(restoreLabel ?? ""), restoreLabel ?? "");
+
+  /**
+   * The shipped default is to restore every tab unloaded, ADR-024, and the
+   * control has to arrive saying so. It is then turned off for the restore
+   * itself, because `chrome.tabs.discard` takes this headless Chromium down on
+   * the first call: measured, one tab is enough. That is a limit of the rig and
+   * not of the product, it is recorded in docs/LIMITATIONS.md Table L3, and
+   * unloading on a real browser is a line in the manual matrix, T-507.
+   */
+  check("restored tabs are unloaded by default", await manager.isChecked("#opt-unload"));
+  check(
+    "the threshold is disabled while everything is unloaded",
+    await manager.isDisabled("#opt-threshold"),
+  );
+  await manager.uncheck("#opt-unload");
+  await manager.waitForFunction(
+    () => document.querySelector("#opt-threshold")?.hasAttribute("disabled") === false,
+    { timeout: 5_000 },
+  );
 
   const windowsBefore = await worker.evaluate(async () => (await chrome.windows.getAll({})).length);
   await manager.click("#restore");
@@ -403,7 +445,7 @@ try {
     { timeout: 30_000 },
   );
   const restoreReport = await manager.textContent("#restore-report");
-  check("the restore report states the outcome", /Restored 5 tabs/.test(restoreReport ?? ""), restoreReport ?? "");
+  check("the restore report states the outcome", /Restored 6 tabs/.test(restoreReport ?? ""), restoreReport ?? "");
 
   const state = await worker.evaluate(async () => {
     const windows = await chrome.windows.getAll({ populate: true });
@@ -435,9 +477,15 @@ try {
     "https://example.com/grouped-b",
     "https://example.com/plain",
     "https://example.net/second-window",
+    "https://example.com/was-suspended",
   ]) {
     check(`restored ${url}`, restoredUrls.some((candidate) => candidate.startsWith(url)), restoredUrls.join(" "));
   }
+  check(
+    "no suspender page was restored, only the page it stood for",
+    restoredUrls.every((url) => !url.includes("suspended.html")),
+    restoredUrls.join(" "),
+  );
   check(
     "a chrome:// address was not restored",
     restoredUrls.every((url) => !url.startsWith("chrome://settings")),
@@ -505,7 +553,7 @@ try {
   const afterNone = await manager.textContent("#selection-count");
   check(
     "select none acts on what the search shows, not on the whole pack",
-    /4 of 6 selected/.test(afterNone ?? ""),
+    /5 of 7 selected/.test(afterNone ?? ""),
     afterNone ?? "",
   );
   await manager.fill("#tree-search", "");
@@ -533,7 +581,7 @@ try {
 
   await manager.setInputFiles("#file", packPath);
   await manager.waitForFunction(
-    () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    () => /7 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
     { timeout: 10_000 },
   );
 
@@ -566,7 +614,7 @@ try {
     check("the selection count matches the file", /5000 of 5000 selected/.test(bigSelection ?? ""), bigSelection ?? "");
     await manager.setInputFiles("#file", packPath);
     await manager.waitForFunction(
-      () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+      () => /7 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
       { timeout: 10_000 },
     );
   } else {
@@ -664,7 +712,7 @@ try {
   await manager.click("#tab-import");
   await manager.setInputFiles("#file", packPath);
   await manager.waitForFunction(
-    () => /6 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
+    () => /7 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""),
     { timeout: 10_000 },
   );
 

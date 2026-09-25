@@ -19,6 +19,7 @@ import type { Issue } from "./issues.js";
 import { error, errors } from "./issues.js";
 import { migrateToCurrent } from "./migrate.js";
 import { isObject, parseJson, validateFile } from "./schema.js";
+import { unsuspendSession } from "./unsuspend.js";
 
 export type Fidelity = "high" | "medium" | "low";
 
@@ -45,6 +46,8 @@ export interface LoadResult {
   /** Null when nothing recognised the text. */
   source: SourceInfo | null;
   issues: Issue[];
+  /** Tabs whose real address was recovered from a suspender. ADR-023. */
+  recovered?: number;
 }
 
 export interface LoadOptions {
@@ -52,6 +55,8 @@ export interface LoadOptions {
   now?: number;
   /** Overridden only by the test that proves the limit. */
   maxBytes?: number;
+  /** Recover addresses parked by a tab suspender. On unless a setting says not. */
+  recoverSuspended?: boolean;
 }
 
 /**
@@ -76,7 +81,22 @@ export function tooLargeIssue(bytes: number, limit = MAX_IMPORT_BYTES): Issue {
   );
 }
 
+/**
+ * Read a file, then heal what a tab suspender did to it.
+ *
+ * Recovery belongs here rather than in each reader: a suspended tab is just as
+ * suspended in a OneTab list or a CSV as it is in a TabsPack file, and the
+ * people importing those are the people migrating away from the suspender.
+ * ADR-023.
+ */
 export function loadPack(text: string, options: LoadOptions = {}): LoadResult {
+  const result = readPack(text, options);
+  if (!result.ok || !result.session || options.recoverSuspended === false) return result;
+  const { session, recovered } = unsuspendSession(result.session);
+  return recovered === 0 ? result : { ...result, session, recovered };
+}
+
+function readPack(text: string, options: LoadOptions): LoadResult {
   const limit = options.maxBytes ?? MAX_IMPORT_BYTES;
   if (text.length > limit) {
     return { ok: false, source: null, issues: [tooLargeIssue(text.length, limit)] };

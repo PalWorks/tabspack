@@ -177,10 +177,52 @@ test("the active tab is activated, and it is activated last", async () => {
   assert.equal(adapter.state.windows[0]?.tabs?.find((entry) => entry.active)?.url, "https://example.com/research/4");
 });
 
-test("tabs beyond the threshold are unloaded, and the probe only runs once", async () => {
+test("every restored tab is unloaded by default, except the one in front of the user", async () => {
   const session = await referencePack();
   const adapter = emptyBrowser();
-  const report = await restoreSession(adapter, session, options({ discardThreshold: 5 }));
+  const report = await restoreSession(adapter, session, options());
+
+  const tabs = adapter.state.windows.flatMap((win) => win.tabs ?? []);
+  const loaded = tabs.filter((entry) => !entry.discarded);
+  assert.equal(
+    loaded.length,
+    adapter.state.windows.length,
+    "one loaded tab per window, the active one, and nothing else",
+  );
+  assert.ok(loaded.every((entry) => entry.active === true));
+  assert.equal(report.discarded, tabs.length - loaded.length, "the report counts what actually unloaded");
+});
+
+test("unloading is flushed per batch, so a restore never holds more loaded than a batch", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser();
+  await restoreSession(adapter, session, options({ batchSize: 4 }));
+  const flushes = adapter.calls.filter((call) => call.method === "discardTabs");
+  assert.ok(flushes.length > 1, `expected several flushes, saw ${flushes.length}`);
+  for (const flush of flushes) {
+    assert.ok((flush.detail as number[]).length <= 4, "a flush never exceeds the batch size");
+  }
+});
+
+test("a tab the browser refuses to unload is not counted as unloaded", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser();
+  // The fake browser refuses the active tab, which is what a real one does.
+  const report = await restoreSession(adapter, session, options());
+  const asked = adapter.calls
+    .filter((call) => call.method === "discardTabs")
+    .reduce((sum, call) => sum + (call.detail as number[]).length, 0);
+  assert.ok(report.discarded <= asked, "never more than were asked for");
+});
+
+test("with the toggle off, tabs beyond the threshold are unloaded and the probe runs once", async () => {
+  const session = await referencePack();
+  const adapter = emptyBrowser();
+  const report = await restoreSession(
+    adapter,
+    session,
+    options({ unloadRestored: false, discardThreshold: 5 }),
+  );
   const attempts = adapter.calls.filter(
     (call) => call.method === "createTab" && (call.detail as { discarded?: boolean }).discarded === true,
   );
@@ -194,7 +236,7 @@ test("tabs beyond the threshold are unloaded, and the probe only runs once", asy
 test("a browser that accepts discarded at creation is used that way instead", async () => {
   const session = await referencePack();
   const adapter = emptyBrowser({ capabilities: { discardOnCreate: true } });
-  await restoreSession(adapter, session, options({ discardThreshold: 2 }));
+  await restoreSession(adapter, session, options({ unloadRestored: false, discardThreshold: 2 }));
   assert.equal(adapter.calls.some((call) => call.method === "discardTabs"), false);
   const created = adapter.calls.filter(
     (call) => call.method === "createTab" && (call.detail as { discarded?: boolean }).discarded === true,

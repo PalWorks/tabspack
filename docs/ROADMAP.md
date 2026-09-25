@@ -199,6 +199,27 @@ Every task and backlog item in one table. Read the phase detail sections below f
 
 **M5 exit test.** Review packages accepted by all three stores, and the cross browser matrix fully green.
 
+### Table R11: M6 Recovery, after the first real session went through the product
+
+Added 2026-09-25, from a real export: 34 tabs, of which 30 were parked by a tab
+suspender and one was an `edge://` page, leaving 3 that would open anywhere.
+
+| Id | What | Bucket | Problem | Solution | Status |
+|---|---|---|---|---|---|
+| T-601 | `src/core/unsuspend.ts` | Core | A suspended tab reads as an extension page, so it is unopenable, dedupes against nothing and sorts under the suspender | Four rules read from the suspenders' own source, then a generic rule by shape. ADR-023 | done |
+| T-602 | Two call sites | Core | A new export and a file already on disk are both wrong in the same way | Recovery before the filters on export, and at the import boundary for every format | done |
+| T-603 | Counting and copy | UI | A rewritten address must never be silent | The export report and the file line both name the count | done |
+| T-604 | The setting | UI | A rule that judges a shape needs an off switch | `recoverSuspended`, on by default, on the options page | done |
+| T-605 | Preview | UI | The preview has to show what will open | The tree shows the recovered address, proven in the browser run | done |
+| T-606 | Tests | Test | A rewrite of a user's session cannot be trusted to a reading of the code | 30 cases: every family, both legacy forms, the raw `uri=`, double wrapping, and twelve negatives | done |
+| T-607 | Fixture | Test | The conformance corpus had no suspended pack | `test/fixtures/valid/suspended.tabspack.json`, five tabs, three of them recovered | done |
+| T-608 | Browser proof | Test | Recovery has to survive the real thing | The smoke pack carries a suspended tab, and the restored window holds the page it stood for | done |
+| T-609 | Unloaded restores | Core, UI | 50 to 200 pages loading at once is the moment the browser stops answering | `unloadRestored` on by default, flushed per batch with one batch of lag. ADR-024 | done |
+
+**M6 exit test.** The user's own export imports with 30 addresses recovered and
+33 of its 34 tabs openable, the last being an `edge://` page no extension may
+open. Met on 2026-09-25.
+
 ## 4. Sequencing rules
 
 1. No phase starts while the previous exit test is red.
@@ -217,7 +238,8 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-507 | Exercise export, import and restore by hand in Chrome, Edge and Firefox | Chrome 137 and later ignore `--load-extension`, and no driver can load an extension into Firefox and then use it. `npm run smoke` covers Chromium, `npm run smoke:firefox` proves the Gecko package installs, and TESTING.md lists exactly what is left |
 | T-507 | Press the keyboard shortcuts | The browser handles them before any page or driver sees them |
 | T-507 | Grant the `tabGroups` permission at the prompt | Chrome refuses `permissions.request` in an automated run |
-| T-507 | Restore a large pack with unloading on | `chrome.tabs.discard` takes the headless browser down: LIMITATIONS Table L3 |
+| T-507 | Restore a large pack with unloading on, which is now the default | One `chrome.tabs.discard` call takes the headless browser down, measured: LIMITATIONS Table L3. The browser run asserts the toggle ships on, then turns it off to restore |
+| T-507 | Check a recovered suspended tab against the suspender that made it | The suspender has to be installed, and its pages exist only in a real profile |
 | T-507 | Confirm snapshots survive a browser restart | The profile is thrown away with the run |
 | T-509 | Submit to three stores | Three developer accounts, and the fee for one of them |
 
@@ -236,7 +258,8 @@ piece of work.
 | M2 Import and restore | T-201 to T-209 | 129 unit tests including the round trip harness, 20 conformance fixtures, a 34 check browser smoke run that imports a pack and restores it in a real Chromium, and NFR-005 measured at about a second for 5000 tabs |
 | M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
-| M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 187 unit tests and a 59 check browser run. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
+| M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 190 unit tests and a 59 check browser run at the time. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
+| M6 Recovery | T-601 to T-609 | 223 unit tests and a 70 check browser run. A suspender's wrapper read back to the page it stands for, on export and on import, from four named families and by shape for the rest, with every recovery counted. Restores create every tab unloaded by default, flushed per batch so a large restore never holds more than a batch loaded at once |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture

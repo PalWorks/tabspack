@@ -214,6 +214,23 @@ select {
   cursor: not-allowed;
 }
 
+/*
+ * A control that cannot act has to look like one, wherever it is: DESIGN
+ * section 4. Without this a disabled number field is indistinguishable from a
+ * working one, and the page says something it does not mean.
+ */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+label:has(+ input:disabled),
+.inline-field:has(input:disabled) {
+  color: var(--text-muted);
+}
+
 .row {
   display: flex;
   align-items: center;

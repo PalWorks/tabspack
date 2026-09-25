@@ -18,6 +18,8 @@ export interface ExportReport {
   bytes: number;
   filename: string;
   removed: FilterCounts;
+  /** Tabs whose real address was recovered from a suspender. ADR-023. */
+  recovered: number;
   /** True when the file was written, false when it was only copied. */
   saved: boolean;
 }
@@ -36,6 +38,7 @@ export function buildExportReport(input: {
   bytes: number;
   filename: string;
   saved: boolean;
+  recovered?: number;
 }): ExportReport {
   const counts = countSession(input.session);
   return {
@@ -47,6 +50,7 @@ export function buildExportReport(input: {
     bytes: input.bytes,
     filename: input.filename,
     removed: input.removed,
+    recovered: input.recovered ?? 0,
     saved: input.saved,
   };
 }

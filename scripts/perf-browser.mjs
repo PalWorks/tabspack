@@ -164,7 +164,15 @@ try {
   await worker.evaluate(async (threshold) => {
     const stored = (await chrome.storage.local.get("settings")).settings ?? {};
     await chrome.storage.local.set({
-      settings: { ...stored, discardThreshold: threshold, restoreBatchSize: 8 },
+      settings: {
+        ...stored,
+        // The product unloads everything by default, ADR-024. The measurement
+        // turns that off and uses the threshold instead, for the reason at the
+        // top of this file: this headless Chromium dies on tabs.discard.
+        unloadRestored: threshold === 0,
+        discardThreshold: threshold,
+        restoreBatchSize: 8,
+      },
     });
   }, thresholdWanted);
 

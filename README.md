@@ -43,7 +43,8 @@ Working today:
 - **Filters** for duplicates, non web pages, pinned tabs, a wildcard exclude list and sorting, with every dropped tab named in the report.
 - **Nothing leaves your machine.** No account, no sync, no telemetry, and no network request at all, which `npm run lint` enforces rather than promises.
 - **Import and preview** a pack before anything opens: a tree of windows, groups and tabs, with per row selection, that stays responsive at 5000 tabs.
-- **Restore without freezing the browser.** Tabs are created inactive in throttled batches and unloaded beyond a threshold, so a 200 tab pack does not melt the machine.
+- **Restore without freezing the browser.** Tabs are created inactive, in throttled batches, and unloaded by default, so a 200 tab pack costs almost nothing until you open a tab. The one tab you land on in each window loads, and the rest wait for you.
+- **Suspended tabs come back as pages, not as placeholders.** A tab parked by The Great Suspender, Tiny Suspender, Auto Tab Discard or a fork of any of them is read back to the address it stands for, on export and on import, and the count is reported. Without this, a session full of suspended tabs exports as a list of pages no browser will reopen.
 - **Told, never guessed.** Every validation failure carries the path into the file and a suggested fix, and every restore reports what was skipped, already open, ungrouped or impossible to open. Addresses no extension may open are listed on a page of their own instead of vanishing.
 
 - **Import from other tools.** Tab Session Manager, Session Buddy JSON and CSV, OneTab, Markdown link lists, browser bookmark exports, flat JSON and plain lists of addresses, all detected by what is in the file rather than by its name. Each import states what the source format could not carry.
@@ -167,8 +168,8 @@ manifest.firefox.json   Gecko manifest
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
 
 ```bash
-npm run verify        # typecheck, lint, schema, 187 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 64 checks against the built extension in a real Chromium
+npm run verify        # typecheck, lint, schema, 223 tests, contrast, budgets, both builds, AMO's linter
+npm run smoke         # 70 checks against the built extension in a real Chromium
 npm run smoke:firefox # installs the Firefox package in a real Firefox
 npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
 ```

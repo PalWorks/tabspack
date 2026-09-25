@@ -1,8 +1,9 @@
 # Testing
 
-As of the end of M5: 187 unit tests, 20 conformance fixtures, 16 foreign format
-fixtures, 38 contrast pairs, 2 performance budgets in node and 3 more measured in
-a browser, and a 64 check browser run that covers export, import, restore,
+As of the end of M6: 223 unit tests, the number `npm test` reports, with 21
+conformance fixtures, 16 foreign format fixtures, 38 contrast pairs, 2
+performance budgets in node and 3 more measured in a browser, and a 70 check
+browser run that covers export, import, restore,
 search, snapshots, the options page and the theme. The contract below is what
 they are for.
 
@@ -37,16 +38,17 @@ Implemented as `test/tools/roundtrip.ts`, driven by `test/unit/roundtrip.test.ts
 
 ### Table X3: The documented exceptions
 
-Everything else must match exactly. Each exception is a browser fact, not a TabsPack choice, and each one is named in the harness beside the reason.
+Everything else must match exactly. Each exception is a browser fact rather than a TabsPack choice, with one deliberate exception marked below, and each one is named in the harness beside the reason.
 
 | Field | Why it cannot come back |
 |---|---|
 | `exportedAt`, `source`, `counts` | Written fresh by every export |
 | `favIconUrl` | A tab that has not rendered has no icon yet |
 | `lastAccessed` | The browser stamps it with the moment of the restore |
-| `discarded` | Depends on the discard threshold in force, not on the file |
+| `discarded` | Depends on the restore policy in force, not on the file. Since ADR-024 a restored tab is unloaded whatever the file said |
 | `cookieStoreId` | Only Gecko has containers |
 | `title` | A title belongs to the loaded page. Chromium's `tabs.create` cannot set one at all; Gecko accepts it for an unloaded tab, which the harness asserts separately |
+| `url`, for a tab a suspender had parked | Deliberate, and the only exception that is a TabsPack choice rather than a browser fact. A wrapper goes in, the page it stands for comes out, and it stays that way on every later export. ADR-023 |
 | `bounds`, for a window that is not in its normal state | `windows.create` refuses bounds and a state together, so a maximized window is placed by the window manager |
 | Group ids | May be renumbered, as long as membership, title, colour and collapsed state match |
 | A tab whose address no extension may open | Reported and listed on the placeholder page instead of restored |
@@ -107,8 +109,8 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 
 | Automated | How |
 |---|---|
-| Everything in `src/core/` | 187 unit tests against a writable fake browser that models the awkward parts of the real one |
-| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 64 checks against the built extension in a real Chromium |
+| Everything in `src/core/` | 223 unit tests against a writable fake browser that models the awkward parts of the real one |
+| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 70 checks against the built extension in a real Chromium |
 | That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
 | That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |
@@ -133,8 +135,9 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | Restore into new windows with bounds | Required | Required | Required |
 | Groups restored with colour and collapsed state | Required, 89 and later | Required | Required, 139 and later. Degrades with one notice below that |
 | Discarded restore | Create then discard | Create then discard | `discarded: true` at creation |
-| Restore 200 tabs with unloading on, and watch for a crash | Required, see LIMITATIONS Table L3 | Required | Required |
-| Clipboard from the service worker | Offscreen document | Offscreen document | Page context |
+| Restore 200 tabs with unloading on, which is the default since ADR-024, and watch for a crash | Required, see LIMITATIONS Table L3 | Required | Required |
+| A tab parked by a suspender comes back as the page it stands for | Required, with the suspender installed | Required | Required |
+| Clipboard | From the page, on every engine. There is no offscreen document and no background clipboard write: ADR-021 | Same | Same |
 | Optional permission prompt for `tabGroups` | Required | Required | Required |
 | Keyboard commands fire, and appear in the browser's shortcut settings | Required | Required | Required |
 | Snapshots survive a browser restart | Required | Required | Required |
