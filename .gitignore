@@ -1,5 +1,8 @@
 # Local reference material. Kept on this machine, never committed.
-agent_docs_guide.md
+# The guide moved from the root to docs/history/ on 2026-09-26; the path is
+# spelled out so the rule says where it is rather than matching any file of
+# that name at any depth.
+docs/history/agent_docs_guide.md
 Detailed README Guide.docx
 
 # Dependencies

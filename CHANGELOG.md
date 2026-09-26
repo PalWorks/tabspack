@@ -6,6 +6,11 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ## [Unreleased]
 
+### Changed
+
+- **The store title and summary say what the product does.** The manifest `name` was `TabsPack`, which is what every store reads as the listing title, so the dashboard showed a brand nobody has heard of. It is now `TabsPack: Cross Browser Tab Export & Restore`, 44 characters so nothing is cut at the 45 character search truncation and it fits AMO's 50. The summary is now `Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, pinned tab and group.`, 129 of 132, carrying save, export, import, restore, session and all three browser names once each.
+- The title and the wordmark are now two strings. `extName` is the store title; a new `brandName`, `TabsPack`, is what the popup, the manager, the placeholder page and the toolbar tooltip show, so a change made for search cannot turn the product's own header into a sentence.
+
 ### Documentation
 
 - **A full sweep of every document, and it found two things that were not true.** `llms-full.txt` and the site's home page both said store listings were "in review". Nothing has been submitted to any store, so a public page was making a false claim about the product's status; both now say 1.0.0 is built and not yet submitted. And `SECURITY.md` carried two rows that contradicted each other, one saying there is no runtime message listener and one describing how the message handlers check the sender. There are no message handlers, which is verifiable by grep, so the second row is gone.

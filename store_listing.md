@@ -46,6 +46,9 @@ anyway.
 | Phrase | Intent | Where it lands |
 |---|---|---|
 | export browser tabs | primary, high volume | Name, summary, first paragraph |
+| save tabs to a file | primary, high volume | Summary, first sentence |
+| import tabs | primary, pairs with export | Summary, second sentence |
+| cross browser tab export | differentiator, exact phrase | Name |
 | save all open tabs to a file | primary, long tail | First paragraph, "What it does" |
 | restore tabs | primary | Summary, "What it does" |
 | move tabs between browsers | primary, high intent | Name, "Move between browsers" |
@@ -65,20 +68,41 @@ them, and readers have been trained to distrust them.
 
 ## Table S3: Name
 
+**This field is not typed into a dashboard. It is the manifest's `name`, which
+every store reads as the listing title, and it comes from `extName` in
+`_locales/en/messages.json`.** That is the fix this table needed: until
+2026-09-26 the manifest said `TabsPack` and the title below existed only here,
+so the store would have been given the bland one.
+
 The Chrome Web Store allows 75 characters and shows roughly 45 before
-truncating in search results. Everything essential must survive the first 45.
+truncating in search results. AMO's name field allows 50. Everything essential
+must therefore survive the first 45, and the whole title must fit in 50.
 
 | Field | Value | Length |
 |---|---|---|
-| **Name (use this)** | `TabsPack — Export & Restore Tabs Across Browsers` | 48 |
-| First 45 characters | `TabsPack — Export & Restore Tabs Across Brow…` | — |
-| Edge Add-ons, same | `TabsPack — Export & Restore Tabs Across Browsers` | 48 |
-| Firefox AMO, shorter field | `TabsPack — Export & Restore Tabs` | 32 |
+| **`extName`, shipped** | `TabsPack: Cross Browser Tab Export & Restore` | 44 |
+| At the 45 character cut | Nothing is lost. The title is 44 | — |
+| Against AMO's 50 | Fits, with 6 to spare | — |
+| **`brandName`, shipped** | `TabsPack` | 8 |
 
-**Why this and not just "TabsPack".** Nobody searches for a brand they have
-never heard of. The three words after the dash are the three things people type
-into a store search box, and they are also what an answer engine needs in order
-to say what this is.
+**Why the title and the wordmark are two different strings.** A store title has
+to win a search against people who have never heard of the product, so it
+carries the words they type. A header inside the product is read by somebody who
+already installed it, and a header reading the whole title would be absurd. So
+`extName` is the title, used by the manifest `name`, and `brandName` is the
+wordmark, used by the popup header, the manager header, the placeholder page and
+the toolbar tooltip. One string changed for search cannot drag the other with it.
+
+**Why a colon and not a dash.** A dash in a store title is rendered
+inconsistently across the three dashboards and is sometimes normalised into
+something else. A colon is not.
+
+**Why these words.** `Cross Browser` is the differentiator and a phrase people
+actually type. `Tab Export` is the highest volume exact phrase this product can
+honestly claim. `Restore` is the word that separates it from every exporter that
+hands you a list of links, which is the entire competitive set. `Import` is not
+in the title because it is the fourth word of the summary, which stores also
+index, and because the title has to stay under 45.
 
 ---
 
@@ -88,17 +112,28 @@ This is the single highest value field in the listing. It appears in search
 results, in the store's category pages, in the browser's own extension
 management page, and it is the sentence an answer engine quotes.
 
+Like the name, this is **not typed into a dashboard**. It is `extDescription`
+in `_locales/en/messages.json`, which becomes the manifest `description` and is
+what each store pre-fills its summary with.
+
 | | Text | Length |
 |---|---|---|
-| **Use this** | `Export every open tab to one file and restore them exactly, in Chrome, Edge or Firefox. Windows, order and groups survive.` | 121 |
-| Edge Add-ons, same field | identical | 121 |
-| Firefox AMO summary, 250 allowed | `Export every open tab to one file and restore them exactly as they were, in Chrome, Edge or Firefox. Windows, tab order, pinned tabs and groups all survive. Free, no account, and your tabs never leave your device.` | 211 |
+| **`extDescription`, shipped** | `Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, pinned tab and group.` | 129 |
+| Edge Add-ons, same field | identical | 129 |
+| Firefox AMO summary, 250 allowed | `Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, tab order, pinned tab and group. Free, no account, no sync, no tracking, and your tabs never leave your device.` | 218 |
 
-**Why it is built this way.** It is one complete sentence plus one short one, so
-a model can quote either in isolation. It names all three browsers, which is
-what makes it match a cross browser search. It says "exactly", which is the
-claim that separates this from every exporter that gives you a list of links.
-It contains no adjective that could be disputed.
+**Why it is built this way.** Two complete sentences, so a model can quote
+either alone. Between the title and these 129 characters the listing states
+every term somebody actually searches for: save, export, import, restore, tab,
+session, window, pinned, group, cross browser, and all three browser names.
+Each appears once, inside a sentence that would be there anyway, which is the
+rule in Table S2.
+
+It leads with **save or export** because "save tabs" and "export tabs" are the
+two highest volume queries in this category and only one of them fits in the
+title. **Import** is the fourth word of the second sentence rather than buried
+at the end. It names all three browsers, which is what makes it match a cross
+browser search. It contains no adjective that could be disputed.
 
 ---
 

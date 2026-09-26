@@ -1,10 +1,12 @@
 {
   "extName": {
-    "message": "TabsPack",
-    "description": "The product name. Not translated."
+    "message": "TabsPack: Cross Browser Tab Export & Restore"
+  },
+  "brandName": {
+    "message": "TabsPack"
   },
   "extDescription": {
-    "message": "Export, move, share and restore browser tabs across browsers using an open, offline first format."
+    "message": "Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, pinned tab and group."
   },
   "cmdExportAll": {
     "message": "Export all windows to a TabsPack file"

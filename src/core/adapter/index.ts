@@ -341,7 +341,7 @@ export const realAdapter: BrowserAdapter = {
     const action = browser.action;
     if (!action?.setTitle) return;
     try {
-      await action.setTitle({ title: title === "" ? realAdapter.getMessage("extName") : title });
+      await action.setTitle({ title: title === "" ? realAdapter.getMessage("brandName") : title });
     } catch {
       return;
     }
