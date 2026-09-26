@@ -8,6 +8,9 @@ does, and against [PRIVACY.md](PRIVACY.md), which the stores also read.
 Version 0.0.3. Prepared 2026-09-26. Covers the Chrome Web Store, Microsoft Edge
 Add-ons and addons.mozilla.org.
 
+> **The support relay is live** at `tabspack-support.palworks.ai`, so every
+> answer below about the network is describing something that actually runs.
+>
 > **Before you paste anything**, three fields do not exist yet and must be filled
 > in first: the three store listing URLs. They also have to go into `LISTINGS`
 > in `src/core/rating.ts` and into `NETWORK_ALLOWLIST` in `scripts/lint.mjs`,

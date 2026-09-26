@@ -144,6 +144,12 @@ export default {
  * The burst limit, from Cloudflare's own rate limiting binding, configured in
  * `wrangler.toml`. Per colo rather than global, which is the right shape for
  * this: it stops one machine hammering one data centre.
+ *
+ * It is also **approximate**. Measured against the deployed worker with the
+ * limit set to 1, three requests got through before the fourth was refused,
+ * because the counter is eventually consistent. It is a brake on a flood, not
+ * a quota. The daily counters below are the real ceiling, and they are checked
+ * after this one precisely because this one cannot be trusted to be exact.
  */
 async function burstExceeded(env, ip) {
   if (!env.BURST?.limit) return false;

@@ -692,6 +692,10 @@ The obvious hostname, `support.palworks.ai`, **was already live**, serving a Clo
 
 That also exposed a real defect in the client, which treated any `response.ok` as a delivered message. The endpoint that was already there answers with HTML. A captive portal, a corporate proxy, a parked domain and a misrouted host all do the same. `sendViaRelay` now requires the worker's own `{"ok":true}` body, because telling somebody their bug report was sent when it went nowhere is the worst thing this function can do: a duplicate costs nothing, a silently swallowed report costs the report.
 
+**Deployed 2026-09-26** to `tabspack-support.palworks.ai`, with a Resend key that is send-only and scoped to the `palworks.ai` domain, so a compromise of it buys the ability to send as us and nothing else: no logs, no contacts, no minting further keys. It is a key of TabsPack's own rather than one shared with the other products on that domain, so revoking it breaks only this. Verified end to end from the shipped extension in a real browser, with the message delivered to the inbox and its body identical to what was on the screen.
+
+One measured surprise worth recording: Cloudflare's rate limiting binding is **approximate**. With the limit set to 1, three requests got through before the fourth was refused, because the counter is per colo and eventually consistent. It is a brake on a flood, not a quota, and the daily counters in KV are the real ceiling. That is why they are checked after it rather than instead of it.
+
 **Consequence.** The Support pane gains a second button, "Use my email app", so the original route is still one click for the people who prefer it, and it is where Send lands when anything goes wrong. The worker is open to the internet by construction, so it is capped three ways and holds no state; past the global cap it answers 429 and the extension uses the mail client, which means the worst outcome of an attack on it is a slower support channel rather than a lost message or a bill. Eleven unit tests cover the client, and every refusal path in the worker was exercised against a local deployment before it shipped.
 
 ---

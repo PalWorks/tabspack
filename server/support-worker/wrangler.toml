@@ -2,6 +2,10 @@ name = "tabspack-support"
 main = "worker.js"
 compatibility_date = "2026-09-01"
 
+# Five accounts are reachable from one login, and picking the wrong one deploys
+# into somebody else's. Pinned here so it cannot be picked at all.
+account_id = "96ec2a311affbd387b884673c0e84eb8"
+
 # The origin the extension asks permission for. `scripts/lint.mjs` checks that
 # this, `RELAY_ORIGIN` in `src/core/relay.ts` and `optional_host_permissions` in
 # both manifests all name the same host, because three copies of one address is
@@ -14,21 +18,22 @@ routes = [
 #   npx wrangler secret put RESEND_API_KEY
 
 # Burst limit, per IP, per data centre. `period` may only be 10 or 60.
+#
+# It is approximate, not exact. Measured against the deployed worker with the
+# limit temporarily set to 1: three requests got through before the fourth was
+# refused. The counter is per colo and eventually consistent, so treat this as
+# "roughly five a minute" and rely on the daily caps in KV for the real ceiling.
 [[ratelimits]]
 name = "BURST"
 namespace_id = "1001"
 simple = { limit = 5, period = 60 }
 
-# Daily caps, per IP and global. Optional: the worker runs without this binding
-# and simply has no daily cap. To switch it on:
-#
-#   npx wrangler kv namespace create tabspack-support-counters
-#
-# then paste the id it prints below and uncomment both lines.
-#
-# [[kv_namespaces]]
-# binding = "COUNTERS"
-# id = "paste-the-id-here"
+# Daily caps, per IP and global. A namespace of its own rather than the shared
+# `palworks-resend-quota`: another product's worker owns that one and its key
+# scheme, and writing into it blind would corrupt somebody else's accounting.
+[[kv_namespaces]]
+binding = "COUNTERS"
+id = "6a3c4ea4d0a84953a22084ffa22ece6a"
 
 [observability]
 enabled = true
