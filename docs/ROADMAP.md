@@ -99,7 +99,7 @@ them and stays readable without scrolling.
 
 | Rank | Id | Date raised | Task | Phase | Bucket | Effort | Impact | Status | Problem | Recommended solution |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | T-507 | 2026-09-24 | Full cross browser matrix | M5 | Quality | S | High | for a person | Engine differences surface at the worst possible moment, in review | Automated in `npm run matrix` and green on Edge 25/25, Chrome 25/25, Firefox 26/26. Four rows are left that only a person can do, listed in Table R10 |
+| 1 | T-507 | 2026-09-24 | Full cross browser matrix | M5 | Quality | S | High | for a person | Engine differences surface at the worst possible moment, in review | Automated in `npm run matrix`. Re-run 2026-09-26 against the tree as it ships, headed on a virtual display with a window manager and with `--grant-groups --keys`: **Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed**. Four rows are left that only a person can do, and the twenty minute checklist for them is [MANUAL-CHECKS.md](MANUAL-CHECKS.md) |
 | 2 | T-509 | 2026-09-24 | Store submissions | M5 | Release | M | Critical | next | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions |
 | 3 | B-101 | 2026-09-24 | Scheduled automatic snapshots | v1.1 | Durability | M | High | todo | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker |
 | 4 | B-204 | 2026-09-26 | Archive the stale tabs, then close them | v2 | Hygiene | M | High | todo | Seeing which tabs died is only half of it. The user still closes three hundred tabs by hand, which is the work they came to avoid, and the obvious shortcut is the one destructive thing TabsPack would ever do | Export the tabs the age filter selects, and only once the file is on disk, close exactly those. Needs a confirmation naming the count, a guarantee that no tab closes before its bytes are written, and an undo that is the file itself. Blocked on nothing but care. B-202, ADR-044 |
@@ -427,6 +427,12 @@ Everything up to those lines is done, and `docs/store/` holds the listing text a
 every answer each store asks for, so the submissions are a sitting rather than a
 piece of work.
 
+The four `T-507` rows have a page of their own now:
+[MANUAL-CHECKS.md](MANUAL-CHECKS.md), written so the sitting is twenty minutes
+with one document open rather than an afternoon with three. It ends in Table M1,
+where the result of each check goes. Every row of it reads `not yet`, which is
+the honest state of a check nobody has done.
+
 ## 6. Done
 
 ### Table R9: Completed
@@ -440,9 +446,9 @@ piece of work.
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
 | M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 190 unit tests and a 59 check browser run at the time. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
 | M7 A real user's session | T-511, T-701 to T-714 | 247 unit tests and an 81 check browser run. A success that reads as a success, the tab groups permission offered where it is actually lost, a callout that can be seen, titles on and favicons off, an intake that folds away, a toolbar that reports from every surface, packaging for all three stores, a support form that sends no request, and a rating ask that stops by itself |
-| M8 Reachable and public | T-715, T-716 | 260 unit tests and a 97 check browser run, with the matrix green on all three browsers: Edge 25/25, Chrome 25/25, Firefox 26/26. A support relay deployed at `tabspack-support.palworks.ai` and proven end to end from the shipped extension in a real browser, with the host asked for at the point of use and a fallback for every way it can fail. A ten page site on GitHub Pages, rendered from one layout and committed, loading nothing from any other server |
+| M8 Reachable and public | T-715, T-716 | 260 unit tests and a 97 check browser run, with the matrix green on all three browsers. A support relay deployed at `tabspack-support.palworks.ai` and proven end to end from the shipped extension in a real browser, with the host asked for at the point of use and a fallback for every way it can fail. A ten page site on GitHub Pages, rendered from one layout and committed, loading nothing from any other server |
 | M6 Recovery | T-601 to T-609 | 223 unit tests and a 70 check browser run. A suspender's wrapper read back to the page it stands for, on export and on import, from four named families and by shape for the rest, with every recovery counted. Restores create every tab unloaded by default, flushed per batch so a large restore never holds more than a batch loaded at once |
-| M5 loose ends, before the first submission | T-717, B-202 | 275 unit tests and a 107 check browser run. The format's canonical URL points at us and resolves, guarded by a lint rule that was tested by breaking it three ways. Tab age reported from data the pack already carried, with a filter that is off by default and two exemptions: a pinned tab and a tab with no timestamp are never called old |
+| M5 loose ends, before the first submission | T-717, B-202 | 275 unit tests, a 107 check browser run, and the matrix re-run against the shipping tree: Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed. The format's canonical URL points at us and resolves, guarded by a lint rule that was tested by breaking it three ways. Tab age reported from data the pack already carried, with a filter that is off by default and two exemptions: a pinned tab and a tab with no timestamp are never called old |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture

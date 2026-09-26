@@ -168,9 +168,17 @@ DISPLAY=:77 metacity &
 DISPLAY=:77 npm run matrix -- --target=chrome --headed --grant-groups --keys
 ```
  Results below are
-from 2026-09-25 against Chrome 154.0.8037.57, Edge 153.0.4234.48 and Firefox
+from **2026-09-26** against Chrome 154.0.8037.57, Edge 154.0.4258.37 and Firefox
 156.0.1 on Linux, on a virtual display with a window manager, which is what the
 bounds and the keyboard rows need.
+
+**The configuration is part of the result.** Run headless and without the flags,
+the same tree reports Chrome 22 of 25, Edge 22 of 25 and Firefox 25 of 26, and
+every one of those failures is the rig rather than the product: the two group
+rows need `--grant-groups`, because a driver cannot answer a permission prompt,
+and the window bounds row needs a window manager, because without one the
+browser picks its own size. A matrix total quoted without the configuration it
+came from is not a fact about the product.
 
 | Case | Chrome 154 | Edge 153 | Firefox 156 |
 |---|---|---|---|
@@ -200,13 +208,16 @@ bounds and the keyboard rows need.
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |
 | Keyboard commands are declared with the shortcut the browser accepted | pass | pass | pass |
-| A keyboard command actually fires | **pass** in one run, Alt+Shift+E wrote a file and Alt+Shift+S saved a snapshot. Not run in another: this display delivers keys to Chrome only intermittently | **pass**, every run | not run, the key arrives and the command does not fire. The Alt modifier was ruled out by rebinding the command to Ctrl+Shift+U |
-| Optional permission prompt for `tabGroups` | not run, a driver cannot answer a prompt | not run | not run |
+| A keyboard command actually fires | **pass**, Alt+Shift+E wrote a file and Alt+Shift+S saved a snapshot | **pass** | skipped, the display delivers a plain key to Firefox but not an extension command. The Alt modifier was ruled out by rebinding to Ctrl+Shift+U, so this is the rig. It is one of the four rows in Table R10 that a person has to do: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 3 |
+| Optional permission prompt for `tabGroups` | not run, a driver cannot answer a prompt. `--grant-groups` grants it programmatically and exercises everything behind it, which leaves the dialogue itself as the one untested thing: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 1 | not run | not run |
 | Containers | not applicable | not applicable | pass, the field is carried as `firefox-default` |
 
-Totals on that date, and nothing failed on any of them: Chrome 23 passed with 2
-not run, Edge 25 passed with none not run, Firefox 23 passed with 2 not run. The
-rows that did not run are the keyboard ones, and the reason is in the row.
+**Totals on 2026-09-26, with nothing failed on any engine: Chrome 27 of 27,
+Edge 27 of 27, Firefox 26 of 28 with 2 skipped.** The two Firefox skips are the
+keyboard rows, and the reason is in the row. The row counts differ between
+engines because some rows do not apply to an engine and some only exist with
+`--keys` and `--grant-groups`, which is why the flags are in the command at the
+top of this section.
 
 One instability worth naming rather than hiding: the small restore's rows read
 the tab strip the moment the report appears, and a tab that is still loading

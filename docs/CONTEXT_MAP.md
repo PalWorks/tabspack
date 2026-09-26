@@ -11,6 +11,7 @@ Where knowledge lives, so nothing is inferred twice. Read the file that owns a q
 | What is the file format, exactly, field by field | [SPEC.md](SPEC.md) | PLAN.md carries no field definitions |
 | What order do phases ship in, what is the exit test | [ROADMAP.md](ROADMAP.md) sections 3 and 4 | PLAN.md, which points here |
 | What should I work on next, what counts as done | [ROADMAP.md](ROADMAP.md) Table R1, the master backlog | A separate task file. There is none, deliberately |
+| What can only a person test, and how | [MANUAL-CHECKS.md](MANUAL-CHECKS.md), the four rows of T-507 with the keys to press and what failure looks like | Reading Table X2 and working it out again |
 | How is the code organised, what may call `browser.*` | [ARCHITECTURE.md](ARCHITECTURE.md) | |
 | What does a browser actually mean by pinned, discarded, group, container | [DOMAIN.md](DOMAIN.md) | |
 | What may a surface look like, and how must it behave | [DESIGN.md](DESIGN.md) | Anywhere else. Tokens are defined once, in `src/ui/shared/theme.css` |

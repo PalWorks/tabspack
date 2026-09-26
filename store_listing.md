@@ -118,7 +118,7 @@ rank.
 
 ## Detailed description
 
-Paste the block between the rules exactly. It is about 4,100 characters,
+Paste the block between the rules exactly. It is about 4,750 characters,
 against a 16,000 limit. Short is deliberate: the fields below the fold are read
 by almost nobody, and a long listing dilutes the phrases that matter.
 
@@ -182,6 +182,18 @@ bookmarks in Netscape HTML, Markdown link lists, flat JSON, and plain lists of
 URLs. TabsPack works out what a file is by reading it, not by its name, and
 shows you what it found before it opens a single tab.
 
+IT SHOWS YOU WHICH TABS DIED MONTHS AGO
+
+Most people keep hundreds of tabs because they cannot tell which ones still
+matter. TabsPack groups your open tabs by when you last looked at them, and can
+leave the ones you have not touched in a month, three months, six months or a
+year out of the export, so you can archive them and close them with a clear
+conscience.
+
+It never guesses. A pinned tab is never called old, however long ago you last
+clicked it, and a tab your browser gives no date for is counted separately and
+never treated as stale.
+
 YOUR TABS NEVER LEAVE YOUR DEVICE
 
 This is not a policy. It is a property of the build.
@@ -225,6 +237,7 @@ Built and maintained by palworks.ai.
 
 Website: https://palworks.github.io/tabspack/
 Source: https://github.com/PalWorks/tabspack
+File format schema: https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json
 Support: support@palworks.ai
 
 ---
