@@ -20,6 +20,7 @@
     "assets": "node scripts/gen-assets.mjs",
     "store-art": "node scripts/gen-store-art.mjs",
     "store-art:compose": "node scripts/gen-store-art.mjs --compose",
+    "video": "node scripts/gen-video.mjs",
     "site": "node scripts/gen-site.mjs",
     "site:check": "node scripts/gen-site.mjs --check && node scripts/check-site.mjs",
     "og": "node scripts/gen-og.mjs",

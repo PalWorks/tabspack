@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TabsPack Screen Reel</title>
+<meta name="description" content="The middle of the TabsPack promo video: the five store screenshots, one after another, on the explainer's own background." />
+<!--
+  The middle section of the promo video, rendered frame by frame by
+  scripts/gen-video.mjs. The explainer shows the idea; this shows the real
+  screens, which are the store screenshots in assets/store/, taken from the
+  real extension (ADR-045).
+
+  scripts/gen-video.mjs renders the five slides again at 1.5x from the same
+  captures and hands them in as window.__SHOTS__, so the screens are sharp at
+  1080p; opened on its own, the page shows the 1280 by 800 store files.
+
+  It starts and ends on the bare background, which is the explainer's stage
+  background exactly, so the cut in and the cut out cannot be seen.
+  window.reel.seek(ms) renders any instant; nothing here runs on its own.
+-->
+<style>
+@font-face { font-family: "Figtree"; src: url("fonts/figtree.woff2") format("woff2"); font-weight: 300 900; font-display: block; }
+html, body { margin: 0; background: #2563ff; }
+.stage {
+  position: relative; width: 1280px; height: 720px; overflow: hidden;
+  background:
+    radial-gradient(900px 600px at 78% 12%, rgb(255 255 255 / 16%), transparent 60%),
+    radial-gradient(700px 500px at 8% 100%, rgb(20 10 90 / 35%), transparent 70%),
+    linear-gradient(135deg, #2563ff 0%, #3b4cf8 55%, #5b3df5 100%);
+  font-family: "Figtree", system-ui, sans-serif;
+}
+.shot {
+  position: absolute; left: 96px; top: 20px; width: 1088px; height: 680px; /* 1280 by 800 at 0.85 */
+  border-radius: 16px; overflow: hidden; opacity: 0;
+  box-shadow: 0 40px 90px -30px rgb(10 12 60 / 60%), 0 3px 10px rgb(10 12 60 / 20%);
+  transform-origin: 50% 50%;
+}
+.shot img { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="shot"><img src="../store/screenshot-1-export-in-one-click-1280x800.png" alt="" /></div>
+  <div class="shot"><img src="../store/screenshot-2-everything-comes-back-1280x800.png" alt="" /></div>
+  <div class="shot"><img src="../store/screenshot-3-any-browser-1280x800.png" alt="" /></div>
+  <div class="shot"><img src="../store/screenshot-4-tabs-you-forgot-1280x800.png" alt="" /></div>
+  <div class="shot"><img src="../store/screenshot-5-never-leaves-your-device-1280x800.png" alt="" /></div>
+</div>
+<script>
+(() => {
+  const SLOT = 2400;   // each screen owns this much time
+  const MOVE = 520;    // and spends this much arriving, and as much leaving
+  const shots = [...document.querySelectorAll(".shot")];
+  if (Array.isArray(window.__SHOTS__)) shots.forEach((el, k) => { el.querySelector("img").src = window.__SHOTS__[k]; });
+  const T = shots.length * SLOT + MOVE;
+
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+  const ease = (x) => 1 - Math.pow(1 - x, 3);        // out: settles gently
+  const easeIn = (x) => x * x * x;                   // in: leaves with intent
+
+  function seek(ms) {
+    shots.forEach((el, k) => {
+      const start = k * SLOT, end = start + SLOT;
+      const inP = ease(clamp((ms - start) / MOVE));
+      const outP = easeIn(clamp((ms - end) / MOVE));
+      // A slow push in while the screen holds, so it is never a still frame.
+      const drift = clamp((ms - start) / (SLOT + MOVE));
+      const x = (1 - inP) * 120 - outP * 120;
+      const s = 0.955 + 0.045 * inP + 0.02 * drift - 0.02 * outP;
+      el.style.opacity = String(inP * (1 - outP));
+      el.style.transform = `translateX(${x}px) scale(${s})`;
+    });
+  }
+
+  window.reel = { seek, duration: T };
+  seek(0);
+  Promise.all([document.fonts.ready, ...[...document.images].map((i) => i.decode())])
+    .then(() => { document.body.dataset.ready = "1"; });
+})();
+</script>
+</body>
+</html>

@@ -36,7 +36,7 @@ security policy pins `script-src` to `'self'`.
 
 | Question | Answer |
 |---|---|
-| Does it collect personally identifiable information? | No |
+| Does it collect personally identifiable information? | Yes, only if the user types a reply email address into the optional field in the Support pane and presses Send. It is used to answer that message and for nothing else. Nothing is collected otherwise |
 | Health information? | No |
 | Financial or payment information? | No |
 | Authentication information? | No. A pack never contains cookies, tokens, headers or form values, by design and by specification |
@@ -52,7 +52,7 @@ security policy pins `script-src` to `'self'`.
 
 ## Chrome Web Store
 
-- Single purpose: exporting the tabs you have open to a file, and restoring them from one.
+- Single purpose: the paragraph in `store_listing.md` Table S8, pasted exactly.
 - Upload the contents of `dist/chrome`, zipped, not the folder itself.
 - Assets: the 128 px store icon, five 1280 by 800 screenshots, the 440 by 280
   small promo tile and the 1400 by 560 marquee. All in `assets/store/`, made by

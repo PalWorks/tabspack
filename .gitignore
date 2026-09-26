@@ -10,6 +10,8 @@ node_modules/
 
 # Build output
 dist/
+# The promo video is 9 MB and `npm run video` rebuilds it exactly.
+assets/promo/*.mp4
 *.zip
 *.crx
 *.xpi

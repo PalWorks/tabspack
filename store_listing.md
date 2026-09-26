@@ -292,8 +292,8 @@ noticed and is expensive.
 
 | Question | Answer |
 |---|---|
-| Single purpose | Exporting the tabs the user has open to a file, and restoring them from one. |
-| Personally identifiable information | No |
+| Single purpose | TabsPack saves the browser tabs a user has open and restores them later. It exports the open windows and tabs, with their order, pinned state and tab groups, to a file on the user's device or to a snapshot kept inside the browser, and reopens them from that file or snapshot, in the same browser or a different one. Every feature serves that one purpose: choosing which tabs go into an export, previewing a file before anything opens, and reading session files from other tab managers. |
+| Personally identifiable information | Yes, only if the user types a reply email address into the optional field in the Support pane and presses Send. It is used to answer that message and for nothing else. Nothing is collected otherwise |
 | Health information | No |
 | Financial or payment information | No |
 | Authentication information | No. An export never contains cookies, tokens, headers or form values, by design and by specification |
@@ -344,7 +344,9 @@ one rather than trusting the file name. Regenerate them all with
 | Small promo tile | 440×280 | `assets/store/promo-small-440x280.png` | Chrome, Edge |
 | Marquee promo tile | 1400×560 | `assets/store/promo-marquee-1400x560.png` | Chrome. Optional, and it is what a featured placement uses |
 | Logo | 300×300 | `assets/store/logo-300x300.png` | Edge |
-| Explainer animation | 16 seconds, HTML | `assets/promo/explainer.html` | None directly. The store takes a YouTube link for a promo video; this can be recorded to video from the same timeline if you want one |
+| Explainer animation | 16 seconds, HTML | `assets/promo/explainer.html` | None directly. It is on the site's home page, and it is the first half of the promo video |
+| Promo video | 1920×1080, 60 fps, H.264, 30 seconds, no audio | `assets/promo/tabspack-promo-1080p.mp4`, from `npm run video`. Not committed: 9 MB, and it rebuilds exactly | Chrome, as a YouTube link. Upload it to YouTube first, then paste the link |
+| YouTube thumbnail | 1280×720 | `assets/promo/youtube-thumbnail.png`, the end card | YouTube, not the store |
 
 **Upload the screenshots in this order.** The first one is the thumbnail in
 search results and most people never reach the third, so the order is the
@@ -427,7 +429,7 @@ listed here, that is a question to answer and record, not a sentence to improvis
 | | Category | Workflow & Planning. Check it is still offered; the store has renamed categories before | Table S5 |
 | | Language | English | Table S5 |
 | | Store icon | `assets/store/store-icon-128.png` | Table S10 |
-| | Global promo video | Optional, a YouTube link. None yet | Table S10 |
+| | Global promo video | The YouTube link to `tabspack-promo-1080p.mp4`, uploaded as Public or Unlisted (a Private video will not play on the listing). Title and description in Table S15 | Table S10 |
 | | Screenshots | The five, in the order in Table S10 | Table S10 |
 | | Small promo tile | `assets/store/promo-small-440x280.png` | Table S10 |
 | | Marquee promo tile | `assets/store/promo-marquee-1400x560.png` | Table S10 |
@@ -435,7 +437,7 @@ listed here, that is a question to answer and record, not a sentence to improvis
 | | Homepage URL | `https://palworks.github.io/tabspack/` | Table S9 |
 | | Support URL | `https://palworks.github.io/tabspack/contact/` | Table S9 |
 | | Mature content | No | Table S9 |
-| **Privacy practices** | Single purpose | "Exporting the tabs you have open to a file, and restoring them from one." | `docs/store/submission.md` |
+| **Privacy practices** | Single purpose | The paragraph in Table S8, pasted exactly. It names one purpose and says why each feature belongs to it, which is what a reviewer checks | Table S8 |
 | | Permission justification, one per permission | `tabs`, `storage`, `downloads`, the optional `tabGroups`, and the optional support host, word for word | Table S6 |
 | | Are you using remote code? | No. Everything runs from the package, and the content security policy pins scripts to it | Table S8 |
 | | Data usage | The answers in Table S8. The one that needs care: a support message the user chooses to send is "personal communications", and an optional reply address is "personally identifiable information". Both are sent only when the user presses Send, and only to answer them | Table S8 |
@@ -446,6 +448,22 @@ listed here, that is a question to answer and record, not a sentence to improvis
 | | Pricing | Free. The store has no payments of its own any more | Table S9 |
 | **Account** | Trader or non-trader declaration | Required for listings shown in the EU. A trader's contact details are shown publicly on the listing. Which one applies is a question about how palworks.ai operates, and it is yours to answer rather than mine | Not in this repository |
 | | Verified contact email | Must be verified before the first submission is accepted | Your developer account |
+
+## Table S15: The YouTube upload for the promo video
+
+| Field | Value |
+|---|---|
+| File | `assets/promo/tabspack-promo-1080p.mp4` |
+| Title | TabsPack: export your browser tabs and restore them in Chrome, Edge or Firefox |
+| Description | TabsPack packs every open tab into one small file and puts them back exactly as they were: the same windows, the same order, pinned tabs and tab groups, in the same browser or a different one. Free, open source, no account, and your tabs never leave your device. Website: https://palworks.github.io/tabspack/ |
+| Thumbnail | `assets/promo/youtube-thumbnail.png` |
+| Visibility | Public or Unlisted. Not Private, which the listing cannot play |
+| Audience | Not made for kids |
+| Chapters | None. Thirty seconds does not need them |
+
+What the video shows, in order: the explainer story up to the restored window
+(13 seconds), the five store screenshots (12 seconds), and the end card, held.
+It has no sound, which suits a listing that autoplays muted anyway.
 
 **Before pressing Submit for review:** preview the listing from the dashboard and
 read it once as a stranger would. The first screenshot and the summary are what
