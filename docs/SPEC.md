@@ -14,6 +14,14 @@ This is the normative description of the format. The extension is one implementa
 
 The machine readable JSON Schema is `schema/tabspack.v1.schema.json`. It is generated from the TypeScript types in `src/types/tabspack.ts` and tested against every fixture; a hand edit of it fails the build.
 
+Its canonical address, and the `$id` it declares, is:
+
+```
+https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json
+```
+
+That URL resolves: the site publishes the same bytes as the repository, and the build fails if the two disagree or if the `$id` stops matching the path. A reader is free to fetch it, and equally free never to: the schema in the package is the same file. If the format ever moves to a shorter address, that is a `schemaVersion` decision under [PLAYBOOK.md](PLAYBOOK.md) section 4 and not an edit, because the address is part of what has been published. ADR-043.
+
 ## 1. Design rules
 
 1. Arrays, not id keyed objects. Browser tab and window ids are process local integers and are meaningless on the importing machine, so they are never used as keys or references across files.

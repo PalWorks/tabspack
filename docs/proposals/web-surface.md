@@ -244,7 +244,7 @@ second reader for the web.
 
 ## 6. The decision being asked for
 
-1. **The `$id`**: site path, or register `tabspack.dev`?
+1. ~~**The `$id`**: site path, or register `tabspack.dev`?~~ **Settled 2026-09-26: the site path.** `https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json`, published by `gen-site.mjs` and guarded by a lint rule. The domain is bought when there is traction to justify it, and that will be a `schemaVersion` decision rather than an edit. The Gecko extension id moved to `tabspack@palworks.ai` at the same time, because an AMO-accepted id can never be changed afterwards. T-717, ADR-043.
 2. **Order**: is the viewer first, ahead of the spec page, agreed?
 3. **Timing**: after T-509, or is one of these worth doing while the store
    queues run?

@@ -774,3 +774,31 @@ Table R1 gains a Rank column, computed as `impact / effort` over `Critical 4, Hi
 **Consequence.** The arithmetic is deliberately crude, and that is the point: a row moves up only by changing its Effort or its Impact, in a commit that says why. Preference alone cannot promote anything.
 
 Two things the rank cannot see, both written into the roadmap next to it. It does not know dependencies, so `T-717` outranking `T-509` is a coincidence and not the reason it comes first; sequencing rule 1 and the Problem column carry that. And it does not know who can do the work, so rank 1 being `T-507`, four checks only a person can perform, is a true answer to "what is the cheapest win" and not an instruction to an agent.
+
+---
+
+## ADR-043: The format's canonical URL is the site, and it resolves
+
+Date 2026-09-26. Status accepted.
+
+**Context.** `schema/tabspack.v1.schema.json` declared `$id: https://tabspack.dev/schema/tabspack.v1.schema.json`, and `tabspack.dev` was never registered. No DNS record, no whois entry. The Firefox extension id, `tabspack@tabspack.dev`, leaned on the same name.
+
+Nothing was broken. A JSON Schema `$id` is an identifier and a validator never has to fetch it, which is exactly why this survived from M1 to the eve of the first submission without anybody noticing. Two things were wrong anyway. A second implementer who does the obvious thing and follows the canonical address of the format finds nothing at all, which is a poor advertisement for a specification that asks to be reimplemented. And an unregistered domain in a published file is an invitation: anybody may buy it and become the authority on the address of our own format, in a file that by then is sitting on other people's disks.
+
+Timing was the reason it mattered that week rather than eventually. The schema ships inside the package. Once a store accepts a build, changing the `$id` stops being an edit and becomes a question about what `schemaVersion` means, because files in the wild already name the old address.
+
+**Options.**
+
+*Register `tabspack.dev` and point it at the site.* The coherent answer. Short, quotable, survives the site moving, and the extension id already claimed the name. Costs about a pound a month and a DNS record, forever, for a product with no users yet.
+
+*Point the `$id` at the GitHub Pages site.* Free, resolves the same day, and the site already exists with the privacy policy and the terms on it. The address is long and ties the identity of the format to a repository path, so moving the repository is a format event.
+
+*Leave it.* Free and the only option under which a third party can own the canonical URL of the format.
+
+**Decision.** The `$id` is `https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json`. The domain is bought when there is traction to justify it, which is the maintainer's call, and at that point the move is a `schemaVersion` decision under PLAYBOOK section 4.
+
+**The part that is not a URL change.** A `$id` that points at nothing is the defect; a `$id` that points at a 404 is the same defect with extra confidence. So the site now publishes the schema at exactly that path, copied from `schema/` at render time rather than duplicated, and `scripts/lint.mjs` gained `ruleSchemaId`, which fails the build on any of three drifts: the `$id` not matching the site origin, the published path not existing, and the published bytes differing from the committed schema. All three were tested by breaking them.
+
+**The Gecko id moved too**, to `tabspack@palworks.ai`. An extension id never resolves, so this changes nothing technically. It is done now because AMO fixes an addon's id permanently at first acceptance, and this is the last moment it is free. `palworks.ai` is already ours and already serves the support relay.
+
+**Consequence.** The format has a citable address that works, which was one of the four things the B-503 exploration said a specification site actually buys. The cost is a long URL and a format identity tied to a repository path. Both are recoverable for the price of a domain; a squatted name would not have been.

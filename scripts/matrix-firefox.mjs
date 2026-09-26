@@ -37,7 +37,7 @@ const restoreWanted = Number(arg("restore", "200"));
 
 /** Pinned so the extension's pages have a known address. Any uuid will do. */
 const UUID = "4e2c8f16-5a61-4f0a-9c8e-9f5f1f2a3b4c";
-const ADDON_ID = "tabspack@tabspack.dev";
+const ADDON_ID = "tabspack@palworks.ai";
 const base = `moz-extension://${UUID}`;
 
 const results = [];

@@ -6,7 +6,7 @@
   "description": "__MSG_extDescription__",
   "browser_specific_settings": {
     "gecko": {
-      "id": "tabspack@tabspack.dev",
+      "id": "tabspack@palworks.ai",
       "strict_min_version": "115.0"
     }
   },

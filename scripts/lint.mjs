@@ -308,6 +308,45 @@ async function ruleRelayOrigin() {
   }
 }
 
+/**
+ * The format's canonical URL resolves.
+ *
+ * `schema/tabspack.v1.schema.json` declares a `$id`, and a `$id` is the address
+ * a second implementer goes to. Until T-717 it pointed at `tabspack.dev`, which
+ * was never registered: the canonical address of our own file format returned
+ * nothing and was available for anybody to buy. So three things are checked
+ * together, because any one of them alone can drift.
+ *
+ *   1. the `$id` is the site's own origin, read from `scripts/gen-site.mjs`
+ *   2. the path it claims is the path the site actually publishes
+ *   3. the published copy is byte identical to the committed schema
+ *
+ * ADR-043.
+ */
+async function ruleSchemaId() {
+  const schemaFile = "schema/tabspack.v1.schema.json";
+  const siteFile = "scripts/gen-site.mjs";
+  const site = /const SITE = "([^"]+)"/.exec(await readFile(path.join(root, siteFile), "utf8"))?.[1];
+  if (!site) {
+    fail(siteFile, 1, "schema-id", "SITE could not be read");
+    return;
+  }
+
+  const raw = await readFile(path.join(root, schemaFile), "utf8");
+  const id = JSON.parse(raw).$id;
+  const expected = `${site}${schemaFile}`;
+  if (id !== expected) {
+    fail(schemaFile, lineOf(raw, raw.indexOf("$id")), "schema-id", `$id is ${id ?? "missing"}, expected ${expected}`);
+  }
+
+  const published = await readFile(path.join(root, "website", schemaFile), "utf8").catch(() => null);
+  if (published === null) {
+    fail(siteFile, 1, "schema-id", `the $id resolves to nothing: website/${schemaFile} is not published`);
+  } else if (published !== raw) {
+    fail(siteFile, 1, "schema-id", `website/${schemaFile} differs from the committed schema, run \`npm run site\``);
+  }
+}
+
 await ruleAdapterBoundary();
 await ruleNoHtmlInjection();
 await ruleNoNetwork();
@@ -316,6 +355,7 @@ await ruleI18n();
 await ruleManifests();
 await ruleRelayOrigin();
 await ruleNoDeployIds();
+await ruleSchemaId();
 
 if (failures.length === 0) {
   console.log("lint: clean");

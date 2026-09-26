@@ -31,7 +31,15 @@ tighten(schema);
 
 const document = {
   $schema: "http://json-schema.org/draft-07/schema#",
-  $id: "https://tabspack.dev/schema/tabspack.v1.schema.json",
+  /*
+   * The canonical address of the format, and it resolves: `scripts/gen-site.mjs`
+   * publishes this file at exactly this path, and `scripts/lint.mjs` fails the
+   * build if the two ever disagree. It was `https://tabspack.dev/...` until
+   * T-717, and that domain was never registered, so a second implementer
+   * following the canonical address of our own format found nothing and anybody
+   * could have bought it. ADR-043.
+   */
+  $id: "https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json",
   title: "TabsPack file, schema version 1",
   ...schema,
   description:

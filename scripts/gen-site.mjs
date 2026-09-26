@@ -218,6 +218,20 @@ rendered.set(
 rendered.set("llms.txt", await readFile(path.join(src, "llms.txt"), "utf8"));
 rendered.set("llms-full.txt", await readFile(path.join(src, "llms-full.txt"), "utf8"));
 
+/**
+ * The JSON Schema, published at the address it declares as its own `$id`.
+ *
+ * It is copied from `schema/` rather than written here, so there is one schema
+ * and the site serves it rather than a second copy of it. `--check` therefore
+ * fails if the schema is regenerated without regenerating the site, and
+ * `scripts/lint.mjs` fails if the `$id` and this path ever disagree. T-717,
+ * ADR-043.
+ */
+rendered.set(
+  "schema/tabspack.v1.schema.json",
+  await readFile(path.join(root, "schema", "tabspack.v1.schema.json"), "utf8"),
+);
+
 if (check) {
   const problems = [];
   for (const [dest, expected] of rendered) {
