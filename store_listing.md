@@ -157,8 +157,8 @@ rank.
 
 ## Detailed description
 
-Paste the block between the rules exactly. It is **3,859 characters** against a 16,000 limit,
-counted between the rules. Short is deliberate: a long listing
+Paste the contents of the box below exactly (the copy button on a rendered view takes all of it). It is **3,859 characters** against a 16,000 limit,
+counted inside the box. Short is deliberate: a long listing
 dilutes the phrases that matter, and the fields below the fold are read by almost nobody.
 
 ### How it is formatted, and why
@@ -180,8 +180,7 @@ and no link; line breaks and Unicode are the only formatting there is. So:
 The same text works unchanged for Edge Add-ons, which is also plain text, and for
 AMO, which renders it as written.
 
----
-
+```text
 Close your browser without losing your place.
 
 TabsPack saves every tab you have open into one small file and puts them back exactly as they were: the same windows, the same order, the same pinned tabs, the same tab groups. In the same browser, or a different one.
@@ -257,6 +256,7 @@ Website: https://palworks.github.io/tabspack/
 Source: https://github.com/PalWorks/tabspack
 File format schema: https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json
 Support: support@palworks.ai
+```
 
 ---
 
