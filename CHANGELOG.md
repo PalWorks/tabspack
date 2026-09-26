@@ -17,6 +17,9 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `docs/DOMAIN.md` gains "last accessed" as a term and an eighth rule, that unknown is not a value. `docs/SPEC.md` says a reader must not read an absent `lastAccessed` as an old one. `docs/LIMITATIONS.md` records the browser limit and the honest gap in how tab age is tested.
 - `docs/CONTEXT_MAP.md` gains the site, the relay, `store_listing.md` and `docs/proposals/`, plus a fourth layer: outward facing documents, where a claim is a promise rather than a note.
 - The site gains a tab age feature card and a nineteenth FAQ question.
+- The M5 exit test result said "not met, and it cannot be met here". Half of it is met: the matrix is green. The roadmap now says which half, with the numbers and the configuration they came from, and what the other half is actually waiting on.
+- `assets/candidates/reference/README.md` pointed at two SVG candidates that were deleted under ADR-041 when the raster master won. It now describes what actually shipped.
+- Checked, not assumed: every relative link in every markdown file resolves, every backticked repository path exists, and every module under `src/` appears in the architecture map.
 
 
 ## [1.0.0] - 2026-09-26

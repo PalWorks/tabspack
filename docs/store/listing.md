@@ -47,6 +47,11 @@ in today's meeting.
   address back out, on export and on import, and tells you how many it found.
 - Restore without the memory. Tabs come back unloaded, so a pack of two hundred
   costs nothing until you open one.
+- See which tabs died months ago. The export pane groups your open tabs by when
+  you last looked at them, and can leave anything untouched for a month or a
+  year out of the export, so you can archive it and close it. A pinned tab is
+  never called old, and a tab your browser gives no date for is counted apart
+  and never dropped.
 - Keep named snapshots inside the extension for the days you do not want to think
   about where a file goes.
 - Keyboard shortcuts for exporting and for saving a snapshot.

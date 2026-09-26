@@ -478,11 +478,23 @@ reads the same bytes with no file name in play, and a renamed file is still
 recognised. The Tab Session Manager reader was written against that project's own
 `src/background/save.js` rather than against a guess.
 
-M5 exit test result: not met, and it cannot be met here. The test is "review
-packages accepted by all three stores, and the cross browser matrix fully green",
-and both halves need a person: three developer accounts, and hands on Chrome,
-Edge and Firefox. What was done instead is everything up to that line, and the
-table above says which parts of the matrix are now automated and which are not.
+M5 exit test result: **half met, as of 2026-09-26.** The test is "review
+packages accepted by all three stores, and the cross browser matrix fully
+green".
+
+The matrix half is green: Chrome 27 of 27, Edge 27 of 27, Firefox 26 of 28 with
+2 skipped, nothing failed, run headed on a display with a window manager and
+with `--grant-groups --keys` against the tree that ships. The two skips and four
+other rows still need a person, and they are in
+[MANUAL-CHECKS.md](MANUAL-CHECKS.md) with the keys to press. Every row of that
+page's results table currently reads `not yet`.
+
+The store half is not met and cannot be met from here. Version 1.0.0 is built,
+packaged and audited, the Chrome Web Store credentials are verified, and the
+exact upload call is written down in [store/submission.md](store/submission.md)
+Table T6. What is missing is the maintainer's go for a public listing under
+their own account, an Edge Add-ons account and an AMO account. Two of those
+three do not exist yet.
 
 M4 exit test result: fifty snapshots of a 200 tab session store and list without
 a quota error in the unit suite, and in a real Chromium a snapshot is written as
