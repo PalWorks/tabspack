@@ -19,7 +19,12 @@
  *   backgrounds a browser actually paints.
  *
  * Candidates live in `assets/candidates/`. The chosen one is copied to
- * `assets/icon.svg`, which is what `scripts/gen-assets.mjs` rasterises.
+ * `assets/icon.png`, which is what `scripts/gen-assets.mjs` renders down.
+ *
+ * The mark was chosen on 2026-09-26 (T-713), so this is now a tool for judging
+ * a replacement rather than for making the first choice. The shipped mark is a
+ * raster, so it appears in the sheet as an image while the candidates are still
+ * SVG; the glyph column is meaningless for a raster and is left blank for it.
  */
 import { execSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -42,8 +47,9 @@ function bundled() {
   return null;
 }
 
-const files = [["current", path.join(root, "assets", "icon.svg")]];
-for (const name of (await readdir(path.join(root, "assets", "candidates"))).sort()) {
+const shipped = `<img src="data:image/png;base64,${(await readFile(path.join(root, "assets", "icon.png"))).toString("base64")}" alt="" />`;
+const files = [];
+for (const name of (await readdir(path.join(root, "assets", "candidates"))).filter((n) => n.endsWith(".svg")).sort()) {
   files.push([name.replace(".svg", ""), path.join(root, "assets", "candidates", name)]);
 }
 
@@ -55,8 +61,8 @@ const NEIGHBOURS = [
 ];
 
 const rows = [];
-for (const [name, file] of files) {
-  const svg = await readFile(file, "utf8");
+for (const [name, file] of [["shipped", null], ...files]) {
+  const svg = file === null ? shipped : await readFile(file, "utf8");
   const at = (size, mode) => `<td><div class="i ${mode}" style="width:${size}px;height:${size}px">${svg}</div><div class="s">${size}</div></td>`;
   rows.push(`<tr>
     <th>${name}</th>
@@ -83,7 +89,7 @@ const html = `<!doctype html><meta charset="utf-8"><style>
  td{padding:14px 12px;vertical-align:bottom;text-align:center}
  .head td{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8b919c;vertical-align:middle;padding-bottom:4px}
  .gap{width:26px;padding:0}
- .i svg{width:100%;height:100%;display:block}
+ .i svg,.i img{width:100%;height:100%;display:block}
  .glyph .bg{display:none}
  .glyph .fg{fill:var(--brand)}
  .glyph .fg[stroke]{stroke:var(--brand)}

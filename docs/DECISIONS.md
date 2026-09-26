@@ -725,3 +725,28 @@ Date 2026-09-26. Status accepted. Scopes T-716.
 **Consequence.** Two checkers, because they answer different questions. `check-site.mjs` reads the HTML: links resolve, images have dimensions and alt text, every page has a title, a description, a canonical and an OG image, structured data parses, the sitemap matches the pages. It needs no browser and runs in `npm run verify`. `check-site-browser.mjs` needs a layout engine, because whether a page fits on a phone is not a question you can answer by reading CSS. It found the bug that proves the point: every `minmax(300px, 1fr)` grid track was a 300 pixel floor inside a 280 pixel container, so **every page on the site scrolled sideways at 320 pixels wide**, and no amount of reading the stylesheet would have shown it.
 
 Search and answer engines are served by the same facts rather than a second set: `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` graphs generated from the page's own front matter, so a rich result cannot disagree with the page, and `llms.txt` and `llms-full.txt` for the crawlers that would rather read prose than parse markup. `robots.txt` allows every one of them, including the model crawlers: a product nobody has heard of gains more from being quotable than it loses from being trained on.
+
+---
+
+## ADR-041: The mark is the maintainer's illustration, and the master is a raster
+
+Date 2026-09-26. Status accepted. Scopes T-713.
+
+**Context.** The original mark was three bars and a download arrow, which is the most generic possible browser extension icon. Three rounds of agent drawn candidates followed, and the sheet that judged them at 16 pixels killed most of them: a folder, a briefcase, a mushroom, a tulip, an exclamation mark, a handbag and a hamburger menu, all of which looked fine at 128.
+
+The maintainer then drew two of their own. **v2 could not ship**: its four windows were badged with the Chrome, Firefox, Edge and Opera logos, which are other companies' registered marks, and every store's brand policy prohibits a third party's marks in an extension icon because it implies an endorsement that does not exist. It also dissolved at 16 pixels. **v3 fixed both**: no trademarks, and an arrow large enough to survive.
+
+**The interesting part is what happened next.** v3 was a 500 pixel raster, and the pipeline rasterised a vector, so the obvious move was to redraw it. That was tried twice and **both attempts were worse than the picture they were copying**: thinner, emptier, the fan too small, the arrow either too timid or so large it swallowed the window. Rendered side by side at 16, 20, 32, 48 and 128, the raster won every column.
+
+That is an ordinary outcome and worth naming. Geometric marks redraw cleanly because their proportions are the design. An illustrative mark with depth, a gradient and overlapping planes has proportions that were arrived at by eye, and copying them by eye at a fraction of the effort produces something that is recognisably the same idea and recognisably worse.
+
+**Decision.** `assets/icon.png`, 512 pixels, is the master. `scripts/gen-assets.mjs` renders it down to 16, 32, 48 and 128 and to the three store tiles.
+
+Two things are done to it on the way, and both are in the pipeline rather than done by hand so they are reproducible:
+
+- **The drop shadow is cropped off.** In the original it falls outside the tile on the right. The script crops to the opaque bounding box and masks to a rounded square, so what ships is the tile and nothing else.
+- **An unsharp pass, hardest where the loss is.** Any downscale to 16 pixels is soft, and a soft toolbar icon reads as a mistake. After drawing the master into a canvas at the target size, a small unsharp kernel runs over it in the page: 0.9 at 16, 0.7 at 32, 0.4 at 48, nothing above. Alpha is left exactly as the downscale produced it, because sharpening it puts a hard fringe on the rounded corners. With that pass the raster beats the vector at 16 as well as at 128, which is what settled it.
+
+**Consequence.** `assets/icon.svg` is gone. `gen-og.mjs` embeds the master as a data URI, and the in-product wordmark in the popup, the manager and the placeholder now points at `icons/icon-32.png`, which the build already copies, rather than carrying a second and older drawing of the mark. The original artwork and the comparison that decided it are kept in `assets/candidates/reference/`, and `npm run icons:compare` still works: it now shows the shipped mark alongside any new candidate, which makes it a tool for judging a replacement rather than for making the first choice.
+
+The trade is that the mark can no longer be reasoned about as geometry or recoloured by editing one line. For an illustration that was never true anyway.

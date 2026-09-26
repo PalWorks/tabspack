@@ -59,9 +59,19 @@ body {
   letter-spacing: -0.01em;
 }
 
-.wordmark svg {
+.wordmark svg,
+.wordmark img {
   display: block;
   color: var(--accent);
+}
+
+/*
+ * The mark is a raster, so the wordmark points at the same icon file the
+ * toolbar uses rather than carrying its own drawing of it. Rounded because the
+ * tile is, and the corners would otherwise sit proud of it at small sizes.
+ */
+.wordmark img {
+  border-radius: 4px;
 }
 
 /* Buttons --------------------------------------------------------------- */

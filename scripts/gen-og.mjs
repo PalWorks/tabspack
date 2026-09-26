@@ -29,7 +29,7 @@ function bundled() {
   return null;
 }
 
-const mark = await readFile(path.join(root, "assets", "icon.svg"), "utf8");
+const mark = `data:image/png;base64,${(await readFile(path.join(root, "assets", "icon.png"))).toString("base64")}`;
 
 const html = `<!doctype html><meta charset="utf-8"><style>
   * { box-sizing: border-box; margin: 0; }
@@ -45,7 +45,7 @@ const html = `<!doctype html><meta charset="utf-8"><style>
   .glow-b { width: 680px; height: 680px; right: -200px; bottom: -360px;
     background: radial-gradient(closest-side, rgba(245,158,11,.30), transparent); }
   .row { display: flex; align-items: center; gap: 18px; position: relative; }
-  .row svg { width: 54px; height: 54px; display: block; border-radius: 13px; }
+  .row img { width: 54px; height: 54px; display: block; border-radius: 13px; }
   .name { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
   h1 { position: relative; font-size: 78px; line-height: 1.04; font-weight: 700;
        letter-spacing: -.038em; max-width: 17ch; }
@@ -56,7 +56,7 @@ const html = `<!doctype html><meta charset="utf-8"><style>
   .dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; }
 </style>
 <div class="glow-a"></div><div class="glow-b"></div>
-<div class="row">${mark}<span class="name">TabsPack</span></div>
+<div class="row"><img src="${mark}" alt="" /><span class="name">TabsPack</span></div>
 <div>
   <h1>Take your tabs <em>with you.</em></h1>
   <p>Export every open tab to one file and put them back exactly as they were, in Chrome, Edge or Firefox.</p>

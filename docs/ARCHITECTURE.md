@@ -89,7 +89,7 @@ src/
 _locales/
   en/messages.json        every string the interface shows
 assets/
-  icon.svg                the mark, rasterised by scripts/gen-assets.mjs
+  icon.png                the mark, 512 px, rendered down by scripts/gen-assets.mjs
   icons/, store/          generated, never hand edited
 schema/
   tabspack.v1.schema.json generated, never hand edited

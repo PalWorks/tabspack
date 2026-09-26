@@ -20,7 +20,7 @@ written by the snippet in the commit that added this note, shows it at the
 sizes a browser actually draws.
 
 It is also a raster at 500 and 1254 pixels rather than a vector, and the
-pipeline rasterises `assets/icon.svg` into every size a manifest asks for.
+pipeline renders `assets/icon.png` down into every size a manifest asks for.
 
 `6-stack-arrow.svg` and `7-stack-simple.svg` are the same idea drawn as vectors,
 with no third party marks, at a density that holds together small.

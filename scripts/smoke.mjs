@@ -125,7 +125,31 @@ async function settle(page) {
   );
 }
 
+/**
+ * A profile that will not hand `mailto:` to the operating system.
+ *
+ * The support fallback test is supposed to end in a mail client, and on a real
+ * desktop that is exactly what it did: every smoke run opened the maintainer's
+ * mail app. A test that launches a GUI application is a bad test, and this one
+ * was doing it several times an hour.
+ *
+ * `protocol_handler.excluded_schemes` is Chromium's own "never hand this scheme
+ * to an external application" list. With `mailto` on it the browser refuses the
+ * navigation, which is precisely the case the fallback exists for: the
+ * extension catches the refusal and puts the message on the clipboard instead.
+ * So the test still covers the path, and covers the harder half of it.
+ */
+async function quietProfile(dir) {
+  await mkdir(path.join(dir, "Default"), { recursive: true });
+  await writeFile(
+    path.join(dir, "Default", "Preferences"),
+    JSON.stringify({ protocol_handler: { excluded_schemes: { mailto: true } } }),
+    "utf8",
+  );
+}
+
 const profile = await mkdtemp(path.join(tmpdir(), "tabspack-profile-"));
+await quietProfile(profile);
 await rm(shots, { recursive: true, force: true });
 await mkdir(shots, { recursive: true });
 
@@ -985,6 +1009,7 @@ try {
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
   const profile2 = await mkdtemp(path.join(tmpdir(), "tabspack-relay-"));
+  await quietProfile(profile2);
   const context2 = await chromium.launchPersistentContext(profile2, {
     ...(executablePath ? { executablePath } : { channel: "chrome" }),
     headless: !headed,

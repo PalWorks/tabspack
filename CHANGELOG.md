@@ -13,6 +13,8 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `scripts/check-site.mjs` and `scripts/check-site-browser.mjs`. The first checks links, images, metadata, structured data and the sitemap with no browser and runs in `npm run verify`; the second measures the pages at five widths and caught that every page scrolled sideways at 320 px
 - `scripts/gen-og.mjs`, the 1200 by 630 social card, drawn rather than screenshotted
 - `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, with `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` structured data generated from each page's own front matter
+- **The mark is chosen** (T-713): the maintainer's own illustration, a fan of coloured tabs behind a browser window with a restore arrow across it. `assets/icon.png` at 512 px is the master and `scripts/gen-assets.mjs` renders it down with a sharpening pass, hardest at 16 px where the loss is. Two vector redraws were tried and both were worse than the artwork they copied. ADR-041
+- Effort and impact columns on the roadmap's open work, with problem and solution moved to the last two columns and a date raised column second, so everything you scan for stays readable without scrolling
 - **The support relay is deployed**, at `tabspack-support.palworks.ai`, with a send-only Resend key scoped to one domain and a KV namespace of its own. Verified end to end from the shipped extension in a real browser
 - **Send, in the Support pane.** A support message now goes to us directly, through the relay in `server/support-worker/`. The mail client route is still there as a button of its own and as the fallback for every way the relay can fail. ADR-039, T-715
 - The relay client requires the worker's own `{"ok":true}` answer, not merely a 2xx. The first hostname chosen for it turned out to be live already, serving another product, which is exactly the case where a 200 means nothing and reporting a message as sent would lose it
@@ -34,6 +36,7 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - **The privacy claim, everywhere.** "TabsPack makes no network request" becomes "your tabs never leave this device, and the one thing TabsPack sends is a support message you wrote and pressed Send on". `PRIVACY.md` is version 1.1, and the interface, the README and both store documents say the same thing
 - `scripts/lint.mjs` allows `fetch` in `src/core/relay.ts` and nowhere else. Every other transport stays banned everywhere, including there
 - The support relay is hardened for a public endpoint: one path, JSON only, three caps, a honeypot, header hygiene and no stored state. Every refusal path was exercised against a local deployment
+- `npm run smoke` blocks `mailto:` at the profile level, so the support fallback test no longer opens the maintainer's actual mail client several times an hour. It still covers the path, and covers the harder half of it: the browser refuses the handoff and the extension falls through to the clipboard
 - `npm run icons:compare` writes to `.tmp/icons/`, because `npm run smoke` deletes `.tmp/shots/` whole and ate the sheet once
 - Version 0.0.3, the internal counter agreed for pre-release builds
 - Product name fixed as TabsPack, and the file extension as `.tabspack.json`, superseding TabPack and `.tabpack` from v0.9

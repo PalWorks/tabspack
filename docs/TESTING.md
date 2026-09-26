@@ -229,7 +229,7 @@ npm run verify        all of the above, in that order
 npm run smoke         real browser checks, local only, skips without Playwright
 npm run smoke:firefox installs dist/firefox in a real Firefox, through web-ext
 npm run perf:browser  NFR-001, NFR-004 and NFR-005 against the built package
-npm run assets        the icon set and the store tiles, from assets/icon.svg
+npm run assets        the icon set and the store tiles, from assets/icon.png
 ```
 
 `npm run smoke` loads `dist/chrome` into a real Chromium and drives the popup
