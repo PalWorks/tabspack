@@ -750,3 +750,27 @@ Two things are done to it on the way, and both are in the pipeline rather than d
 **Consequence.** `assets/icon.svg` is gone. `gen-og.mjs` embeds the master as a data URI, and the in-product wordmark in the popup, the manager and the placeholder now points at `icons/icon-32.png`, which the build already copies, rather than carrying a second and older drawing of the mark. The original artwork and the comparison that decided it are kept in `assets/candidates/reference/`, and `npm run icons:compare` still works: it now shows the shipped mark alongside any new candidate, which makes it a tool for judging a replacement rather than for making the first choice.
 
 The trade is that the mark can no longer be reasoned about as geometry or recoloured by editing one line. For an illustration that was never true anyway.
+
+---
+
+## ADR-042: Task ids keep their letter, and the backlog is ranked by return on effort
+
+Date 2026-09-26. Status accepted.
+
+**Context.** Two questions came from the maintainer on the same day. What do the `T-` and `B-` prefixes mean, and can the backlog be arranged so the small things that pay well come first.
+
+Neither had an answer in the repository. The roadmap used the ids on every row and in every cross reference without ever saying what the letter was for, and it sorted Table R1 by id, which is the one ordering guaranteed to be unrelated to what is worth doing next. An id scheme nobody has written down is a private convention, and a backlog sorted by id is a filing cabinet.
+
+**Options on the ids.** Renumber to a flat serial, which is shorter and needs no legend. Keep the letters and write the legend that was missing.
+
+The count decided it. The ids appear 413 times across 70 files: beside the line of code that implements them, in test names, in ADRs, in the pull request template, and in ten commit subjects. Commit subjects cannot be rewritten on a published branch, so a renumber leaves history pointing at ids that no longer exist, permanently, in exchange for dropping one character. The letter also earns its place: `T-` is agreed work with acceptance criteria, `B-` is an idea that sequencing rule 5 forbids from entering the build until somebody writes them. That distinction is worth one character at the front of every id.
+
+**Options on the order.** Rank by hand, which is honest about being a judgement but unfalsifiable and quietly re-argued every time the file is opened. Compute a rank from the Effort and Impact columns that were added the same day. Sort by impact alone, which puts every `L` and `XL` at the top and answers the wrong question.
+
+**Decision.** The prefixes stay, and section 1 of the roadmap now explains them, including the part that is easy to get wrong: the digits are a serial in the order rows were written, not a phase number. `T-717` sits in phase M5.
+
+Table R1 gains a Rank column, computed as `impact / effort` over `Critical 4, High 3, Medium 2, Low 1` and `S 1, M 2, L 4, XL 8`, ties to the higher impact then the lower id. Table R1b keeps its sort by id, because a closed row is history.
+
+**Consequence.** The arithmetic is deliberately crude, and that is the point: a row moves up only by changing its Effort or its Impact, in a commit that says why. Preference alone cannot promote anything.
+
+Two things the rank cannot see, both written into the roadmap next to it. It does not know dependencies, so `T-717` outranking `T-509` is a coincidence and not the reason it comes first; sequencing rule 1 and the Problem column carry that. And it does not know who can do the work, so rank 1 being `T-507`, four checks only a person can perform, is a true answer to "what is the cheapest win" and not an instruction to an agent.
