@@ -157,8 +157,8 @@ rank.
 
 ## Detailed description
 
-Paste the block between the rules exactly. It is **3,938 characters** against a 16,000 limit,
-counted by the script that wrote this section. Short is deliberate: a long listing
+Paste the block between the rules exactly. It is **3,859 characters** against a 16,000 limit,
+counted between the rules. Short is deliberate: a long listing
 dilutes the phrases that matter, and the fields below the fold are read by almost nobody.
 
 ### How it is formatted, and why
@@ -174,6 +174,7 @@ and no link; line breaks and Unicode are the only formatting there is. So:
 | Single codepoint emoji only: 📦 🔁 💤 ⏳ 🔓 📥 🔒 📄 ⚡ 🎁 | A composite emoji such as ⌨️ or 🕰️ needs an invisible variation character and falls back to a plain text glyph on some systems |
 | ✓ for capabilities, • for facts | Both render everywhere, and the difference tells a scanning eye which list is a promise and which is a property |
 | Headings in capitals | The only emphasis plain text has, used once per section |
+| No other product's name, and no list of file formats | The first submission was rejected within minutes for keyword spam (violation "Yellow Argon") over one sentence naming three other tab managers and a run of formats. Say "other popular tab managers" and describe what a format is for, never what it is called. Chrome, Edge and Firefox are allowed: they say where it runs |
 | Links as plain text, no emoji | They are not clickable in the listing either way, and the section above spent the emphasis budget |
 
 The same text works unchanged for Edge Add-ons, which is also plain text, and for
@@ -189,11 +190,15 @@ If you keep ninety tabs open because each one is a note to your future self, thi
 
 📦 WHAT IT DOES
 
-✓ Export all your open tabs to one .tabspack.json file, or just this window, or just the tabs you selected
-✓ Restore the file in Chrome, Microsoft Edge or Firefox and get your session back, not a list of links
-✓ Move a working session between browsers: Chrome to Firefox, Firefox to Edge, work laptop to home machine
-✓ Keep named snapshots inside the extension for the days you do not want to think about files
-✓ Export a plain list of addresses, flat JSON or CSV when another tool needs it
+✓ Save every open tab to one file
+✓ Save just this window, or only the tabs you select
+✓ Restore every window, pinned tab and tab group
+✓ Move your tabs between Chrome, Edge and Firefox
+✓ Switch computers without losing your session
+✓ Keep named snapshots inside the browser
+✓ Open files saved by other tab managers
+✓ Find and archive tabs untouched for months
+✓ Copy a plain list of links when you need one
 
 🔁 EVERYTHING COMES BACK, NOT JUST THE ADDRESSES
 
@@ -221,7 +226,7 @@ TabsPack reads the real address back out, on export and on import, and tells you
 
 📥 IT READS WHAT YOU ALREADY HAVE
 
-Import from OneTab, Session Buddy (JSON and CSV), Tab Session Manager, browser bookmark files, Markdown link lists, flat JSON and plain lists of URLs. TabsPack works out what a file is by reading it, not by its name, and shows you what it found before a single tab opens.
+Already saved your tabs with another tab manager? TabsPack opens the export files of the popular ones, your browser's saved bookmarks and simple lists of links. It works out what a file is by reading it, not by its name, and shows you what it found before a single tab opens.
 
 🔒 YOUR TABS NEVER LEAVE YOUR DEVICE
 

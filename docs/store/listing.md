@@ -40,9 +40,9 @@ in today's meeting.
   file, a plain list of addresses, or straight to the clipboard.
 - Import a pack back, preview every window, group and tab first, choose what to
   restore, and restore without the browser grinding to a halt.
-- Read other tools' exports: Tab Session Manager, Session Buddy, OneTab, your
-  browser's own bookmarks, Markdown link lists, CSV and plain lists of addresses.
-  Recognised by what is in the file, not by its name.
+- Open the export files of other popular tab managers, your browser's saved
+  bookmarks and simple lists of links. Recognised by what is in the file, not
+  by its name.
 - Bring back tabs a suspender had parked. The Great Suspender, Tiny Suspender,
   Auto Tab Discard and the forks of each replace a tab's address with one of
   their own pages, which no other browser can reopen. TabsPack reads the real
