@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.3 |
+| Version | 1.4 |
 | Date | 2026-09-26 |
 | Scope and requirement ids | [../PLAN.md](../PLAN.md) |
 | Decisions behind these choices | [DECISIONS.md](DECISIONS.md) |
@@ -25,7 +25,7 @@ id, so a task is in the same relative position in either one.
 
 ### Table R1: Open work
 
-14 rows. Status values: `next` the immediate work, `todo` agreed
+15 rows. Status values: `next` the immediate work, `todo` agreed
 and queued, `doing` in progress, `for a person` blocked on a human rather than
 on effort, `parked` deliberately not now.
 
@@ -55,16 +55,17 @@ of them and stays readable without scrolling.
 |---|---|---|---|---|---|---|---|---|---|
 | T-507 | 2026-09-24 | Full cross browser matrix | M5 | Quality | S | High | for a person | Engine differences surface at the worst possible moment, in review | Automated in `npm run matrix` and green on Edge 25/25, Chrome 25/25, Firefox 26/26. Four rows are left that only a person can do, listed in Table R10 |
 | T-509 | 2026-09-24 | Store submissions | M5 | Release | M | Critical | next | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions |
+| T-717 | 2026-09-26 | The format's canonical URL points nowhere | M5 | Format | S | High | next | `schema/tabspack.v1.schema.json` declares `$id: https://tabspack.dev/...` and **tabspack.dev is not registered**. A second implementer following it finds nothing, and anybody could buy the domain and own the canonical address of our format. The Firefox extension id leans on the same name | Either point `$id` at the site or register the domain. Settle it before T-509: the schema ships inside the package, so changing it after publication is a format version question rather than an edit. [proposals/web-surface.md](proposals/web-surface.md) section 4 |
 | B-101 | 2026-09-24 | Scheduled automatic snapshots | v1.1 | Durability | M | High | todo | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker |
 | B-102 | 2026-09-24 | Crash and last session recovery | v1.1 | Durability | L | High | todo | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page |
 | B-103 | 2026-09-24 | Snapshot diff and pruning | v1.1 | Durability | M | Low | todo | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones |
 | B-201 | 2026-09-24 | Cross snapshot duplicate detection | v2 | Hygiene | M | Low | todo | The same fifty tabs live in twelve snapshots and the user cannot tell | Report URLs common to multiple snapshots and offer consolidation |
 | B-202 | 2026-09-24 | Tab age and staleness report | v2 | Hygiene | S | Medium | todo | Users keep hundreds of tabs because they cannot see which ones died months ago | Report on `lastAccessed` from the pack, with a bulk action |
 | B-301 | 2026-09-24 | Workspaces | v3 | Workspaces | L | Medium | todo | Power users run several projects at once and want to switch, not merge | Named sets of windows, one active at a time, switching by close and restore |
-| B-401 | 2026-09-24 | Pack rendered as a readable page | v4 | Sharing | M | Medium | todo | Sending a colleague a JSON file is not sharing, it is homework | Render a pack as a self contained readable HTML page with the JSON embedded, so it opens for anyone and still imports |
+| B-401 | 2026-09-24 | Pack rendered as a readable page | v4 | Sharing | M | High | todo | Sending a colleague a JSON file is not sharing, it is homework | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). Splits into a `/viewer/` on the site, which needs no store review and is also a free format converter, and an HTML export in the extension, which is the weaker half. The viewer reuses `src/core/` unchanged: one parser, two surfaces |
 | B-501 | 2026-09-24 | Validating CLI | v5 | Ecosystem | M | Low | todo | A specification nobody can validate against without installing a browser extension will not be adopted | Small node CLI to validate, convert and diff packs, published from the same types |
 | B-502 | 2026-09-24 | Published parser package | v5 | Ecosystem | S | Low | todo | Third parties will reimplement the parser badly, or not at all | Publish the reference reader and writer as a package with the JSON Schema |
-| B-503 | 2026-09-24 | Specification site and adoption outreach | v5 | Ecosystem | M | Medium | todo | A format is a standard only when a second implementation exists | A spec page with sample files, and direct offers of an adapter to competing tools |
+| B-503 | 2026-09-24 | Specification site and adoption outreach | v5 | Ecosystem | M | Medium | todo | A format is a standard only when a second implementation exists | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). `/spec/` generated from `docs/SPEC.md` so the two cannot drift, plus a resolvable schema URL, the example corpus and the conformance fixtures. The outreach half waits until there is a published extension to point at |
 | B-602 | 2026-09-24 | Safari support | Parked | Release | XL | Medium | parked | Safari users cannot migrate at all | Needs Xcode packaging and a paid Apple developer account. Revisit after v1 traction |
 | B-603 | 2026-09-24 | Encrypted and signed packs | Parked | Format | L | Low | parked | A pack shared over an untrusted channel could be tampered with | Contradicts the human readable principle and adds key management. Only if a concrete user need appears |
 
