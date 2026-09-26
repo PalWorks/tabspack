@@ -7,7 +7,7 @@
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M5 are built, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally, has keyboard commands, an options page, a light and dark theme and a translation layer. What is left is the part an agent cannot do: the manual cross browser matrix, and submitting to three stores that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M5 are built, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally, has keyboard commands, settings, a light and dark theme and a translation layer. What is left is the part an agent cannot do: the manual cross browser matrix, and submitting to three stores that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
 
 ## Contents
 
@@ -89,8 +89,8 @@ One source tree, two manifests, no server, no network, one runtime dependency.
 
 ```
 popup            launcher: counts, one click export, import hands off to the manager
-manager page     import, preview, selection, restore, snapshots. All file work
-options page     settings
+manager page     everything else, on one rail: export, import and preview and
+                 restore, snapshots, settings, about. All file work
 service worker   keyboard commands, badge, and writing a file when asked by one
 placeholder page addresses a restore could not open, as inert text
 ```

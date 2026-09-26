@@ -21,9 +21,6 @@
   "managerTitle": {
     "message": "TabsPack"
   },
-  "optionsTitle": {
-    "message": "TabsPack settings"
-  },
   "placeholderTitle": {
     "message": "Addresses TabsPack could not open"
   },
@@ -128,9 +125,6 @@
   "scopeThisTab": {
     "message": "This tab"
   },
-  "scopeSelection": {
-    "message": "The selected tabs"
-  },
   "scopeSelectionShort": {
     "message": "Selection"
   },
@@ -168,7 +162,7 @@
     "message": "Snapshots"
   },
   "tasksLabel": {
-    "message": "What to do"
+    "message": "Sections"
   },
   "exportButton": {
     "message": "Export"
@@ -181,14 +175,11 @@
       }
     }
   },
-  "policyUnload": {
-    "message": "Open restored tabs unloaded"
-  },
   "policyUnloadShort": {
     "message": "Open tabs unloaded"
   },
   "policyUnloadHint": {
-    "message": "A restored tab holds no memory until you open it. The tab you land on in each window loads, because a browser will not leave the tab in front of you unloaded."
+    "message": "An unloaded tab uses no memory until you click it. The tab you land on in each window loads."
   },
   "optionsRecoverLabel": {
     "message": "Suspended tabs"
@@ -197,7 +188,7 @@
     "message": "Recover the real address"
   },
   "optionsRecoverHint": {
-    "message": "A tab suspender parks a tab on a page of its own and keeps the real address inside it. With this on, TabsPack reads the real address, on export and on import, and says how many it recovered."
+    "message": "Some extensions park a tab on a page of their own to save memory. With this on, TabsPack finds the real address and tells you how many it found."
   },
   "recoveredInFile": {
     "message": "$count$ recovered from a tab suspender",
@@ -526,9 +517,6 @@
   "groupsPermissionRefused": {
     "message": "Tab groups were not allowed, so the tabs in this pack will be restored side by side in the right order."
   },
-  "restoreLabel": {
-    "message": "Restore"
-  },
   "restoreIntoLabel": {
     "message": "Restore into"
   },
@@ -538,20 +526,11 @@
   "restoreIntoThis": {
     "message": "This window"
   },
-  "restoreIntoCurrent": {
-    "message": "The current window"
-  },
   "policyLabel": {
     "message": "Policy"
   },
   "policySkipOpenShort": {
     "message": "Skip tabs already open"
-  },
-  "policySkipOpen": {
-    "message": "Skip tabs that are already open"
-  },
-  "policyPlaceholder": {
-    "message": "List addresses that cannot be opened on their own page"
   },
   "unloadAfter": {
     "message": "Leave unloaded after"
@@ -874,47 +853,17 @@
   "clipboardRefused": {
     "message": "The clipboard was refused. Select the addresses and copy them."
   },
-  "optionsDefaults": {
-    "message": "Defaults"
-  },
-  "optionsExportLabel": {
-    "message": "Export"
-  },
-  "optionsFormatPack": {
-    "message": "as a TabsPack file"
-  },
-  "optionsFormatUrls": {
-    "message": "as a URL list, one way"
-  },
-  "optionsFormatFlat": {
-    "message": "as flat JSON, one way"
-  },
-  "optionsLeaveOut": {
-    "message": "Leave out"
-  },
-  "optionsDedupe": {
-    "message": "Duplicate addresses"
-  },
-  "optionsWebOnly": {
-    "message": "Anything that is not a web page"
-  },
-  "optionsSkipPinned": {
-    "message": "Pinned tabs"
-  },
-  "optionsUnloadAfter": {
-    "message": "Unload after"
-  },
   "optionsUnloadHint": {
-    "message": "Used only when the box above is clear: tabs beyond this many are restored without loading."
+    "message": "Used only when the box above is clear: tabs past this many open unloaded."
   },
   "optionsBatchLabel": {
-    "message": "Create in batches of"
+    "message": "Open in batches of"
   },
   "optionsBatchPausing": {
     "message": "tabs, pausing"
   },
   "optionsBatchHint": {
-    "message": "Smaller batches and a longer pause keep the browser more responsive on an older machine."
+    "message": "Smaller batches and a longer pause keep the browser responsive on an older machine."
   },
   "optionsAppearance": {
     "message": "Appearance"
@@ -943,9 +892,6 @@
   "shortcutUnset": {
     "message": "not set"
   },
-  "optionsAbout": {
-    "message": "About"
-  },
   "optionsVersion": {
     "message": "TabsPack $version$.",
     "placeholders": {
@@ -955,7 +901,7 @@
     }
   },
   "optionsPrivacy": {
-    "message": "No account, no sync, no telemetry, and no network request of any kind. Everything stays in this browser profile until you export a file yourself."
+    "message": "No account, no sync, no tracking, and no network request of any kind. Everything stays in this browser until you export a file yourself."
   },
   "optionsReset": {
     "message": "Reset every setting"
@@ -973,5 +919,33 @@
         "content": "$1"
       }
     }
+  },
+  "taskSettings": {
+    "message": "Settings",
+    "description": "Rail item for the settings pane."
+  },
+  "taskAbout": {
+    "message": "About",
+    "description": "Rail item for the about pane."
+  },
+  "policyPlaceholderShort": {
+    "message": "List what cannot be opened",
+    "description": "Restore option: open the page listing addresses no extension may open."
+  },
+  "settingsLead": {
+    "message": "Export and restore options live on the Export and Import pages. What you pick there is saved.",
+    "description": "Line at the top of the settings pane, saying where the other settings are."
+  },
+  "optionsPace": {
+    "message": "Restore speed",
+    "description": "Heading for the batch size and pause settings."
+  },
+  "optionsResetLegend": {
+    "message": "Start over",
+    "description": "Heading for the reset button."
+  },
+  "optionsResetHint": {
+    "message": "Your snapshots and your files are not touched.",
+    "description": "Reassurance beside the reset button."
   }
 }

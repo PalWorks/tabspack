@@ -1,10 +1,13 @@
 /**
- * The manager page. Two tasks, one shell: export on one tab, import and restore on
- * the other. A popup cannot host a file dialog, which is why all file work lives
- * here (ADR-009).
+ * The manager page: the whole of TabsPack outside the popup. Five destinations on
+ * one rail, Export, Import, Snapshots, Settings and About, because a settings
+ * page of its own held a second copy of fifteen controls that already existed
+ * here and wrote the same stored values: ADR-028. A popup cannot host a file
+ * dialog, which is why all file work lives here (ADR-009).
  *
- * This file wires the export task. The import task is `import-panel.ts`, and the
- * preview tree it drives is `preview-tree.ts`.
+ * This file wires the export task and the rail. The import task is
+ * `import-panel.ts`, the preview tree it drives is `preview-tree.ts`, snapshots
+ * are `snapshot-panel.ts` and the last two panes are `settings-panel.ts`.
  *
  * The output panel is the honesty mechanism of the product: the user reads the
  * exact bytes before trusting them.
@@ -28,6 +31,7 @@ import { countsLine, tabs as tabsPhrase } from "../shared/wording.js";
 import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
 import { initSnapshotPanel } from "./snapshot-panel.js";
+import { initSettingsPanel } from "./settings-panel.js";
 import { readSnapshotSession, type SnapshotMeta } from "../../core/snapshots.js";
 import { TABSPACK_SOURCE } from "../../core/import.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
@@ -67,6 +71,7 @@ const FORMAT_NOTES: Record<ExportFormat, string> = {
 
 let settings: Settings;
 let available = 0;
+let settingsPanel: { paint(latest: Settings): void } | null = null;
 /** Repaints the scope control when a setting changes somewhere else. */
 let scope: (value: string) => void = () => undefined;
 
@@ -85,10 +90,14 @@ async function start(): Promise<void> {
       export: must<HTMLDivElement>("#panel-export"),
       import: must<HTMLDivElement>("#panel-import"),
       snapshots: must<HTMLDivElement>("#panel-snapshots"),
+      settings: must<HTMLDivElement>("#panel-settings"),
+      about: must<HTMLDivElement>("#panel-about"),
     },
-    "export",
+    paneFromHash(),
+    rememberPane,
   );
   const importPanel = initImportPanel(adapter, settings);
+  settingsPanel = initSettingsPanel(adapter, settings);
 
   initSnapshotPanel(adapter, settings, {
     async preview(meta: SnapshotMeta): Promise<void> {
@@ -112,6 +121,12 @@ async function start(): Promise<void> {
   });
 
   watchSettings();
+  // A second visit to the same address, which is what the gear does when this
+  // page is already open, changes the fragment and nothing else.
+  window.addEventListener("hashchange", () => {
+    const pane = paneFromHash();
+    if (pane !== tabs.current()) tabs.select(pane);
+  });
   await runHashAction(tabs.select);
 
   scope = initSegmented(ui.scope, settings.scope, (value) => {
@@ -154,31 +169,45 @@ async function start(): Promise<void> {
   await refresh();
 }
 
+/** The five panes, and the only names the address is allowed to carry. */
+const PANES = ["export", "import", "snapshots", "settings", "about"] as const;
+
+/** Which pane an address asks for. Anything unknown means the first one. */
+function paneFromHash(): string {
+  const name = location.hash.replace(/^#/, "").split("=")[0] ?? "";
+  return (PANES as readonly string[]).includes(name) ? name : "export";
+}
+
 /**
- * Two ways in that carry their intent in the address.
+ * The address follows the pane, so a reload comes back where the user was and a
+ * pane can be linked to. `replaceState` rather than a push: a rail is not
+ * browsing, and filling the back button with five entries would be.
+ */
+function rememberPane(id: string): void {
+  if (location.hash === `#${id}`) return;
+  history.replaceState(null, "", id === "export" ? location.pathname : `#${id}`);
+}
+
+/**
+ * Two addresses that carry an intent rather than a destination.
  *
  * `#import` comes from the popup's import button: a popup cannot host a file
- * picker, so it sends the user here, and arriving on the export task would make
- * them pick the task again.
+ * picker, so it sends the user here, and landing on the control that opens the
+ * picker makes the next step one key.
  *
  * `#export=...` comes from a keyboard command on a browser that cannot write a
  * file from the background. Doing it on arrival is the point: the user already
  * asked for it, and the alternative is a page that arrives with a button they
- * have to press again.
- *
- * The hash is cleared either way, so a reload is a plain visit rather than a
- * repeat of an action the user asked for once.
+ * have to press again. It is the one address that is rewritten afterwards, so a
+ * reload is a visit rather than a repeat of an action asked for once.
  */
 async function runHashAction(select: (id: string) => void): Promise<void> {
   if (location.hash === "#import") {
-    history.replaceState(null, "", location.pathname);
     select("import");
-    // The user pressed import one screen ago. Landing on the control that opens
-    // the picker makes the next step one key, and shows where the task begins.
     must<HTMLButtonElement>("#choose-file").focus();
     return;
   }
-  const match = /^#export=(all_windows|current_window)$/.exec(location.hash);
+  const match = /^#export=(all_windows|current_window|current_tab|selection)$/.exec(location.hash);
   if (!match) return;
   history.replaceState(null, "", location.pathname);
   settings.scope = match[1] as Scope;
@@ -191,8 +220,8 @@ async function runHashAction(select: (id: string) => void): Promise<void> {
 }
 
 /**
- * The options page, another manager tab or a keyboard command can all change a
- * setting while this page is open. Rather than have two versions of the truth,
+ * Another manager tab or a keyboard command can change a setting while this page
+ * is open. Rather than have two versions of the truth,
  * the page re reads them when storage says they changed, and repaints only when
  * something actually differs: otherwise the page's own writes would bounce back
  * and recollect every tab for nothing.
@@ -215,6 +244,7 @@ function watchSettings(): void {
       settings = latest;
       applyTheme(settings.theme);
       paintSettings();
+      settingsPanel?.paint(settings);
       scope(settings.scope);
       if (rescan) await refresh();
     })();

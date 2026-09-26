@@ -535,6 +535,34 @@ if (restoreWanted > 0) {
   );
 }
 
+/* Row: the browser's own Options link lands on the settings pane ----------- */
+
+/*
+ * Settings are a pane of the manager page now, and `options_ui.page` carries the
+ * fragment that selects it: ADR-028. Whether a browser accepts a fragment there
+ * at all is the one thing that decision rests on, so it is measured rather than
+ * assumed. This is the browser's own link, not the extension's gear.
+ */
+{
+  const landed = await rig
+    .worker(async () => {
+      const before = (await chrome.tabs.query({})).map((tab) => tab.id);
+      await chrome.runtime.openOptionsPage();
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const after = await chrome.tabs.query({});
+      const fresh = after.filter((tab) => !before.includes(tab.id));
+      const mine = fresh.length > 0 ? fresh : after.filter((tab) => (tab.url ?? "").includes("manager.html"));
+      return (mine[mine.length - 1]?.url ?? "") || (mine[mine.length - 1]?.pendingUrl ?? "");
+    })
+    .catch((error) => `failed: ${String(error).split("\n")[0]}`);
+
+  row(
+    "the browser's own Options link opens the settings pane",
+    typeof landed === "string" && landed.includes("manager.html#settings"),
+    landed || "nothing opened",
+  );
+}
+
 /* Row: a page that is slow to commit is not unloaded before it does --------- */
 
 /*

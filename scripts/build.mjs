@@ -22,7 +22,6 @@ const ENTRIES = [
   { in: "src/ui/popup/popup.ts", out: "popup/popup" },
   { in: "src/ui/manager/manager.ts", out: "manager/manager" },
   { in: "src/ui/placeholder/placeholder.ts", out: "placeholder/placeholder" },
-  { in: "src/ui/options/options.ts", out: "options/options" },
 ];
 
 const COPIES = [
@@ -30,8 +29,6 @@ const COPIES = [
   { from: "src/ui/manager/manager.html", to: "manager.html" },
   { from: "src/ui/placeholder/placeholder.html", to: "placeholder.html" },
   { from: "src/ui/placeholder/placeholder.css", to: "placeholder/placeholder.css" },
-  { from: "src/ui/options/options.html", to: "options.html" },
-  { from: "src/ui/options/options.css", to: "options/options.css" },
   { from: "src/ui/popup/popup.css", to: "popup/popup.css" },
   { from: "src/ui/manager/manager.css", to: "manager/manager.css" },
   { from: "src/ui/shared/theme.css", to: "shared/theme.css" },

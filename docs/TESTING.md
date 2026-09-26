@@ -4,7 +4,7 @@ As of the end of M6: 223 unit tests, the number `npm test` reports, with 21
 conformance fixtures, 16 foreign format fixtures, 38 contrast pairs, 2
 performance budgets in node and 3 more measured in a browser, and a 70 check
 browser run that covers export, import, restore,
-search, snapshots, the options page and the theme. The contract below is what
+search, snapshots, the settings pane and the theme. The contract below is what
 they are for.
 
 ## Philosophy
@@ -174,6 +174,7 @@ bounds and the keyboard rows need.
 | Every address of a 200 tab restore is in the browser, not just the count | covered by the row above | covered | pass, 200 of 200 |
 | A tab created unloaded keeps the address it was created with, 40 of them | not applicable, Chromium cannot | not applicable | pass, 40 of 40 |
 | A pack whose first tab is pinned does not lose the tabs after it | not applicable | not applicable | pass, 4 of 4, three runs: ADR-027 |
+| The browser's own Options link lands on the settings pane, which is what `options_ui.page` with a fragment rests on | pass | pass | pass |
 | An unloaded tab still shows its title | not applicable, Chromium cannot | not applicable | pass |
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |

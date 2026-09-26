@@ -454,6 +454,26 @@ try {
     JSON.stringify(restored.map((tab) => `${tab.discarded ? "unloaded" : "loaded"}:${tab.title}`)),
   );
 
+  /* Row: the browser's own Options link lands on the settings pane ---------- */
+
+  {
+    const landed = await background(async (browser) => {
+      const before = (await browser.tabs.query({})).map((tab) => tab.id);
+      await browser.runtime.openOptionsPage();
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const after = await browser.tabs.query({});
+      const fresh = after.filter((tab) => !before.includes(tab.id));
+      const mine = fresh.length > 0 ? fresh : after.filter((tab) => (tab.url ?? "").includes("manager.html"));
+      return mine[mine.length - 1]?.url ?? "";
+    }).catch((error) => `failed: ${String(error).split("\n")[0]}`);
+
+    row(
+      "the browser's own Options link opens the settings pane",
+      typeof landed === "string" && landed.includes("manager.html#settings"),
+      landed || "nothing opened",
+    );
+  }
+
   /* Row: a tab created unloaded keeps the address it was created with -------- */
 
   /*

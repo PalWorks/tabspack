@@ -104,7 +104,7 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 Decisions behind that layout:
 
 - **Export and import sit in the same row.** They are the two reasons the popup is opened, so both are one click from the browser toolbar. Export takes the width, because it is the action that happens here; import is sized to its word, because it is a handoff. A popup cannot host a file picker at all, ADR-009, so import opens the manager page already on the import task with the file button focused. What the popup must never do is hide import behind an icon and let a first time user conclude the product only exports.
-- **The gear is settings, and only settings.** An icon in that corner is read as settings before it is read as anything else, so it opens the options page rather than the manager. The manager is still one click away through import, and its tab list carries export and snapshots from there.
+- **The gear is settings, and only settings.** An icon in that corner is read as settings before it is read as anything else, so it opens the manager on its Settings pane rather than on Export. The rest of the page is one click away on the rail from there.
 - **Segmented scope control rather than a split button.** The scope changes the primary button's label, so the user reads what will happen before clicking. A split button hides the second half of its own behaviour behind a caret.
 - **The primary button carries the count.** "Export 37 tabs" is the confirmation and the action in one place, and it makes a filtered count visible before the click rather than after.
 - **Native `<select>` for format.** A custom menu would cost keyboard and screen reader work and buy nothing. The format list is short and dull by design.
@@ -126,7 +126,13 @@ Decisions behind that layout:
 
 ## 4. Manager page
 
-Single column, `max-width: 1120px`, 24 px gutters, cards on `--bg`. Two tasks behind a tab list, Export and Import, because a person is doing one of them and stacking both would put half the page's controls out of reach of the task in hand. The tab list is the ARIA tab pattern: arrow keys move, Home and End jump, selection follows focus.
+The whole of TabsPack outside the popup. A 200 px rail on the left, content capped at 1120 px on the right, 24 px gutters, cards on `--bg`.
+
+Five destinations: Export, Import and Snapshots, then a hairline, then Settings and About. The hairline is the whole of the grouping, because the first three are things you are doing and the last two are not, and a two item group does not need a name. The rail is the ARIA tab pattern turned vertical: up and down move, Home and End jump, selection follows focus, and the selected item carries a 3 px accent bar on its inside edge rather than a pill, because a pill in a vertical rail reads as a button nobody has pressed yet.
+
+The address follows the pane, so a reload comes back where you were and a pane can be linked to. Below 900 px, and at the 200 percent zoom section 6 commits to, the rail becomes a horizontal strip: same markup, same keys, no script.
+
+**Each setting lives once, where it does its work.** The export options are on Export, the restore options are on Import, and both are saved the moment they change. There is no second copy of them anywhere: ADR-028.
 
 ```
   TabsPack                                    Nothing leaves your device
@@ -240,12 +246,15 @@ Decisions behind that layout:
 - Icons are inline SVG with `aria-hidden="true"` when decorative, and a text label otherwise. No icon carries meaning alone.
 - The interface is legible and usable at 200 percent browser zoom, which the popup's fixed 360 px width must tolerate by wrapping rather than clipping.
 
-## 7. Settings
+## 7. Settings and About
 
-The options page is one column of cards in the order a person would ask the
-questions: what should the defaults be, what should be left out, what should a
-restore do, how should it look, and what is this thing anyway.
+Settings holds what belongs to no task: suspended tab recovery, restore speed,
+theme, and reset. Everything else is on the page that uses it. About holds the
+version, the privacy line and the shortcuts.
 
+- **Say where the rest are.** Settings opens with one line: export and restore
+  options live on those pages, and what you pick there is saved. Someone who
+  opens Settings looking for their export defaults must not find an empty room.
 - **No Save button.** Every control writes its setting when it changes. A
   settings page with a Save button invents a state where what you see is not what
   is in force, and then has to defend it with a dialog on the way out.
@@ -258,6 +267,11 @@ restore do, how should it look, and what is this thing anyway.
 - **The theme is three choices, System first.** It writes one attribute on the
   root element, which the tokens already answer to: no new colour is defined for
   a theme switch, ever.
+- **Plain words.** A setting is read by someone who wants to change it and leave,
+  so the label says what it does and the hint says why you would want it. Short
+  sentences, no jargon, and never an explanation longer than the thing it
+  explains. "Open in batches of 8 tabs, pausing 40 ms", not a paragraph about
+  throttling.
 
 ## 8. Copy style
 

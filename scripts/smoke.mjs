@@ -273,7 +273,7 @@ try {
     .catch(() => undefined);
   const onImport = await handoff.getAttribute("#tab-import", "aria-selected");
   check("import in the popup opens the manager on the import task", onImport === "true", `aria-selected=${onImport}`);
-  check("the manager clears the hash, so a reload is a plain visit", !handoff.url().includes("#"), handoff.url());
+  check("the address names the pane, so a reload comes back to it", handoff.url().endsWith("#import"), handoff.url());
   const landedOn = await handoff.evaluate(() => document.activeElement?.id ?? "");
   check("the import task arrives with the file button focused", landedOn === "choose-file", landedOn);
   await handoff.close();
@@ -282,7 +282,17 @@ try {
   await popup.click("#open-settings");
   const settingsPage = await settingsArriving;
   await settingsPage.waitForLoadState("domcontentloaded");
-  check("the gear opens the settings page", settingsPage.url().endsWith("/options.html"), settingsPage.url());
+  await settingsPage
+    .waitForFunction(() => document.querySelector("#tab-settings")?.getAttribute("aria-selected") === "true", {
+      timeout: 10_000,
+    })
+    .catch(() => undefined);
+  const onSettings = await settingsPage.getAttribute("#tab-settings", "aria-selected");
+  check(
+    "the gear opens the manager on the settings pane",
+    settingsPage.url().endsWith("/manager.html#settings") && onSettings === "true",
+    `${settingsPage.url()} aria-selected=${onSettings}`,
+  );
   await settingsPage.close();
 
   const manager = await context.newPage();
@@ -721,27 +731,52 @@ try {
   await settle(manager);
   await manager.screenshot({ path: path.join(shots, "manager-import-dark.png"), fullPage: true });
 
-  /* Options and the theme, M5 -------------------------------------------- */
+  /* Settings and About, now panes of the manager page, M5 and T-511 -------- */
 
   const options = await context.newPage();
   const optionErrors = [];
   options.on("pageerror", (error) => optionErrors.push(String(error)));
-  await options.goto(`chrome-extension://${extensionId}/options.html`);
-  await options.waitForSelector("#opt-scope");
-  await options.setViewportSize({ width: 900, height: 1000 });
-  check("the options page loads without a console error", optionErrors.length === 0, optionErrors[0]);
+  await options.goto(`chrome-extension://${extensionId}/manager.html#settings`);
+  await options.waitForSelector("#opt-recover");
+  await options.setViewportSize({ width: 1100, height: 1000 });
+  check("the settings pane loads without a console error", optionErrors.length === 0, optionErrors[0]);
+
+  const settingsPaneShown = await options.evaluate(
+    () => document.querySelector("#panel-settings")?.hasAttribute("hidden") === false,
+  );
+  check("an address with #settings arrives on the settings pane", settingsPaneShown === true);
 
   const untranslated = await options.$$eval("[data-i18n]", (nodes) =>
     nodes.filter((node) => (node.textContent ?? "").trim() === (node.getAttribute("data-i18n") ?? "")).length,
   );
   check("every string on the page came from _locales", untranslated === 0, `${untranslated} keys showed as themselves`);
 
+  /*
+   * The settings a task owns stay with that task: there is exactly one widget
+   * per setting now, which is the whole point of the merge. ADR-028.
+   */
+  const duplicated = await options.$$eval(
+    "#panel-settings input, #panel-settings select",
+    (nodes) => nodes.map((node) => node.id),
+  );
+  const alsoOnATask = await options.$$eval(
+    "#panel-export input, #panel-export select, #panel-import input, #panel-import select",
+    (nodes) => nodes.map((node) => node.id),
+  );
+  const overlap = duplicated.filter((id) => id !== "" && alsoOnATask.includes(id));
+  check("no setting has a second widget on another pane", overlap.length === 0, overlap.join(", "));
+
+  await options.click("#tab-about");
+  await options.waitForSelector("#shortcuts li");
   const shortcuts = await options.textContent("#shortcuts");
   check(
-    "the options page lists the keyboard shortcuts the browser reports",
+    "about lists the keyboard shortcuts the browser reports",
     /Alt\+Shift\+E/.test(shortcuts ?? ""),
     shortcuts ?? "",
   );
+  const version = await options.textContent("#version");
+  check("about names the version", /\d+\.\d+\.\d+/.test(version ?? ""), version ?? "");
+  await options.click("#tab-settings");
 
   await options.click("#theme button[data-value='dark']");
   // The controls transition for 120 ms, and a screenshot taken inside that reads
@@ -757,7 +792,7 @@ try {
     themed === "dark" && background === "rgb(22, 24, 28)" && selected.join() === "dark",
     `${themed} ${background} ${selected.join()}`,
   );
-  await options.screenshot({ path: path.join(shots, "options-dark.png"), fullPage: true });
+  await options.screenshot({ path: path.join(shots, "settings-dark.png"), fullPage: true });
 
   await options.click("#theme button[data-value='light']");
   const storedTheme = await worker.evaluate(
@@ -765,34 +800,46 @@ try {
   );
   check("the choice is stored", storedTheme === "light", String(storedTheme));
 
-  // A setting the manager reads: change it here, reopen there.
-  await options.fill("#opt-threshold", "7");
-  await options.dispatchEvent("#opt-threshold", "change");
+  await options.fill("#opt-batch", "7");
+  await options.dispatchEvent("#opt-batch", "change");
   await options.waitForTimeout(300);
-  const threshold = await worker.evaluate(
-    async () => (await chrome.storage.local.get("settings")).settings?.discardThreshold,
+  const batch = await worker.evaluate(
+    async () => (await chrome.storage.local.get("settings")).settings?.restoreBatchSize,
   );
-  check("a number setting is stored as a number", threshold === 7, String(threshold));
+  check("a number setting is stored as a number", batch === 7, String(batch));
 
-  await options.fill("#opt-threshold", "99999");
-  await options.dispatchEvent("#opt-threshold", "change");
+  await options.fill("#opt-batch", "99999");
+  await options.dispatchEvent("#opt-batch", "change");
   await options.waitForTimeout(300);
-  const clamped = await options.inputValue("#opt-threshold");
+  const clamped = await options.inputValue("#opt-batch");
   check(
     "a number outside its range falls back to the default and the field says so",
-    clamped === "20",
+    clamped === "8",
     clamped,
   );
+
+  /* The restore settings are on the pane that restores, and they persist. */
+  await options.click("#tab-import");
+  await options.setInputFiles("#file", packPath);
+  await options.waitForSelector("#preview:not([hidden])");
+  await options.uncheck("#opt-placeholder");
+  await options.waitForTimeout(300);
+  const placeholderOff = await worker.evaluate(
+    async () => (await chrome.storage.local.get("settings")).settings?.openPlaceholder,
+  );
+  check("a restore setting is saved from the pane that uses it", placeholderOff === false, String(placeholderOff));
+  await options.check("#opt-placeholder");
+  await options.click("#tab-settings");
 
   await options.click("#reset");
   await options.waitForTimeout(300);
   const afterReset = await worker.evaluate(async () => (await chrome.storage.local.get("settings")).settings);
   check(
     "reset puts every setting back",
-    afterReset?.theme === "system" && afterReset?.discardThreshold === 20,
+    afterReset?.theme === "system" && afterReset?.restoreBatchSize === 8 && afterReset?.openPlaceholder === true,
     JSON.stringify(afterReset),
   );
-  await options.screenshot({ path: path.join(shots, "options-light.png"), fullPage: true });
+  await options.screenshot({ path: path.join(shots, "settings-light.png"), fullPage: true });
 
   // T-501: a setting takes effect on a surface that is already open.
   await options.click("#theme button[data-value='dark']");

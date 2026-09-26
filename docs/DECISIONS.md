@@ -444,3 +444,35 @@ Date 2026-09-25. Status accepted. Amends ADR-026. Scopes T-613.
 **Consequence.** Three consecutive Firefox runs at 25 of 25 rows, where the same harness failed two rows in two of six runs before. Both fixes are load bearing in the unit suite: two tests fail without the first, one without the second. The fake browser grew a `gecko` mode that reports `about:blank` while navigating and refuses the pinned pair in Firefox's own words.
 
 The lesson is the one ADR-026 already paid for and did not fully learn. **A guard measured on one engine is a guard on one engine.** Both of these were introduced by a fix for the same class of defect, on the other engine, the same day.
+
+---
+
+## ADR-028: Settings are a pane of the manager page, not a page of their own
+
+Date 2026-09-26. Status accepted. Supersedes the page split assumed by T-501. Scopes T-511.
+
+**Context.** The product had two full page surfaces, `manager.html` and `options.html`, with the same header and the same cards. A user seeing both asked why. The honest answer is that `options_ui.page` is a manifest field and the browser builds its own links to whatever it names, so one document has to answer them. That is a reason for a route, not for a second page.
+
+Counted control by control, the settings page was mostly a second set of widgets over the same stored values:
+
+| | Count |
+|---|---|
+| Controls on both pages, writing the same setting | **15** |
+| On the settings page only | 8 |
+
+Scope, format, titles, favicons, private windows, dedupe, web pages only, skip pinned, sort, reverse, exclude, restore target, skip open, unload, threshold. Not defaults against a current run either: the manager's controls write the stored setting on every change, and both pages followed each other live through `storage.onChanged`. Two widgets, one truth, kept in sync at runtime.
+
+**Options.** Leave it, and keep fifteen duplicates. Or merge, and move the settings page's cards into a pane, which keeps all fifteen duplicates behind a rail and permanently doubles the widgets, the strings and the tests. Or merge, and let each setting live once.
+
+**Decision.** One document, a vertical rail of five: Export, Import, Snapshots, then Settings and About behind a hairline, because the first three are tasks and the last two are not. A setting that belongs to a task lives with that task and is saved there. Settings holds only what belongs to no task: suspended tab recovery, restore speed, theme and reset. About holds the version, the privacy line and the keyboard shortcuts the browser reports.
+
+- `options_ui.page` is `manager.html#settings`. **Measured, not assumed:** Chrome 154, Edge 153 and Firefox 156 all accept a fragment there and land on the settings pane, and there is a matrix row for it on both harnesses. No redirect shim is needed.
+- The gear does not use `runtime.openOptionsPage`, because a browser that finds a manager tab already open focuses it without changing the fragment, and the user who pressed the gear would land on whatever pane it was showing. It opens the address directly.
+- The address follows the pane, with `replaceState` rather than a push, so a reload comes back where the user was and a pane can be linked to. A rail is not browsing, and five entries in the back button would say it was.
+- `#export=<scope>`, the keyboard command's handoff, stays an action and is still cleared after it runs.
+- Below 900px, and at the 200 percent zoom DESIGN section 6 commits to, the rail becomes the horizontal strip this page used to have. Same markup, same keys, no script.
+- The scope control gains **This tab**, which was previously reachable only from a dropdown on the settings page and would otherwise have been lost.
+
+**Consequence.** Fifteen duplicate controls gone, one settings module instead of a page, 19 message keys removed and 7 added. The cost is discoverability: someone who opens Settings looking for their export defaults finds none, so the pane opens with one line saying where they are. That line is cheaper than fifteen widgets and more honest than two.
+
+A smoke check now asserts the property directly rather than trusting the diff: no control id on the settings pane appears on the export or import panes.

@@ -57,6 +57,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     target: must<HTMLSelectElement>("#restore-target"),
     skipDuplicates: must<HTMLInputElement>("#opt-skip-open"),
     unload: must<HTMLInputElement>("#opt-unload"),
+    placeholder: must<HTMLInputElement>("#opt-placeholder"),
     threshold: must<HTMLInputElement>("#opt-threshold"),
     restore: must<HTMLButtonElement>("#restore"),
     groupsPermission: must<HTMLDivElement>("#groups-permission"),
@@ -82,6 +83,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
   ui.target.value = settings.restoreTarget;
   ui.skipDuplicates.checked = settings.skipOpenDuplicates;
   ui.unload.checked = settings.unloadRestored;
+  ui.placeholder.checked = settings.openPlaceholder;
   ui.threshold.value = String(settings.discardThreshold);
   ui.threshold.disabled = settings.unloadRestored;
 
@@ -131,6 +133,15 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     ui.threshold.disabled = settings.unloadRestored;
     void saveSettings(adapter, { unloadRestored: settings.unloadRestored });
   });
+  /*
+   * Whether a restore opens the page listing the addresses no extension may
+   * open. It belongs beside the restore it changes, not on a settings page.
+   */
+  ui.placeholder.addEventListener("change", () => {
+    settings.openPlaceholder = ui.placeholder.checked;
+    void saveSettings(adapter, { openPlaceholder: settings.openPlaceholder });
+  });
+
   ui.threshold.addEventListener("change", () => {
     const value = Number(ui.threshold.value);
     if (!Number.isFinite(value) || value < 0) {
@@ -376,7 +387,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
         batchSize: settings.restoreBatchSize,
         batchDelayMs: settings.restoreDelayMs,
         skipDuplicates: ui.skipDuplicates.checked,
-        openPlaceholder: settings.openPlaceholder,
+        openPlaceholder: ui.placeholder.checked,
         include: (windowKey, index) => selected.has(`${windowKey}:${index}`),
         // A live region that speaks every tab would be unusable with a screen
         // reader on a 200 tab pack, so progress is announced in stages.

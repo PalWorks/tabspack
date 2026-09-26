@@ -335,12 +335,14 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
+  /**
+   * Settings are a pane of the manager page, not a page of their own: ADR-028.
+   * `runtime.openOptionsPage` is not used, because a browser that finds a
+   * manager tab already open focuses it without changing the fragment, and the
+   * user who pressed the gear would land on whatever pane it was showing.
+   */
   async openOptions(): Promise<void> {
-    if (typeof browser.runtime.openOptionsPage === "function") {
-      await browser.runtime.openOptionsPage();
-      return;
-    }
-    await realAdapter.openExtensionPage("options.html");
+    await realAdapter.openExtensionPage("manager.html#settings");
   },
 
   async openExtensionPage(path: string): Promise<void> {

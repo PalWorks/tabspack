@@ -1,4 +1,4 @@
-/* Manager page. Single column, cards, 1120px maximum. */
+/* The manager page. A rail of destinations on the left, cards on the right. */
 
 .page {
   max-width: 1120px;
@@ -108,35 +108,147 @@
   }
 }
 
-/* Task tabs -------------------------------------------------------------- */
-.tablist {
+/* The rail ---------------------------------------------------------------- */
+.shell {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.rail {
   display: flex;
-  gap: var(--space-1);
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: var(--space-5);
 }
 
 .tab {
   appearance: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
   background: transparent;
   color: var(--text-muted);
   font: inherit;
   font-size: var(--text-dense);
   font-weight: 500;
+  text-align: left;
   cursor: pointer;
 }
 
+.tab svg {
+  flex: none;
+  opacity: 0.85;
+}
+
+.tab:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
 .tab[aria-selected="true"] {
+  border-left-color: var(--accent);
+  background: var(--surface-raised);
   color: var(--accent);
-  border-bottom-color: var(--accent);
+}
+
+/*
+ * Settings and About are not tasks, so they sit apart from the three that are.
+ * A hairline rather than a heading, because a two item group does not need a
+ * name, and a name inside a tab list is not a tab.
+ */
+.rail .tab[data-group="second"] {
+  margin-top: var(--space-4);
+  position: relative;
+}
+
+.rail .tab[data-group="second"]::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 0;
+  top: calc(var(--space-2) * -1 - 1px);
+  border-top: 1px solid var(--border);
+}
+
+.panes {
+  min-width: 0;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.panel .lead {
+  margin: 0;
+}
+
+/*
+ * Settings labels are sentences rather than single words, so they get the room
+ * the old settings page gave them instead of wrapping inside a 96px column.
+ */
+#panel-settings .control-grid {
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: start;
+}
+
+#panel-settings .control-label {
+  padding-top: 6px;
+}
+
+/*
+ * Narrow, and at 200 percent zoom, which DESIGN section 6 commits to: the rail
+ * becomes the strip this page used to have. Same markup, same keys, no script.
+ */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .rail {
+    position: static;
+    flex-direction: row;
+    gap: var(--space-1);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    width: auto;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+  }
+
+  .tab[aria-selected="true"] {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+    background: transparent;
+  }
+
+  .rail .tab[data-group="second"] {
+    margin-top: 0;
+    margin-left: var(--space-3);
+  }
+
+  .rail .tab[data-group="second"]::before {
+    top: var(--space-2);
+    bottom: var(--space-2);
+    left: calc(var(--space-3) * -1);
+    right: auto;
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
 }
 
 /* File intake ----------------------------------------------------------- */
@@ -457,4 +569,24 @@
       "tags"
       "actions";
   }
+}
+
+/* Shortcuts, on About ----------------------------------------------------- */
+.shortcut-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-dense);
+}
+
+.shortcut-list kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  padding: 1px var(--space-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
 }
