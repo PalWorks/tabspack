@@ -475,6 +475,35 @@
   margin-top: var(--space-1);
 }
 
+/*
+ * How old the tabs in the scope are, stated above the report rather than inside
+ * it. The report is a live region that announces what just happened; this is
+ * standing information about what is there, so it must not be announced every
+ * time a filter changes. B-202.
+ */
+.age {
+  margin: var(--space-2) 0 0;
+}
+
+/*
+ * The staleness field wraps as one unit. Splitting "Skip tabs not opened in"
+ * from the window it names across a line break leaves a sentence that says the
+ * opposite of what it means on narrow screens.
+ */
+#opt-stale-days {
+  flex: 0 0 auto;
+}
+
+/*
+ * A full width line directly under the control it explains, which forces the
+ * order controls onto the row below. That is the point: placed at the end of
+ * the row the sentence sat under "Reverse" and read as if it belonged to it.
+ */
+#stale-hint {
+  flex-basis: 100%;
+  margin-top: calc(var(--space-1) * -1);
+}
+
 .fidelity[data-fidelity="low"],
 .fidelity[data-fidelity="medium"] {
   color: var(--warn);

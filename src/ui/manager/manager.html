@@ -109,6 +109,16 @@
                   <label class="check"><input type="checkbox" id="opt-web" /> <span data-i18n="filterWebOnly">Web pages only</span></label>
                   <label class="check"><input type="checkbox" id="opt-pinned" /> <span data-i18n="filterSkipPinned">Skip pinned</span></label>
                   <span class="inline-field">
+                    <label class="check" for="opt-stale"><input type="checkbox" id="opt-stale" /> <span data-i18n="filterStale">Skip tabs not opened in</span></label>
+                    <select id="opt-stale-days" disabled>
+                      <option value="30" data-i18n="staleDays30">a month</option>
+                      <option value="90" data-i18n="staleDays90">3 months</option>
+                      <option value="180" data-i18n="staleDays180">6 months</option>
+                      <option value="365" data-i18n="staleDays365">a year</option>
+                    </select>
+                  </span>
+                  <span id="stale-hint" class="hint" hidden data-i18n="filterStaleHint">Pinned tabs, and tabs the browser gives no date for, are always kept.</span>
+                  <span class="inline-field">
                     <label for="opt-sort" data-i18n="orderLabel">Order</label>
                     <select id="opt-sort">
                       <option value="natural" data-i18n="orderNatural">As they are</option>
@@ -138,6 +148,8 @@
                 <button id="copy" class="btn btn-secondary" type="button" disabled data-i18n="copyButton">Copy</button>
                 <span id="summary" class="summary" data-i18n="readingTabs">Reading tabs</span>
               </div>
+
+              <p id="age" class="hint age" hidden></p>
 
               <div id="report" class="report" role="status" aria-live="polite"></div>
             </section>

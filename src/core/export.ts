@@ -14,6 +14,7 @@ import { unsuspendSession } from "./unsuspend.js";
 import { stringify, toFile } from "./serialize.js";
 import { toFlatJson, toUrlList } from "./exporters.js";
 import { exportFilename, textFilename } from "./naming.js";
+import { stalenessOf, type StalenessReport } from "./staleness.js";
 
 export interface ExportPayload {
   format: ExportFormat;
@@ -50,7 +51,19 @@ export async function collectFiltered(
   adapter: BrowserAdapter,
   settings: Settings,
   when: Date = new Date(),
-): Promise<{ session: Session; removed: FilterCounts; recovered: number }> {
+): Promise<{
+  session: Session;
+  removed: FilterCounts;
+  recovered: number;
+  /**
+   * How old the tabs in the scope are, measured **before** any filter runs.
+   *
+   * That order is the whole point. Measured afterwards, turning on "skip tabs
+   * not opened in 3 months" would make the old tabs disappear from the very line
+   * that justifies turning it on. B-202.
+   */
+  age: StalenessReport;
+}> {
   const collected = await collectSession(adapter, {
     scope: settings.scope,
     includeIncognito: settings.includeIncognito,
@@ -65,7 +78,8 @@ export async function collectFiltered(
   const { session: real, recovered } = settings.recoverSuspended
     ? unsuspendSession(collected)
     : { session: collected, recovered: 0 };
-  return { ...applyFilters(real, settings), recovered };
+  const age = stalenessOf(real, when.getTime());
+  return { ...applyFilters(real, settings, { now: when.getTime() }), recovered, age };
 }
 
 /** The serialization half, split out so tests can drive it without an adapter. */

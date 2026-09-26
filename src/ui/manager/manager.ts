@@ -23,11 +23,12 @@ import {
   type SortMode,
 } from "../../core/settings.js";
 import { countSession } from "../../types/session.js";
+import { DEFAULT_STALE_DAYS, worthReporting } from "../../core/staleness.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
 import { applyI18n, t } from "../shared/i18n.js";
 import { applyTheme } from "../shared/theme.js";
-import { countsLine, tabs as tabsPhrase } from "../shared/wording.js";
+import { ageLine, countsLine, tabs as tabsPhrase } from "../shared/wording.js";
 import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
 import { initSnapshotPanel } from "./snapshot-panel.js";
@@ -59,6 +60,10 @@ const ui = {
   sort: must<HTMLSelectElement>("#opt-sort"),
   sortDesc: must<HTMLInputElement>("#opt-sort-desc"),
   exclude: must<HTMLTextAreaElement>("#opt-exclude"),
+  stale: must<HTMLInputElement>("#opt-stale"),
+  staleDays: must<HTMLSelectElement>("#opt-stale-days"),
+  staleHint: must<HTMLSpanElement>("#stale-hint"),
+  age: must<HTMLParagraphElement>("#age"),
   exportButton: must<HTMLButtonElement>("#export"),
   copyButton: must<HTMLButtonElement>("#copy"),
   summary: must<HTMLSpanElement>("#summary"),
@@ -145,7 +150,7 @@ async function start(): Promise<void> {
         mime: "application/json;charset=utf-8",
         bytes: text.length,
         session: { windows: [], source: {}, capturedAt: 0 },
-        removed: { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 },
+        removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 },
         recovered: 0,
       });
     },
@@ -182,6 +187,23 @@ async function start(): Promise<void> {
   ui.sort.addEventListener("change", () => {
     settings.sort = ui.sort.value as SortMode;
     void persist({ sort: settings.sort });
+  });
+
+  /*
+   * One stored number, two controls. The checkbox writes the chosen window or
+   * zero; the select writes its own value and is dead while the checkbox is off.
+   * Storing a separate "enabled" flag would let the two disagree, and the
+   * disagreement would only ever show up as tabs missing from an export.
+   */
+  ui.stale.addEventListener("change", () => {
+    settings.staleDays = ui.stale.checked ? Number(ui.staleDays.value) : 0;
+    paintStale();
+    void persist({ staleDays: settings.staleDays });
+  });
+  ui.staleDays.addEventListener("change", () => {
+    if (!ui.stale.checked) return;
+    settings.staleDays = Number(ui.staleDays.value);
+    void persist({ staleDays: settings.staleDays });
   });
 
   /**
@@ -298,6 +320,21 @@ function paintSettings(): void {
   ui.sort.value = settings.sort;
   ui.sortDesc.checked = settings.sortDesc;
   ui.exclude.value = settings.excludeList;
+  paintStale();
+}
+
+/**
+ * The window is a select rather than a number box, because "not opened in 37
+ * days" is not a thing anybody means, and four choices cannot be typed wrong.
+ * Zero is the off state, so the checkbox and the select are two views of one
+ * stored number rather than two settings that can disagree.
+ */
+function paintStale(): void {
+  const on = settings.staleDays > 0;
+  ui.stale.checked = on;
+  ui.staleDays.disabled = !on;
+  ui.staleDays.value = String(on ? settings.staleDays : DEFAULT_STALE_DAYS);
+  ui.staleHint.hidden = !on;
 }
 
 /**
@@ -335,13 +372,18 @@ async function persist(patch: Partial<Settings>): Promise<void> {
 
 async function refresh(): Promise<void> {
   try {
-    const { session, removed } = await collectFiltered(adapter, settings);
+    const { session, removed, age } = await collectFiltered(adapter, settings);
     const counts = countSession(session);
     available = counts.tabs;
     ui.summary.textContent = countsLine(counts);
     ui.exportButton.textContent =
       counts.tabs === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(counts.tabs));
     setEnabled(counts.tabs > 0);
+    // Nothing is said when every tab is recent or when the browser gave no
+    // dates at all: a line that always appears is a line nobody reads. B-202.
+    const say = worthReporting(age);
+    ui.age.hidden = !say;
+    ui.age.textContent = say ? ageLine(age) : "";
     // The scope's own groups, which is what the permission would add names to.
     await groupsCallout?.update(counts.groups);
     if (counts.tabs === 0) {
@@ -351,6 +393,7 @@ async function refresh(): Promise<void> {
     available = 0;
     setEnabled(false);
     ui.summary.textContent = t("tabsUnavailable");
+    ui.age.hidden = true;
     renderError(ui.report, describe(error));
   }
 }

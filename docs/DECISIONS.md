@@ -802,3 +802,37 @@ Timing was the reason it mattered that week rather than eventually. The schema s
 **The Gecko id moved too**, to `tabspack@palworks.ai`. An extension id never resolves, so this changes nothing technically. It is done now because AMO fixes an addon's id permanently at first acceptance, and this is the last moment it is free. `palworks.ai` is already ours and already serves the support relay.
 
 **Consequence.** The format has a citable address that works, which was one of the four things the B-503 exploration said a specification site actually buys. The cost is a long URL and a format identity tied to a repository path. Both are recoverable for the price of a domain; a squatted name would not have been.
+
+---
+
+## ADR-044: Unknown is not old, and a pinned tab is never stale
+
+Date 2026-09-26. Status accepted.
+
+**Context.** B-202 asks the product to report on tab age so a user can see which of their three hundred tabs died months ago. Every pack already carries `lastAccessed` per tab. It is collected, serialized, in the schema and, until now, read by nothing.
+
+The feature is small. The way it can be wrong is not. A report about age becomes advice about what to throw away, and the product is about not losing tabs.
+
+**The two ways it goes wrong.**
+
+*An absent timestamp.* `tabs.lastAccessed` is not guaranteed. The collector writes `null` when the browser offers nothing, a tab read back from somebody else's file may never have had one, and every foreign import format except Tab Session Manager carries no timestamp at all. The convenient reading of a missing value is "very old", because that is what an empty date field sorts as. It is also the reading under which the product tells a user to discard tabs it knows nothing about.
+
+*A pinned tab.* Pinned tabs have old timestamps almost by definition. They are pinned so they are always there, which is precisely why nobody clicks them. An age filter that took them at face value would remove the tabs a user was most explicit about wanting.
+
+**Options.** Treat unknown as old and let the user notice. Treat unknown as recent, which is a different lie in a safer direction. Give unknown a band of its own and exempt it from every filter.
+
+**Decision.** Unknown is a band of its own. It is counted and shown, it is never called stale, and no filter built on this may drop it. A pinned tab is never stale either, whatever its timestamp says and whatever window is chosen. Both exemptions live in one function, `isStale`, so there is a single answer in the product to "is this tab old" and the filter cannot drift from the report that predicted it.
+
+A count the product cannot vouch for is exactly the count it must not hide, so the unknown band is never omitted from the line when it is not zero.
+
+**Three smaller choices that follow.**
+
+The filter is **off by default**. A filter that silently removed tabs on a first run would be the worst surprise in the product, and the report is the part that has value on its own.
+
+Age is measured **before any filter runs**. Measured afterwards, turning the filter on would make the old tabs vanish from the very line that justified turning it on.
+
+The line **says nothing** when every tab is recent or when no tab has a date, because a line that always appears is a line nobody reads.
+
+**Consequence.** Staleness joins scheme and pinned as an intrinsic property of a tab in the filter pipeline, at step 3 of 6, before the exclude list and before dedupe. Running before dedupe means a stale duplicate is counted once, as stale, which is the reason it went.
+
+What this deliberately does not do is close anything. Archiving the stale tabs and then closing them is the feature this one implies and the only destructive thing TabsPack would ever do. It needs its own row, its own confirmation, and a guarantee that no tab closes before its export is on disk. B-204 carries it.

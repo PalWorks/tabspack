@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.5 |
+| Version | 1.6 |
 | Date | 2026-09-26 |
 | Scope and requirement ids | [../PLAN.md](../PLAN.md) |
 | Decisions behind these choices | [DECISIONS.md](DECISIONS.md) |
@@ -43,6 +43,13 @@ happens, and the Rank column on what to pick up first. The `B-` hundreds do
 follow the release, from `B-1xx` in v1.1 to `B-6xx` parked, but that is a
 convenience, not a rule to lean on.
 
+**A promoted row keeps its id.** When a `B-` row is agreed into the build it
+gains a phase and acceptance criteria, and it does not become a `T-`. `B-202`
+shipped in M5 and is still `B-202`, because renumbering it would break every
+reference for the sake of a letter. The prefix then records where the row came
+from, which is worth knowing: it says this started as an idea rather than as
+planned work.
+
 The prefixes stay because they are load bearing. The ids appear 413 times
 across 70 files: in code comments next to the line that implements them, in
 test names, in ADRs, and in ten commit subjects that can never be rewritten.
@@ -51,7 +58,7 @@ with git history left pointing at numbers that no longer exist. ADR-042.
 
 ### Table R1: Open work
 
-15 rows. Status values: `next` the immediate work, `todo` agreed
+14 rows. Status values: `next` the immediate work, `todo` agreed
 and queued, `doing` in progress, `for a person` blocked on a human rather than
 on effort, `parked` deliberately not now.
 
@@ -93,29 +100,31 @@ them and stays readable without scrolling.
 | Rank | Id | Date raised | Task | Phase | Bucket | Effort | Impact | Status | Problem | Recommended solution |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | T-507 | 2026-09-24 | Full cross browser matrix | M5 | Quality | S | High | for a person | Engine differences surface at the worst possible moment, in review | Automated in `npm run matrix` and green on Edge 25/25, Chrome 25/25, Firefox 26/26. Four rows are left that only a person can do, listed in Table R10 |
-| 2 | T-717 | 2026-09-26 | The format's canonical URL points nowhere | M5 | Format | S | High | next | `schema/tabspack.v1.schema.json` declares `$id: https://tabspack.dev/...` and **tabspack.dev is not registered**. A second implementer following it finds nothing, and anybody could buy the domain and own the canonical address of our format. The Firefox extension id leans on the same name | Either point `$id` at the site or register the domain. Settle it before T-509: the schema ships inside the package, so changing it after publication is a format version question rather than an edit. [proposals/web-surface.md](proposals/web-surface.md) section 4 |
-| 3 | T-509 | 2026-09-24 | Store submissions | M5 | Release | M | Critical | next | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions |
-| 4 | B-202 | 2026-09-24 | Tab age and staleness report | v2 | Hygiene | S | Medium | todo | Users keep hundreds of tabs because they cannot see which ones died months ago | Report on `lastAccessed` from the pack, with a bulk action |
-| 5 | B-101 | 2026-09-24 | Scheduled automatic snapshots | v1.1 | Durability | M | High | todo | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker |
-| 6 | B-401 | 2026-09-24 | Pack rendered as a readable page | v4 | Sharing | M | High | todo | Sending a colleague a JSON file is not sharing, it is homework | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). Splits into a `/viewer/` on the site, which needs no store review and is also a free format converter, and an HTML export in the extension, which is the weaker half. The viewer reuses `src/core/` unchanged: one parser, two surfaces |
-| 7 | B-503 | 2026-09-24 | Specification site and adoption outreach | v5 | Ecosystem | M | Medium | todo | A format is a standard only when a second implementation exists | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). `/spec/` generated from `docs/SPEC.md` so the two cannot drift, plus a resolvable schema URL, the example corpus and the conformance fixtures. The outreach half waits until there is a published extension to point at |
-| 8 | B-502 | 2026-09-24 | Published parser package | v5 | Ecosystem | S | Low | todo | Third parties will reimplement the parser badly, or not at all | Publish the reference reader and writer as a package with the JSON Schema |
-| 9 | B-102 | 2026-09-24 | Crash and last session recovery | v1.1 | Durability | L | High | todo | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page |
-| 10 | B-301 | 2026-09-24 | Workspaces | v3 | Workspaces | L | Medium | todo | Power users run several projects at once and want to switch, not merge | Named sets of windows, one active at a time, switching by close and restore |
-| 11 | B-103 | 2026-09-24 | Snapshot diff and pruning | v1.1 | Durability | M | Low | todo | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones |
-| 12 | B-201 | 2026-09-24 | Cross snapshot duplicate detection | v2 | Hygiene | M | Low | todo | The same fifty tabs live in twelve snapshots and the user cannot tell | Report URLs common to multiple snapshots and offer consolidation |
-| 13 | B-501 | 2026-09-24 | Validating CLI | v5 | Ecosystem | M | Low | todo | A specification nobody can validate against without installing a browser extension will not be adopted | Small node CLI to validate, convert and diff packs, published from the same types |
-| 14 | B-602 | 2026-09-24 | Safari support | Parked | Release | XL | Medium | parked | Safari users cannot migrate at all | Needs Xcode packaging and a paid Apple developer account. Revisit after v1 traction |
-| 15 | B-603 | 2026-09-24 | Encrypted and signed packs | Parked | Format | L | Low | parked | A pack shared over an untrusted channel could be tampered with | Contradicts the human readable principle and adds key management. Only if a concrete user need appears |
+| 2 | T-509 | 2026-09-24 | Store submissions | M5 | Release | M | Critical | next | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions |
+| 3 | B-101 | 2026-09-24 | Scheduled automatic snapshots | v1.1 | Durability | M | High | todo | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker |
+| 4 | B-204 | 2026-09-26 | Archive the stale tabs, then close them | v2 | Hygiene | M | High | todo | Seeing which tabs died is only half of it. The user still closes three hundred tabs by hand, which is the work they came to avoid, and the obvious shortcut is the one destructive thing TabsPack would ever do | Export the tabs the age filter selects, and only once the file is on disk, close exactly those. Needs a confirmation naming the count, a guarantee that no tab closes before its bytes are written, and an undo that is the file itself. Blocked on nothing but care. B-202, ADR-044 |
+| 5 | B-401 | 2026-09-24 | Pack rendered as a readable page | v4 | Sharing | M | High | todo | Sending a colleague a JSON file is not sharing, it is homework | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). Splits into a `/viewer/` on the site, which needs no store review and is also a free format converter, and an HTML export in the extension, which is the weaker half. The viewer reuses `src/core/` unchanged: one parser, two surfaces |
+| 6 | B-503 | 2026-09-24 | Specification site and adoption outreach | v5 | Ecosystem | M | Medium | todo | A format is a standard only when a second implementation exists | Explored 2026-09-26: [proposals/web-surface.md](proposals/web-surface.md). `/spec/` generated from `docs/SPEC.md` so the two cannot drift, plus a resolvable schema URL, the example corpus and the conformance fixtures. The outreach half waits until there is a published extension to point at |
+| 7 | B-502 | 2026-09-24 | Published parser package | v5 | Ecosystem | S | Low | todo | Third parties will reimplement the parser badly, or not at all | Publish the reference reader and writer as a package with the JSON Schema |
+| 8 | B-102 | 2026-09-24 | Crash and last session recovery | v1.1 | Durability | L | High | todo | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page |
+| 9 | B-301 | 2026-09-24 | Workspaces | v3 | Workspaces | L | Medium | todo | Power users run several projects at once and want to switch, not merge | Named sets of windows, one active at a time, switching by close and restore |
+| 10 | B-103 | 2026-09-24 | Snapshot diff and pruning | v1.1 | Durability | M | Low | todo | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones |
+| 11 | B-201 | 2026-09-24 | Cross snapshot duplicate detection | v2 | Hygiene | M | Low | todo | The same fifty tabs live in twelve snapshots and the user cannot tell | Report URLs common to multiple snapshots and offer consolidation |
+| 12 | B-501 | 2026-09-24 | Validating CLI | v5 | Ecosystem | M | Low | todo | A specification nobody can validate against without installing a browser extension will not be adopted | Small node CLI to validate, convert and diff packs, published from the same types |
+| 13 | B-602 | 2026-09-24 | Safari support | Parked | Release | XL | Medium | parked | Safari users cannot migrate at all | Needs Xcode packaging and a paid Apple developer account. Revisit after v1 traction |
+| 14 | B-603 | 2026-09-24 | Encrypted and signed packs | Parked | Format | L | Low | parked | A pack shared over an untrusted channel could be tampered with | Contradicts the human readable principle and adds key management. Only if a concrete user need appears |
 
 ### Table R1b: Closed
 
-81 rows. `done` means the acceptance criteria were demonstrably
+83 rows. `done` means the acceptance criteria were demonstrably
 met; `declined` means decided against, with a record in
 [DECISIONS.md](DECISIONS.md).
 
 | Rank | Id | Date raised | Task | Phase | Bucket | Effort | Impact | Status | Problem | Recommended solution |
 |---|---|---|---|---|---|---|---|---|---|---|
+| -- | B-202 | 2026-09-24 | Tab age and staleness report | M5 | Hygiene | -- | -- | done | Users keep hundreds of tabs because they cannot see which ones died months ago, and `lastAccessed` was collected, serialized and in the schema but read by nothing | Promoted from v2 into M5 under sequencing rule 5, keeping its id. `src/core/staleness.ts` bands the scope by last use, the export pane states them before anything is written, and one filter drops tabs outside a chosen window. Off by default. A pinned tab and a tab with no timestamp are never stale. ADR-044 |
+| -- | B-601 | 2026-09-24 | New tab page override | Parked | UI | -- | -- | declined | Competitors replace the new tab page to drive engagement | Declined for v1 per ADR-013. Revisit only if users ask, and always as an explicit opt in |
+| -- | B-604 | 2026-09-24 | Cloud sync and accounts | Parked | Format | -- | -- | declined | Users ask for sync because every competitor sells it | Declined by design. The file is the sync mechanism, and no account is a differentiator, not a gap |
 | -- | T-001 | 2026-09-24 | Initialise the repository | M0 | Foundation | -- | -- | done | No version control, so no history, no branch protection and nothing for CI to trigger on | `git init` on `main`, commit the documentation set, `.gitignore` covering local reference material and build output |
 | -- | T-002 | 2026-09-24 | Build pipeline | M0 | Foundation | -- | -- | done | TypeScript cannot run in a browser and two engines need two outputs from one source | esbuild with a single config producing `dist/chrome` and `dist/firefox`, plus typecheck and lint scripts |
 | -- | T-003 | 2026-09-24 | Manifests for both engines | M0 | Foundation | -- | -- | done | Chromium and Gecko differ in manifest requirements, and a wrong permission set is a store rejection | Two manifests over one source tree. Three required permissions, `tabGroups` optional, `browser_specific_settings` id for Gecko, restrictive CSP |
@@ -195,8 +204,7 @@ met; `declined` means decided against, with a record in
 | -- | T-714 | 2026-09-26 | Who made it | M7 | UI | -- | -- | done | Nothing on any surface says who is behind it | One quiet line at the foot of About, under the privacy paragraph. ADR-037 |
 | -- | T-715 | 2026-09-26 | Send without a mail client | M7 | UI, Release | -- | -- | done | The Support pane's only route assumed a configured mail client, and a large share of people have none: pressing Send opened nothing | The relay in `server/support-worker/` holds the key; the extension asks for its host at the moment Send is pressed and falls back to the mail client on every failure. ADR-039 |
 | -- | T-716 | 2026-09-26 | A public site | M7 | Release, Design | -- | -- | done | Nowhere to link a store listing to, and the privacy policy and terms had no stable public address | Ten pages on GitHub Pages, rendered from one layout by `scripts/gen-site.mjs` and committed, with two checkers and no third party requests. ADR-040 |
-| -- | B-601 | 2026-09-24 | New tab page override | Parked | UI | -- | -- | declined | Competitors replace the new tab page to drive engagement | Declined for v1 per ADR-013. Revisit only if users ask, and always as an explicit opt in |
-| -- | B-604 | 2026-09-24 | Cloud sync and accounts | Parked | Format | -- | -- | declined | Users ask for sync because every competitor sells it | Declined by design. The file is the sync mechanism, and no account is a differentiator, not a gap |
+| -- | T-717 | 2026-09-26 | The format's canonical URL points nowhere | M5 | Format | -- | -- | done | `schema/tabspack.v1.schema.json` declared `$id: https://tabspack.dev/...` and tabspack.dev was never registered. A second implementer following the canonical address of the format found nothing, and anybody could have bought it | The `$id` is now `https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json`, the site publishes the schema at exactly that path, and `ruleSchemaId` fails the build on any of three drifts. The Gecko id moved to `tabspack@palworks.ai` in the same change. ADR-043 |
 
 
 ## 2. Release themes
@@ -434,6 +442,7 @@ piece of work.
 | M7 A real user's session | T-511, T-701 to T-714 | 247 unit tests and an 81 check browser run. A success that reads as a success, the tab groups permission offered where it is actually lost, a callout that can be seen, titles on and favicons off, an intake that folds away, a toolbar that reports from every surface, packaging for all three stores, a support form that sends no request, and a rating ask that stops by itself |
 | M8 Reachable and public | T-715, T-716 | 260 unit tests and a 97 check browser run, with the matrix green on all three browsers: Edge 25/25, Chrome 25/25, Firefox 26/26. A support relay deployed at `tabspack-support.palworks.ai` and proven end to end from the shipped extension in a real browser, with the host asked for at the point of use and a fallback for every way it can fail. A ten page site on GitHub Pages, rendered from one layout and committed, loading nothing from any other server |
 | M6 Recovery | T-601 to T-609 | 223 unit tests and a 70 check browser run. A suspender's wrapper read back to the page it stands for, on export and on import, from four named families and by shape for the rest, with every recovery counted. Restores create every tab unloaded by default, flushed per batch so a large restore never holds more than a batch loaded at once |
+| M5 loose ends, before the first submission | T-717, B-202 | 275 unit tests and a 107 check browser run. The format's canonical URL points at us and resolves, guarded by a lint rule that was tested by breaking it three ways. Tab age reported from data the pack already carried, with a filter that is off by default and two exemptions: a pinned tab and a tab with no timestamp are never called old |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte
 stably twice in a row, and the generated schema validates every valid fixture

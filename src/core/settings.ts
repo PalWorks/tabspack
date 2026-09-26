@@ -39,6 +39,13 @@ export interface Settings {
   sort: SortMode;
   sortDesc: boolean;
   /**
+   * Drop tabs not opened within this many days. `0` is off, and off is the
+   * default: a filter that silently removed tabs on first run would be the
+   * worst surprise in the product. A pinned tab and a tab with no timestamp are
+   * never dropped, whatever this says. B-202.
+   */
+  staleDays: number;
+  /**
    * Recover the real address of a tab a suspender has parked on one of its own
    * pages, on export and on import. ADR-023.
    */
@@ -80,6 +87,7 @@ export const DEFAULT_SETTINGS: Settings = {
   excludeList: "",
   sort: "natural",
   sortDesc: false,
+  staleDays: 0,
   recoverSuspended: true,
 
   restoreTarget: "new_windows",
@@ -99,6 +107,9 @@ export const DEFAULT_SETTINGS: Settings = {
  * user never chose, and a restore delay of an hour is a typo, not an intention.
  */
 const NUMERIC_LIMITS: Record<string, { min: number; max: number }> = {
+  // Ten years. Past that the filter would drop nothing, so a larger number is a
+  // typo rather than an intention.
+  staleDays: { min: 0, max: 3650 },
   discardThreshold: { min: 0, max: 10_000 },
   restoreBatchSize: { min: 1, max: 100 },
   restoreDelayMs: { min: 0, max: 5_000 },

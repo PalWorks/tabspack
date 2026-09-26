@@ -362,6 +362,69 @@ try {
     incognitoHint ?? "",
   );
 
+  /*
+   * Tab age, B-202. A fresh profile is the strongest case for the half of this
+   * feature that matters: every tab was opened seconds ago, so the honest answer
+   * is to say nothing and remove nothing. A feature that reported ages here, or
+   * dropped a tab here, would be wrong in the direction that loses data.
+   */
+  const beforeStale = await manager.textContent("#summary");
+  check("no age line when every tab is recent", await manager.isHidden("#age"), beforeStale ?? "");
+  check("the age window is dead until the filter is on", await manager.isDisabled("#opt-stale-days"));
+  check("the exemptions are not stated until they apply", await manager.isHidden("#stale-hint"));
+
+  await manager.click("#opt-stale");
+  await manager.waitForFunction(() => document.querySelector("#opt-stale-days")?.disabled === false, {
+    timeout: 10_000,
+  });
+  check("ticking the filter wakes the window", !(await manager.isDisabled("#opt-stale-days")));
+  check("and states the two exemptions", await manager.isVisible("#stale-hint"));
+  check(
+    "the window defaults to 3 months",
+    (await manager.inputValue("#opt-stale-days")) === "90",
+    await manager.inputValue("#opt-stale-days"),
+  );
+  const afterStale = await manager.textContent("#summary");
+  check(
+    "a filter for tabs older than 3 months removes none of today's tabs",
+    afterStale === beforeStale,
+    `${beforeStale} then ${afterStale}`,
+  );
+
+  // 320 px is the narrowest viewport the design contract covers, and the field
+  // is a label plus a select that must wrap as one unit rather than overflow.
+  await manager.setViewportSize({ width: 320, height: 900 });
+  const narrowOverflow = await manager.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  check("the export pane does not scroll sideways at 320 px", narrowOverflow <= 0, `${narrowOverflow} px`);
+  await manager.screenshot({ path: path.join(shots, "manager-stale-320.png"), fullPage: true });
+  await manager.setViewportSize({ width: 1100, height: 900 });
+
+  /*
+   * The one link a fresh profile cannot exercise: the sentence for a tab that is
+   * genuinely old. No test profile can hold a tab from three months ago, so the
+   * count and the wording are proved separately. The counts are unit tested; this
+   * asks the browser to render the phrase with a substitution, which is the only
+   * part that could fail silently and show a raw key to a user.
+   */
+  const agePhrases = await manager.evaluate(() => [
+    chrome.i18n.getMessage("unit_age_older_other", ["47"]),
+    chrome.i18n.getMessage("unit_age_unknown_other", ["8"]),
+    chrome.i18n.getMessage("unit_removed_stale_other", ["47"]),
+  ]);
+  check(
+    "the age phrases render with their count, not as a raw key",
+    agePhrases.every((phrase) => /\d/.test(phrase) && !phrase.startsWith("unit_")),
+    agePhrases.join(" | "),
+  );
+
+  await manager.click("#opt-stale");
+  await manager.waitForFunction(() => document.querySelector("#opt-stale-days")?.disabled === true, {
+    timeout: 10_000,
+  });
+  check("unticking puts it back to off", await manager.isHidden("#stale-hint"));
+
   await manager.click("#copy");
   // A textarea's value is not a child node, so :empty never changes: poll the
   // value instead.

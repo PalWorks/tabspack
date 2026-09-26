@@ -2,7 +2,7 @@
 
 As of the end of M7: 247 unit tests, the number `npm test` reports, with 21
 conformance fixtures, 16 foreign format fixtures, 38 contrast pairs, 2
-performance budgets in node and 3 more measured in a browser, and an 81 check
+performance budgets in node and 3 more measured in a browser, and a 107 check
 browser run that covers export, import, restore,
 search, snapshots, the settings pane and the theme. The contract below is what
 they are for.
@@ -112,14 +112,15 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 
 | Automated | How |
 |---|---|
-| Everything in `src/core/` | 247 unit tests against a writable fake browser that models the awkward parts of the real one |
-| The whole interface in Chromium, including import, restore, search, snapshots, the settings pane, the support form and the theme | `npm run smoke`, 81 checks against the built extension in a real Chromium |
+| Everything in `src/core/` | 275 unit tests against a writable fake browser that models the awkward parts of the real one |
+| The whole interface in Chromium, including import, restore, search, snapshots, the settings pane, the support form and the theme | `npm run smoke`, 107 checks against the built extension in a real Chromium |
 | That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
 | That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |
 | The contrast contract | `npm run a11y`, computed from the tokens |
 | The support message, and that nothing about your tabs is in it | 8 unit tests on `core/support.ts`, one of which fails if an address, a title or a count ever reaches the body |
 | Every rule of the rating ask | 8 unit tests on `core/rating.ts`, one per rule in ADR-036 plus the whole life of an ask from install to settled |
+| Tab age, and the two exemptions that matter more than the feature | 15 unit tests on `core/staleness.ts`, including that a pinned tab and a tab with no timestamp are never called stale, plus 9 browser checks. A fresh profile has no three month old tab in it, so the counts and the wording are proved separately: the counts in node, the rendered phrase by asking the browser to substitute into it |
 
 | Exporting, importing and restoring in real Chrome, Edge and Firefox, including a 200 tab restore with unloading on and a restart | `npm run matrix`, which drives the installed browsers. How it gets in differs by browser and is the whole reason that script exists: see the table below |
 | A keyboard command actually being pressed | `npm run matrix -- --target=edge --keys`, which presses it with `xdotool` on a real window. Edge acts on it. Chrome and Firefox do not act on a synthetic key on the virtual display used here, so those two report the row as not run rather than as a failure |

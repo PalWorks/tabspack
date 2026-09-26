@@ -76,12 +76,13 @@ export function totalRemoved(removed: FilterCounts): number {
  * turns these into words, because the words are translated and this decision is
  * not: see `src/ui/shared/wording.ts` and ADR-022.
  */
-export type RemovedKind = "duplicate" | "pinned" | "scheme" | "excluded";
+export type RemovedKind = "duplicate" | "pinned" | "stale" | "scheme" | "excluded";
 
 export function removedParts(removed: FilterCounts): { kind: RemovedKind; count: number }[] {
   const parts: { kind: RemovedKind; count: number }[] = [];
   if (removed.duplicate > 0) parts.push({ kind: "duplicate", count: removed.duplicate });
   if (removed.pinned > 0) parts.push({ kind: "pinned", count: removed.pinned });
+  if (removed.stale > 0) parts.push({ kind: "stale", count: removed.stale });
   if (removed.scheme > 0) parts.push({ kind: "scheme", count: removed.scheme });
   if (removed.excluded > 0) parts.push({ kind: "excluded", count: removed.excluded });
   return parts;

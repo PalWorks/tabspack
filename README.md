@@ -173,7 +173,7 @@ Three properties get the test budget: a file round trips without loss, a malform
 
 ```bash
 npm run verify        # typecheck, lint, schema, 247 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 81 checks against the built extension in a real Chromium
+npm run smoke         # 107 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
 npm run matrix:firefox -- --headed --grant-groups

@@ -4,19 +4,28 @@
  *
  *   1. web pages only   drop anything that is not http or https
  *   2. skip pinned      drop pinned tabs
- *   3. exclude list     drop URLs matching a wildcard pattern
- *   4. dedupe           keep the first occurrence of a URL across the session
- *   5. sort             within a window, pinned tabs first, then the sort mode
+ *   3. stale            drop tabs not opened within a chosen window
+ *   4. exclude list     drop URLs matching a wildcard pattern
+ *   5. dedupe           keep the first occurrence of a URL across the session
+ *   6. sort             within a window, pinned tabs first, then the sort mode
+ *
+ * Staleness sits with the other two intrinsic properties of a tab, its scheme
+ * and its pinned state, rather than with the exclude list, which is a pattern
+ * somebody typed. It runs before dedupe so that a stale duplicate is counted
+ * once, as stale, which is the reason it was dropped.
  *
  * Sorting runs last and partitions on `pinned`, because restoring a tab before
  * the pinned tabs exist puts it in the wrong place: see docs/DOMAIN.md.
  */
 import type { Session, SessionTab, SessionWindow } from "../types/session.js";
 import type { Settings, SortMode } from "./settings.js";
+import { isStale } from "./staleness.js";
 
 export interface FilterCounts {
   scheme: number;
   pinned: number;
+  /** Not opened within `staleDays`. B-202. */
+  stale: number;
   excluded: number;
   duplicate: number;
 }
@@ -28,11 +37,21 @@ export interface FilterResult {
 
 export type FilterSettings = Pick<
   Settings,
-  "dedupe" | "webPagesOnly" | "skipPinned" | "excludeList" | "sort" | "sortDesc"
+  "dedupe" | "webPagesOnly" | "skipPinned" | "staleDays" | "excludeList" | "sort" | "sortDesc"
 >;
 
-export function applyFilters(session: Session, settings: FilterSettings): FilterResult {
-  const removed: FilterCounts = { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 };
+export interface FilterOptions {
+  /** Overrides the clock, which only the staleness step reads. Tests fix it. */
+  now?: number;
+}
+
+export function applyFilters(
+  session: Session,
+  settings: FilterSettings,
+  options: FilterOptions = {},
+): FilterResult {
+  const now = options.now ?? Date.now();
+  const removed: FilterCounts = { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 };
   const patterns = compileExcludeList(settings.excludeList);
   const seen = new Set<string>();
 
@@ -49,6 +68,16 @@ export function applyFilters(session: Session, settings: FilterSettings): Filter
       const before = tabs.length;
       tabs = tabs.filter((tab) => !tab.pinned);
       removed.pinned += before - tabs.length;
+    }
+    /*
+     * `isStale` is the single place that decides, and it exempts a pinned tab
+     * and a tab with no timestamp. Neither exemption is repeated here, so there
+     * is one answer to "is this tab old" in the product.
+     */
+    if (settings.staleDays > 0) {
+      const before = tabs.length;
+      tabs = tabs.filter((tab) => !isStale(tab, settings.staleDays, now));
+      removed.stale += before - tabs.length;
     }
     if (patterns.length > 0) {
       const before = tabs.length;

@@ -231,6 +231,24 @@
   "filterSkipPinned": {
     "message": "Skip pinned"
   },
+  "filterStale": {
+    "message": "Skip tabs not opened in"
+  },
+  "filterStaleHint": {
+    "message": "Pinned tabs, and tabs the browser gives no date for, are always kept."
+  },
+  "staleDays30": {
+    "message": "a month"
+  },
+  "staleDays90": {
+    "message": "3 months"
+  },
+  "staleDays180": {
+    "message": "6 months"
+  },
+  "staleDays365": {
+    "message": "a year"
+  },
   "orderLabel": {
     "message": "Order"
   },
@@ -351,6 +369,22 @@
       }
     }
   },
+  "unit_removed_stale_one": {
+    "message": "$count$ tab not opened recently",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_stale_other": {
+    "message": "$count$ tabs not opened recently",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
   "unit_removed_scheme_one": {
     "message": "$count$ tab that is not a web page skipped",
     "placeholders": {
@@ -377,6 +411,105 @@
   },
   "unit_removed_excluded_other": {
     "message": "$count$ excluded tabs skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "ageLabel": {
+    "message": "Last opened"
+  },
+  "unit_age_today_one": {
+    "message": "$count$ today",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_today_other": {
+    "message": "$count$ today",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_week_one": {
+    "message": "$count$ this week",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_week_other": {
+    "message": "$count$ this week",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_month_one": {
+    "message": "$count$ this month",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_month_other": {
+    "message": "$count$ this month",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_quarter_one": {
+    "message": "$count$ within 3 months",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_quarter_other": {
+    "message": "$count$ within 3 months",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_older_one": {
+    "message": "$count$ over 3 months ago",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_older_other": {
+    "message": "$count$ over 3 months ago",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_unknown_one": {
+    "message": "$count$ with no date",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_age_unknown_other": {
+    "message": "$count$ with no date",
     "placeholders": {
       "count": {
         "content": "$1"

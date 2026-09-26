@@ -171,7 +171,8 @@ Requirement ids are stable and are referenced by task rows in `docs/ROADMAP.md` 
 | FR-304 | Keyboard shortcuts for export all windows, export current window and save snapshot |
 | FR-305 | Badge showing the tab count captured by the last action |
 | FR-401 | Settings for default export scope, default format and default restore target |
-| FR-402 | Filters: dedupe by URL, http and https only, skip pinned, wildcard exclude list, sort by title, URL or domain |
+| FR-402 | Filters: dedupe by URL, http and https only, skip pinned, skip tabs not opened within a chosen window, wildcard exclude list, sort by title, URL or domain |
+| FR-407 | Report how old the tabs in the scope are, from `lastAccessed`, measured before any filter runs. A pinned tab and a tab with no timestamp are never called old. B-202, ADR-044 |
 | FR-403 | Restore policy: throttle delay, discard threshold, placeholder behaviour |
 | FR-404 | Incognito opt in, gated by the browser level permission |
 | FR-405 | Light, dark and system theme |
