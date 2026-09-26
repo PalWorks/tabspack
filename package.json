@@ -1,6 +1,6 @@
 {
   "name": "tabspack",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "Export, move, share and restore browser tabs across browsers using an open, offline first format",
   "license": "MIT",
@@ -18,16 +18,20 @@
     "schema:check": "node scripts/gen-schema.mjs --check",
     "fixtures": "node scripts/gen-fixtures.mjs",
     "assets": "node scripts/gen-assets.mjs",
+    "site": "node scripts/gen-site.mjs",
+    "site:check": "node scripts/gen-site.mjs --check && node scripts/check-site.mjs",
+    "og": "node scripts/gen-og.mjs",
     "icons:compare": "node scripts/gen-icon-sheet.mjs",
     "perf": "node scripts/perf.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run schema:check && npm test && npm run a11y && npm run perf && npm run build && npm run lint:amo",
+    "verify": "npm run typecheck && npm run lint && npm run schema:check && npm run site:check && npm test && npm run a11y && npm run perf && npm run build && npm run lint:amo",
     "smoke": "node scripts/smoke.mjs",
     "smoke:firefox": "node scripts/firefox-load.mjs",
     "a11y": "node scripts/a11y-contrast.mjs",
     "perf:browser": "node scripts/perf-browser.mjs",
     "lint:amo": "addons-linter dist/firefox --output text",
     "matrix": "node scripts/matrix.mjs",
-    "matrix:firefox": "node scripts/matrix-firefox.mjs"
+    "matrix:firefox": "node scripts/matrix-firefox.mjs",
+    "site:browser": "node scripts/check-site-browser.mjs"
   },
   "dependencies": {
     "webextension-polyfill": "0.12.0"

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#111827;--brand-2:#334155">
+  <!--
+    2. The same T, in graphite and amber.
+
+    The shape question and the colour question are different questions, so
+    they are asked separately. A toolbar is a row of saturated blues, greens
+    and reds; a near black tile is the only thing in it that is not shouting,
+    and the amber tab is the one place the eye lands.
+  -->
+  <defs>
+    <linearGradient id="t2-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#t2-bg)" />
+  <g class="fg" fill="#ffffff">
+    <rect x="16" y="26" width="31" height="24" rx="11" />
+    <rect x="81" y="26" width="31" height="24" rx="11" />
+  </g>
+  <rect class="fg accent" x="51" y="26" width="26" height="86" rx="12" fill="#fbbf24" />
+</svg>

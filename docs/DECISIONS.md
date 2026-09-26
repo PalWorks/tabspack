@@ -655,3 +655,61 @@ Found by reading the adapter while auditing the phase, not by a test. Written do
 **Decision.** `openExternal(url)` opens an address exactly as given. `openExtensionPage(path)` keeps its meaning and its name. Three callers use the first, two use the second, and the difference is now visible at every call site.
 
 **Consequence.** The browser audit opens the support form for real and asserts that what lands is a `mailto:` rather than an extension URL with one glued to it. A `mailto:` may open no tab at all, because the operating system takes it, so a refusal is reported by throwing and the page offers Copy instead.
+
+---
+
+## ADR-039: One request, to one address, that the user grants and can refuse
+
+Date 2026-09-26. Status accepted. Supersedes ADR-035 in part. Scopes T-715.
+
+**Context.** ADR-035 shipped a support form that made no network request: it composed the message and handed it to the user's own mail client. That was the right first move and it kept `PRIVACY.md` true as written. It also assumed a configured mail client, and the person who asked for the form came back with the reason it is not enough: **a lot of people do not have one.** On those machines the Send button opened nothing. The message was still on the clipboard and the page still said so, but a support channel whose happy path is "paste this into webmail yourself" is not a support channel.
+
+Nothing in ADR-035's reasoning about the key has changed, and nothing in it is being reversed. An API key in a published extension is still a public key. What changes is the answer to the second question: whether the network claim is worth more than the support channel.
+
+**Options.**
+
+| | Cost |
+|---|---|
+| Leave it as it is | Everyone without a mail client has no way to report a bug, which is most of the people most likely to hit one |
+| Ship the key and send directly | Not an option, for the reason ADR-035 gives |
+| Relay through a worker, with the host as a **required** permission | Every install shows "read and change your data on support.palworks.ai" at the prompt, for a feature almost nobody uses. The permission dialogue is the most expensive screen in the product |
+| Relay through a worker, with the host as an **optional** permission | Install prompt unchanged. The browser asks the first time Send is pressed, which is the moment the user is choosing to contact us. Costs the absolute form of the network claim |
+
+**Decision.** The last one.
+
+1. **The relay holds the key.** `server/support-worker/` is deployed. The extension knows one address and no secret.
+2. **The host is optional and asked for at the point of use.** A default install has no host access at all. `manifest.*.json` lists `optional_host_permissions`, and the request is made inside the click on Send, which is also the only way Chromium will honour it.
+3. **Refusing is a supported answer, not an error.** Declined, offline, rate limited, refused, timed out, or deployed nowhere: every one of them falls back to the mail client and then to the clipboard. `sendViaRelay` cannot throw and cannot return anything the caller has no branch for.
+4. **One file may make a request.** `scripts/lint.mjs` still fails the build on `fetch` anywhere in `src/` except `src/core/relay.ts`, and only on `fetch`: `XMLHttpRequest`, `WebSocket` and the rest stay banned everywhere including there. "TabsPack talks to exactly one address from exactly one place" is a fact a reviewer can check in a minute.
+5. **The address is written four times and checked.** `src/core/relay.ts`, both manifests, and the worker's route. A new lint rule fails the build if any of them disagree, because a Send button pointing at a host nobody deployed fails silently and nothing else would notice.
+6. **The payload does not grow.** Four fields: subject, body, reply address, and an always-empty honeypot. It is the message the user read on screen, and the test that proves no tab data can reach it is now two tests.
+
+**What the privacy claim becomes.** "TabsPack makes no network request" becomes "TabsPack makes no network request unless you press Send in the Support pane, and your browser asks you first". That is a longer sentence and a worse headline, and it is the honest one. `PRIVACY.md`, both store documents and the listing copy all change in the same release, which is what ADR-005 says has to happen.
+
+**Consequence.** The Support pane gains a second button, "Use my email app", so the original route is still one click for the people who prefer it, and it is where Send lands when anything goes wrong. The worker is open to the internet by construction, so it is capped three ways and holds no state; past the global cap it answers 429 and the extension uses the mail client, which means the worst outcome of an attack on it is a slower support channel rather than a lost message or a bill. Eleven unit tests cover the client, and every refusal path in the worker was exercised against a local deployment before it shipped.
+
+---
+
+## ADR-040: The site is committed HTML, rendered by a script, and loads nothing from anyone else
+
+Date 2026-09-26. Status accepted. Scopes T-716.
+
+**Context.** TabsPack needed a public site: something to link from a store listing, somewhere to host the privacy policy and the terms at a stable address, and a page that makes the case for the product to someone who has never heard of it. Ten pages, one of them long.
+
+**Three questions, and only the third is interesting.**
+
+**Where it is hosted.** GitHub Pages, from the repository that already holds the source. No account to add, no bill, and the thing that is served is a commit anybody can read. The alternative was a hosting platform with a build step and a dashboard, which is more moving parts than a ten page static site can justify.
+
+**Whether the HTML is committed or built.** Committed. GitHub Pages should serve exactly what is in the repository: a site whose deployed content is the output of a build nobody can inspect is the same trust problem as an extension whose source is not published, on a smaller scale.
+
+**Whether the pages are hand written.** No, and this is the part worth recording. Ten pages that share a header and a footer, written by hand, are ten copies of the same navigation, and the copies drift. A link added to one page and not the other nine is the most ordinary bug a static site has, and nothing fails when it happens.
+
+**Decision.** `scripts/gen-site.mjs` renders `website/` from a layout and ten page bodies in `scripts/site/`. The output is committed. `--check` re-renders into memory and fails if what is committed is stale, which is what the deploy workflow runs first, so a layout change that was never regenerated fails the build instead of shipping a footer that disagrees with itself.
+
+**The site loads nothing from anyone else.** No font service, no analytics, no tag manager, no embedded anything. This is not minimalism for its own sake: the product's whole claim is that it does not phone home, and a marketing site that quietly loads six third party scripts while making that claim is the loudest possible contradiction. It also means the cookie notice can say there are none, and be right.
+
+**Every link is relative.** The site lives at a repository subpath today and may live at a custom domain tomorrow. `scripts/check-site.mjs` fails on an absolute link to our own origin, with one deliberate exception: `404.html`, which GitHub Pages serves for a bad address at any depth and whose links therefore cannot be relative to anything.
+
+**Consequence.** Two checkers, because they answer different questions. `check-site.mjs` reads the HTML: links resolve, images have dimensions and alt text, every page has a title, a description, a canonical and an OG image, structured data parses, the sitemap matches the pages. It needs no browser and runs in `npm run verify`. `check-site-browser.mjs` needs a layout engine, because whether a page fits on a phone is not a question you can answer by reading CSS. It found the bug that proves the point: every `minmax(300px, 1fr)` grid track was a 300 pixel floor inside a 280 pixel container, so **every page on the site scrolled sideways at 320 pixels wide**, and no amount of reading the stylesheet would have shown it.
+
+Search and answer engines are served by the same facts rather than a second set: `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` graphs generated from the page's own front matter, so a rich result cannot disagree with the page, and `llms.txt` and `llms-full.txt` for the crawlers that would rather read prose than parse markup. `robots.txt` allows every one of them, including the model crawlers: a product nobody has heard of gains more from being quotable than it loses from being trained on.

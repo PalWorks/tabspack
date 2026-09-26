@@ -1,0 +1,78 @@
+# TabsPack
+
+> A browser extension that exports every open tab to a single file and restores
+> them exactly as they were, in Chrome, Edge or Firefox. Windows, tab order,
+> pinned tabs and tab groups all survive the round trip. Free, MIT licensed, and
+> your tabs never leave your device.
+
+TabsPack is made by palworks.ai. Site: https://palworks.github.io/tabspack/
+Source: https://github.com/PalWorks/tabspack
+
+## What it is
+
+A browser extension, Manifest V3, for Google Chrome, Microsoft Edge and Mozilla
+Firefox. It solves three problems: having too many open tabs to close safely,
+moving a working session from one browser to another, and recovering a session
+after a crash or after a tab suspender extension is removed.
+
+## Key facts
+
+- Price: free. No paid tier, no account, no advertising, no data collection.
+- Licence: MIT. Full source published.
+- Browsers: Chrome, Edge, Firefox. One source tree builds all three.
+- File format: `.tabspack.json`, plain JSON against a published JSON Schema.
+- Privacy: requests no host permission at install, so it cannot reach any
+  address on the internet. Tabs are never transmitted. The only network request
+  it can make is a support message the user writes and presses Send on, which
+  the browser gates behind its own optional-permission prompt.
+- No content scripts, no remote code, no analytics, no telemetry, no account.
+- An export never contains cookies, session tokens, authorization headers or
+  form data. It cannot be used to sign in as the user.
+
+## What survives a round trip
+
+Windows and their position, size and state. Every tab's address, title and
+position in order. Which tabs were pinned, active, muted or unloaded. Tab
+groups with their title, colour and collapsed state. Opener relationships.
+
+## What it imports
+
+Its own `.tabspack.json`, OneTab exports, Session Buddy JSON and CSV, Tab
+Session Manager exports, Netscape HTML bookmarks, Markdown link lists, flat
+JSON, and plain lists of URLs. The format is detected by reading the file, not
+by its extension, and the user sees what was found before anything opens.
+
+## What it exports
+
+`.tabspack.json` (everything survives), a plain list of URLs, flat JSON, and
+CSV. The interface states what each lossy format discards before it is chosen.
+
+## Notable behaviours
+
+- Restored tabs open unloaded by default: 200 real pages restore in about nine
+  seconds and 199 stay asleep until clicked.
+- It reads the real address back out of tabs parked by suspender extensions
+  such as The Great Suspender, on both export and import.
+- Browser-internal pages that extensions may not open are kept in the file and
+  listed on a page after restore, rather than being dropped.
+- Private and incognito windows are excluded unless the user enables it in both
+  the browser and the extension.
+
+## Pages
+
+- [Home](https://palworks.github.io/tabspack/): what it does, how it works, the privacy position, formats.
+- [Pricing](https://palworks.github.io/tabspack/pricing/): free, and why.
+- [FAQ](https://palworks.github.io/tabspack/faq/): eighteen questions answered in full.
+- [About us](https://palworks.github.io/tabspack/about/): who builds it and what it refuses to do.
+- [Contact us](https://palworks.github.io/tabspack/contact/): support@palworks.ai, the in-extension form, GitHub issues.
+- [Privacy policy](https://palworks.github.io/tabspack/privacy/): version 1.1.
+- [Terms of use](https://palworks.github.io/tabspack/terms/)
+- [Security](https://palworks.github.io/tabspack/security/): disclosure process and the design decisions behind the attack surface.
+- [Cookie notice](https://palworks.github.io/tabspack/cookies/): there are none.
+- [Full detail for models](https://palworks.github.io/tabspack/llms-full.txt)
+
+## Optional
+
+- [Format specification](https://github.com/PalWorks/tabspack/blob/main/docs/SPEC.md)
+- [JSON Schema](https://github.com/PalWorks/tabspack/blob/main/schema/tabspack.v1.schema.json)
+- [Decision records](https://github.com/PalWorks/tabspack/blob/main/docs/DECISIONS.md)

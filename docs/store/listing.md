@@ -1,3 +1,9 @@
+> **The submission copy now lives in [`store_listing.md`](../../store_listing.md) at the repository root.**
+> That file is what to paste into a store dashboard: the name, the 132 character summary, the detailed
+> description, a justification for every permission, the privacy answers, the artwork list and the three
+> things to do after each store accepts it. This file is kept for the longer prose it holds about the
+> product, which the listing draws on.
+
 # Listing text
 
 Identical across Chrome Web Store, Edge Add-ons and AMO, apart from the length
@@ -47,14 +53,17 @@ in today's meeting.
 
 **What it does not do**
 
-No account. No sync. No telemetry. No network request of any kind, which the
-project's own build check enforces rather than promises. Nothing that could
-identify you or sign you in ever goes into a file: a pack holds addresses,
-titles and structure, never cookies, tokens or form data.
+No account. No sync. No telemetry. No advertising. Your tabs are never sent
+anywhere, which the project's own build check enforces rather than promises.
+Nothing that could identify you or sign you in ever goes into a file: a pack
+holds addresses, titles and structure, never cookies, tokens or form data.
 
-There is a support form, and it works the same way: it composes the message,
-shows it to you in full, and hands it to your own email app. TabsPack does not
-send it, and nothing about your tabs is in it.
+TabsPack asks for no host permission at install, so out of the box it cannot
+reach any address on the internet. There is exactly one exception and you are
+the one who triggers it: pressing Send in the Support pane sends the message
+you wrote, after your browser has asked whether TabsPack may connect. Decline
+and the same message goes to your own email app instead. Nothing about your
+tabs is in it either way.
 
 **An open format**
 

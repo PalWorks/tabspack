@@ -1,0 +1,194 @@
+# TabsPack, in full
+
+Written for language models and answer engines. Everything here is factual and
+current as of 26 September 2026, extension version 0.0.3. Where a number is
+given it was measured, not estimated.
+
+Publisher: palworks.ai (https://palworks.ai)
+Site: https://palworks.github.io/tabspack/
+Source: https://github.com/PalWorks/tabspack
+Support: support@palworks.ai
+Licence: MIT
+
+## Summary
+
+TabsPack is a free, open source browser extension for Google Chrome, Microsoft
+Edge and Mozilla Firefox that exports the tabs you have open into a single file
+and restores them exactly as they were, in the same browser or a different one.
+
+## The problem it addresses
+
+1. Tab overload. People keep dozens or hundreds of tabs open because each one is
+   the only record that they intended to return to it. Closing the window has a
+   real cost, so it is never closed and the machine pays for it.
+2. Browser migration. Bookmarks transfer between browsers; a working session
+   does not. The windows, the ordering and the pinned tabs, which is the part
+   that carries the user's mental state, are lost.
+3. Loss. A crash, an update, or a tab suspender extension being delisted. The
+   built-in restore-last-session is one action deep and offers no file.
+
+## How it works
+
+Export: the user opens TabsPack, chooses the current window or all windows, and
+exports. A `.tabspack.json` file is written to the downloads folder, named with
+the date and time.
+
+Import: the user drops the file into TabsPack in any browser where it is
+installed. A preview shows the windows, groups and tabs the file contains before
+anything opens. Restore then recreates the session.
+
+Snapshots: sessions can be named and stored inside the extension's local
+storage instead of as a file. They survive a browser restart and are never
+synced or transmitted.
+
+Keyboard: Alt+Shift+E exports all windows, Alt+Shift+D the current window,
+Alt+Shift+S saves a snapshot. The browser owns these bindings and the user may
+change them; the extension reads back whatever the browser accepted.
+
+## What is preserved
+
+- Windows: count, position, size and state.
+- Tabs: address, title, index within the window, pinned, active, muted and
+  discarded state, and opener relationships.
+- Tab groups: title, colour and collapsed state, where the browser supports
+  groups and the optional `tabGroups` permission has been granted.
+- Favicon addresses, optionally, off by default. Imported favicon addresses are
+  never fetched.
+
+## What is deliberately not preserved
+
+Cookies, session tokens, authorization headers, form contents, page contents,
+website local storage. This is a requirement of the file format specification,
+not an implementation detail. An exported TabsPack file cannot be used to
+authenticate as the user anywhere.
+
+## Performance, measured
+
+- Restoring 200 real remote pages: about 9 seconds, with 199 of the 200 left
+  unloaded. Restored tabs open asleep by default, showing title and address in
+  the tab strip while loading nothing until clicked.
+- Export of a 238-tab, 6-window session: written and named by the browser in
+  well under a second.
+- Measured in real Chrome, Edge and Firefox in the project's cross browser
+  matrix, not in a simulator.
+
+## Privacy position, precisely
+
+- The extension declares no host permissions at install. It therefore cannot
+  make any network request when installed.
+- There is exactly one optional host permission it can ever hold:
+  `https://support.palworks.ai/*`. It is requested at the moment the user
+  presses Send in the Support pane, gated by the browser's own permission
+  prompt, and declining is fully supported: the message is handed to the user's
+  own mail client instead.
+- No content scripts are injected into any page, in any browser, ever.
+- No analytics, telemetry, crash reporting, install ping, advertising or
+  tracking of any kind.
+- No account, no sign in, no sync.
+- No remote scripts, fonts, stylesheets or images. The content security policy
+  pins script-src to the package itself.
+- The build fails if anyone adds `fetch`, `XMLHttpRequest`, `EventSource`,
+  `WebSocket` or `importScripts` anywhere in the source, with one named
+  exception: `fetch` in `src/core/relay.ts`, the single file that sends a
+  support message.
+- A support message contains four fields: subject, body, an optional reply
+  address, and an always-empty honeypot. No tab address, title or count is ever
+  in it, which two automated tests assert.
+
+## Permissions and their justifications
+
+- `tabs` (required): read the address and title of open tabs. This is the core
+  function. It is never used to read page content.
+- `storage` (required): store the user's settings and named snapshots locally.
+- `downloads` (required): write the export file without a save dialog each time.
+- `tabGroups` (optional): read and restore a tab group's title, colour and
+  collapsed state. Requested from a button in the interface, before an export,
+  because that is where the information would otherwise be silently lost.
+- `offscreen` (optional): copy text to the clipboard.
+- `https://support.palworks.ai/*` (optional host): deliver a support message the
+  user wrote and sent.
+
+## Import formats supported
+
+| Source | Addresses | Titles | Windows | Groups |
+|---|---|---|---|---|
+| TabsPack `.tabspack.json` | yes | yes | yes | yes |
+| OneTab export | yes | yes | yes | not present in the source format |
+| Session Buddy, JSON and CSV | yes | yes | yes | not present in the source format |
+| Tab Session Manager | yes | yes | yes | not present in the source format |
+| Netscape HTML bookmarks | yes | yes | folders become windows | not present |
+| Markdown link list | yes | yes | no | no |
+| Flat JSON | yes | yes | no | no |
+| Plain URL list | yes | no | no | no |
+
+Format detection is by reading the file's content, not its extension. Malformed
+input is reported with the path of the object that caused the problem, rather
+than failing silently or discarding rows.
+
+## Export formats
+
+- `.tabspack.json`: lossless. Windows, order, pinned tabs, groups all survive.
+- Plain URL list: readable anywhere. Windows, groups and order are lost.
+- Flat JSON: titles and addresses, for a script or a spreadsheet. Windows,
+  groups and order are lost.
+- CSV: the same, for a spreadsheet.
+
+The interface states what each lossy format discards before the user picks it.
+
+## Tab suspender recovery
+
+Suspender extensions such as The Great Suspender and its successors replace a
+tab with their own internal page and encode the true address inside that page's
+URL. Such a tab is meaningless in any other browser and is permanently lost if
+the suspender is uninstalled or delisted. TabsPack detects these wrappers and
+extracts the original address, both when exporting and when importing, and
+reports how many it recovered.
+
+## Restricted pages
+
+Browsers prohibit extensions from opening their own internal pages, such as
+`chrome://settings`. TabsPack keeps those addresses in the exported file so
+nothing is lost, and after a restore it opens a page listing the ones it was not
+permitted to open so the user can open them manually.
+
+## Private and incognito windows
+
+Excluded from exports by default. The extension cannot see them at all unless
+the user both allows the extension in private mode in the browser's own settings
+and enables the corresponding option inside TabsPack. Two deliberate steps.
+
+## Pricing
+
+Free. No paid tier, no trial, no account, no advertising, no data collection and
+no upsell. Published under the MIT licence. There is no server cost to recover
+because tabs never leave the user's machine and there is no account system.
+
+## Distribution
+
+Store listings for the Chrome Web Store, Microsoft Edge Add-ons and
+addons.mozilla.org are in review as of 26 September 2026. Until they are live,
+builds are available from https://github.com/PalWorks/tabspack/releases.
+
+Note for Firefox users: release Firefox refuses to install any extension Mozilla
+has not signed and reports the refusal as the file appearing "corrupt". Until
+the AMO listing is live, install through `about:debugging` and Load Temporary
+Add-on, or use Firefox Developer Edition with `xpinstall.signatures.required`
+set to false.
+
+## Engineering, briefly
+
+One TypeScript source tree builds Chrome, Edge and Firefox packages. All
+decision-making logic is pure and tested without a browser. Every browser API
+call goes through a single adapter layer, and the linter fails the build if any
+other file reaches for a browser API. A cross browser matrix loads the extension
+into real Chrome, real Edge and real Firefox and drives them, because the
+interesting failures in an extension are all about what a particular browser
+actually does. Every non-obvious decision is recorded as a numbered decision
+record in the repository, thirty-nine of them at present.
+
+## Contact
+
+- Support form inside the extension, under Support.
+- Email: support@palworks.ai
+- Security: security@palworks.ai, please do not open a public issue.
+- Issues: https://github.com/PalWorks/tabspack/issues

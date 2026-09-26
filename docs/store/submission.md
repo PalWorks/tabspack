@@ -13,14 +13,24 @@ permission gets this, not an improvisation.
 | `storage` | Yes | Keep your settings and the snapshots you save, in this browser profile only |
 | `downloads` | Yes | Write the export file you asked for, with a sensible name, without a save dialog every time |
 | `tabGroups` | Optional, requested from a button in the interface | Restore a tab group's title, colour and collapsed state. Refusing it still restores the tabs, and the extension says so |
-| Host permissions | None requested | The extension never reads or changes the content of a page |
+| Host permissions | **None required** | The extension never reads or changes the content of a page. At install it holds no host access at all |
+| `https://support.palworks.ai/*` | Optional, requested from the Send button in the Support pane | The address that receives a support message the user has written and read. It is the only host the extension can ever reach, it is requested at the moment of use rather than at install, and declining it is handled: the same message goes to the user's own mail client instead |
 
-**If a reviewer asks about the support form**, which is new in this version: it
-composes a message from what the user typed, shows it to them in full, and opens
-their own mail client with `mailto:`. The extension itself makes no request. No
-`fetch`, `XMLHttpRequest`, `WebSocket` or remote resource exists anywhere in the
-source, and `npm run lint` fails the build if one is added. No new permission is
-needed for it, and none was added.
+**If a reviewer asks about the support form.** The user writes a message and
+sees it in full. Send posts exactly four fields to `https://support.palworks.ai/v1/support`
+(subject, body, an optional reply address, and an always-empty honeypot field)
+and that message is forwarded to one fixed inbox. No identifier, no cookie, no
+account, no analytics and nothing about the user's tabs is in the payload, which
+two unit tests assert. The browser's own optional-permission prompt gates the
+request, so no user can be connected to anything without agreeing first.
+
+**If a reviewer asks how the no-network claim is enforced.** `scripts/lint.mjs`
+fails the build on `fetch`, `XMLHttpRequest`, `EventSource`, `WebSocket` or
+`importScripts` anywhere in `src/`, with a single exception: `fetch` in
+`src/core/relay.ts`, which is the eighty lines that make the support request and
+nothing else. Every other transport is banned even there. No remote script,
+font, stylesheet or image exists anywhere in the package, and the content
+security policy pins `script-src` to `'self'`.
 
 ## Table T2: Privacy answers
 
@@ -30,12 +40,12 @@ needed for it, and none was added.
 | Health information? | No |
 | Financial or payment information? | No |
 | Authentication information? | No. A pack never contains cookies, tokens, headers or form values, by design and by specification |
-| Personal communications? | No |
+| Personal communications? | Only what a user chooses to write in the Support pane and press Send on, which is a message addressed to us. It is used to answer them and nothing else, it is not stored by the relay that carries it, and it is never combined with anything else |
 | Location? | No |
-| Web history? | The extension reads the tabs you have open **only when you ask it to export**, and writes them to a file on your own machine. Nothing is transmitted anywhere |
+| Web history? | The extension reads the tabs you have open **only when you ask it to export**, and writes them to a file on your own machine. No tab, address, title or count is ever transmitted anywhere |
 | User activity? | No |
 | Website content? | No. No content script, no page access |
-| Is data sold or transferred to third parties? | No |
+| Is data sold or transferred to third parties? | Never sold, never transferred for anyone else's purposes. A support message the user sends is carried by Cloudflare Workers and delivered by Resend, acting only to get it to our inbox |
 | Is data used for anything other than the single purpose? | No |
 | Is data used to determine creditworthiness or for lending? | No |
 | Remote code | None. Everything runs from the package, and the content security policy pins scripts to the package itself |
@@ -51,7 +61,9 @@ needed for it, and none was added.
 
 - The same package as Chrome.
 - Assets: the 300 by 300 logo, at least one 1280 by 800 screenshot.
-- Note in the submission that the extension makes no network request at all.
+- Note in the submission that the extension requests no host permission at
+  install and makes no network request unless the user presses Send in the
+  Support pane, which is gated by the browser's own permission prompt.
 
 ## Firefox, AMO
 

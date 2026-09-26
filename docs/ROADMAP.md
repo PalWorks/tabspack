@@ -261,8 +261,10 @@ their own tabs in Chrome, Edge and Firefox.
 | T-709 | Firefox refuses an unsigned build | Release | `about:addons` says "appears to be corrupt", which is about signing and does not say so | `npm run pack` builds every archive including the `.xpi` and the source zip, and the two routes that work are documented. ADR-034 | done |
 | T-710 | Support and feedback | UI, Release | No way to reach us from inside the product | A Support pane. Composed in core, shown in full, handed to the user's mail client: no request, no key. ADR-035 | done |
 | T-711 | A rating ask | UI | Nothing asks, and the obvious version of asking is the thing that makes people uninstall | Earned by use, three times in a lifetime, three answers, two of which end it. ADR-036 | done |
-| T-713 | A mark that is not generic | Design | Three bars and a download arrow is the most generic possible extension icon | Four candidates at every real size in both themes, `npm run icons:compare`. Awaiting a choice | for a person |
+| T-713 | A mark that is not generic | Design | Three bars and a download arrow is the most generic possible extension icon | Five candidates at five sizes, tile and glyph, in a toolbar, in both themes: `npm run icons:compare`. Awaiting a choice | for a person |
 | T-714 | Who made it | UI | Nothing on any surface says who is behind it | One quiet line at the foot of About, under the privacy paragraph. ADR-037 | done |
+| T-715 | Send without a mail client | UI, Release | The Support pane's only route assumed a configured mail client, and a large share of people have none: pressing Send opened nothing | The relay in `server/support-worker/` holds the key; the extension asks for its host at the moment Send is pressed and falls back to the mail client on every failure. ADR-039 | done |
+| T-716 | A public site | Release, Design | Nowhere to link a store listing to, and the privacy policy and terms had no stable public address | Ten pages on GitHub Pages, rendered from one layout by `scripts/gen-site.mjs` and committed, with two checkers and no third party requests. ADR-040 | done |
 
 **M7 exit test.** The user's own three exports import with every group named
 once the permission is granted, a successful export reads as a success on every
@@ -281,7 +283,7 @@ left is what a machine genuinely cannot do.
 | T-507 | Check a recovered suspended tab against the suspender that made it | The suspender has to be installed, and its pages exist only in a real profile |
 | T-507 | Press a keyboard command in Firefox | The key arrives and the command does not fire on a virtual display. The same key fires the same command in Chrome and Edge, so the product is not what is in doubt |
 | T-507 | Look at it | Nothing automated has an opinion about how it looks |
-| T-713 | Choose the mark | Four candidates are drawn and rendered at every size in both themes. Which one is a brand decision, and an agent should not make it |
+| T-713 | Choose the mark | Five candidates are drawn and rendered at five sizes, as a tile and as a bare glyph, in a toolbar between real neighbours, in both themes. Two earlier sets were thrown away for failing at 16 px. Which one is a brand decision, and an agent should not make it |
 | T-509 | Submit to three stores | Three developer accounts, and the fee for one of them |
 
 Everything up to those lines is done, and `docs/store/` holds the listing text and

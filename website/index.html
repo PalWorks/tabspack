@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabsPack — Export and restore your browser tabs in Chrome, Edge and Firefox</title>
+    <meta name="description" content="Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge or Firefox. Windows, order, pinned tabs and groups all survive. Free, open format, and your tabs never leave your device." />
+    <link rel="canonical" href="https://palworks.github.io/tabspack/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="palworks.ai" />
+    <meta name="publisher" content="palworks.ai" />
+    <meta name="keywords" content="" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="sitemap" type="application/xml" href="https://palworks.github.io/tabspack/sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="https://palworks.github.io/tabspack/llms.txt" title="Plain text summary for language models" />
+    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TabsPack" />
+    <meta property="og:title" content="TabsPack — take your tabs with you" />
+    <meta property="og:description" content="Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge or Firefox. Windows, order, pinned tabs and groups all survive. Free, open format, and your tabs never leave your device." />
+    <meta property="og:url" content="https://palworks.github.io/tabspack/" />
+    <meta property="og:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TabsPack: export every open tab to one file and restore them exactly, in Chrome, Edge or Firefox." />
+    <meta property="og:locale" content="en" />
+    <!-- no modification date: this page is not dated content -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TabsPack — take your tabs with you" />
+    <meta name="twitter:description" content="Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge or Firefox. Windows, order, pinned tabs and groups all survive. Free, open format, and your tabs never leave your device." />
+    <meta name="twitter:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+
+    <link rel="icon" href="assets/img/icon-128.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/img/icon-128.png" />
+    <link rel="stylesheet" href="assets/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "name": "TabsPack",
+            "applicationCategory": "BrowserApplication",
+            "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+            "description": "A browser extension that exports every open tab to a single file and restores them exactly as they were in Chrome, Edge or Firefox, including windows, order, pinned tabs and tab groups.",
+            "url": "https://palworks.github.io/tabspack/",
+            "softwareVersion": "0.0.3",
+            "license": "https://opensource.org/licenses/MIT",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Export all open tabs to a .tabspack.json file",
+              "Restore windows, tab order, pinned tabs and tab groups exactly",
+              "Move a session between Chrome, Edge and Firefox",
+              "Recover the real address behind a suspended tab",
+              "Restore hundreds of tabs unloaded, so they cost no memory",
+              "Named snapshots stored inside the browser",
+              "Import from OneTab, Session Buddy, Tab Session Manager, bookmarks, CSV and plain URL lists"
+            ],
+            "author": {
+              "@type": "Organization",
+              "name": "palworks.ai",
+              "url": "https://palworks.ai"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "palworks.ai",
+              "url": "https://palworks.ai"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Does TabsPack send my tabs anywhere?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. TabsPack requests no host permission when you install it, so it cannot reach any address on the internet. Your tabs are read only when you ask for an export, and they are written to a file on your own machine. The single request TabsPack can ever make is a support message you write yourself and press Send on, and your browser asks your permission before that happens."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I move my tabs from Chrome to Firefox?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. A .tabspack.json file written by TabsPack in Chrome or Edge restores in Firefox and the other way round. Windows, tab order and pinned tabs come back everywhere. Tab groups come back in browsers that have them, and in Firefox the tabs are restored without the grouping, which TabsPack tells you about rather than failing."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Will restoring 200 tabs slow my computer down?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Restored tabs are opened asleep by default, so they appear in the tab strip with their title and address but load nothing until you click one. A restore of 200 real pages takes about nine seconds and leaves 199 of them unloaded."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What happens to tabs held by a tab suspender?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TabsPack reads the real address back out. Suspenders such as The Great Suspender and its successors park a tab on their own page with the true address hidden inside it, which is useless in any other browser. TabsPack unwraps them on export and on import, and tells you how many it found."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How much does TabsPack cost?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Nothing. It is free, it has no paid tier, no account and no advertising, and the source is published under the MIT licence."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I read a TabsPack file without the extension?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. A .tabspack.json file is ordinary JSON with a published schema. You can open it in any text editor, read it with a script, or keep it in version control. TabsPack also exports a plain list of addresses, a flat JSON file and a CSV if that is what you need."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://palworks.github.io/tabspack/#org",
+            "name": "palworks.ai",
+            "url": "https://palworks.ai",
+            "logo": "https://palworks.github.io/tabspack/assets/img/icon-128.png",
+            "sameAs": [
+              "https://github.com/PalWorks",
+              "https://palworks.ai"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "email": "support@palworks.ai",
+              "url": "https://palworks.github.io/tabspack/contact/",
+              "availableLanguage": [
+                "en"
+              ]
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://palworks.github.io/tabspack/#site",
+            "name": "TabsPack",
+            "url": "https://palworks.github.io/tabspack/",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "description": "TabsPack exports every open browser tab to one file and restores them exactly as they were, in Chrome, Edge or Firefox."
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://palworks.github.io/tabspack/#page",
+            "url": "https://palworks.github.io/tabspack/",
+            "name": "TabsPack — Export and restore your browser tabs in Chrome, Edge and Firefox",
+            "description": "Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge or Firefox. Windows, order, pinned tabs and groups all survive. Free, open format, and your tabs never leave your device.",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://palworks.github.io/tabspack/#site"
+            },
+            "about": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "primaryImageOfPage": "https://palworks.github.io/tabspack/assets/img/og.png"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://palworks.github.io/tabspack/#crumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "TabsPack",
+                "item": "https://palworks.github.io/tabspack/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="">
+          <img src="assets/img/icon-128.png" alt="" width="28" height="28" />
+          TabsPack
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr">Menu</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="pricing/">Pricing</a></li>
+          <li><a href="faq/">FAQ</a></li>
+          <li><a href="about/">About</a></li>
+          <li><a href="contact/">Contact</a></li>
+          <li><a class="btn btn-primary" href="https://github.com/PalWorks/tabspack/">Get TabsPack</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="wrap">
+          <span class="pill"><b>Free</b> Chrome, Edge and Firefox &middot; no account, ever</span>
+          <h1>Take your tabs with you.</h1>
+          <p class="lede">
+            TabsPack packs every open tab into one small file, and puts them back exactly as they were:
+            the same windows, the same order, the same pinned tabs, the same groups. In the same browser,
+            or a different one.
+          </p>
+          <div class="btn-row" style="margin-top: 30px">
+            <a class="btn btn-primary btn-lg" href="https://github.com/PalWorks/tabspack/releases">
+              Get TabsPack
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
+          </div>
+          <p style="margin-top: 16px; color: var(--ink-3); font-size: 0.92rem">
+            Store listings are in review. Until they are live, install the unpacked build from
+            <a href="https://github.com/PalWorks/tabspack/releases">the releases page</a> &mdash; or
+            <a href="contact/">tell us where to send the link</a>.
+          </p>
+
+          <figure class="shot">
+            <img class="light-only" src="assets/img/manager-light.png" width="1280" height="800" alt="The TabsPack export screen, showing the tabs about to be exported grouped by window, with options for what to include." />
+            <img class="dark-only" src="assets/img/manager-dark.png" width="1280" height="800" alt="The TabsPack export screen in dark mode." />
+          </figure>
+
+          <div class="trustbar">
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg> Chrome, Edge and Firefox</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg> Your tabs never leave your device</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg> No account, no sync, no tracking</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg> Open, documented file format</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="why">
+        <div class="wrap">
+          <div class="center">
+            <span class="eyebrow">Why anyone needs this</span>
+            <h2>A browser is a terrible place to keep something important.</h2>
+            <p class="lede">
+              Everything you are in the middle of lives in a row of tabs that any one of these can take away.
+            </p>
+          </div>
+          <div class="grid grid-3">
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9L2.4 17.5A2 2 0 004.1 20.5h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" /></svg></span>
+              <h3>You have too many to close</h3>
+              <p>
+                Ninety tabs, and every one of them is the only record that you were going to read it. Closing
+                the window costs something real, so the window never closes, and the machine pays for it all day.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h11m0 0l-3-3m3 3l-3 3M20 17H9m0 0l3-3m-3 3l3 3" /></svg></span>
+              <h3>You are moving browsers</h3>
+              <p>
+                A new laptop, a work profile, Chrome to Firefox. Bookmarks come across and the session does not:
+                the windows, the order and the pinned tabs, which is the part you actually had in your head.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3a9 9 0 108.9 10.5h-2A7 7 0 1113 5v4l5-4.5L13 0z" /></svg></span>
+              <h3>Something took them away</h3>
+              <p>
+                A crash, an update, an extension you installed that was later delisted and left every tab parked
+                behind its own page. Restore-last-session is one click deep and one chance wide.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <div class="center">
+            <span class="eyebrow">What it does</span>
+            <h2>Everything comes back, not just the addresses.</h2>
+            <p class="lede">
+              Most exporters give you a list of links. A list of links is not a session. TabsPack keeps the shape.
+            </p>
+          </div>
+          <div class="grid grid-3">
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 5h6v14H4zM12 5h8v6h-8zM12 13h8v6h-8z" /></svg></span>
+              <h3>Windows, order and pinned tabs</h3>
+              <p>
+                Three windows come back as three windows, in the order you had them, with the pinned tabs
+                pinned and the active tab active. Position and size too.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6h6v4H3zM11 6h10v4H11zM3 14h10v4H3zM15 14h6v4h-6z" /></svg></span>
+              <h3>Tab groups, with their names</h3>
+              <p>
+                Titles, colours and whether a group was collapsed. TabsPack asks for the tab groups permission
+                before you export, because that is where a group's name is lost if it does not.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v6l4.5 2.6-.9 1.6L11 14V7z" /></svg></span>
+              <h3>Two hundred tabs, asleep</h3>
+              <p>
+                Restored tabs open unloaded: title and address in the strip, nothing running behind them.
+                A pack of 200 real pages restores in about nine seconds and leaves 199 of them asleep.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 11-6.2-8.6M21 4v5h-5" /></svg></span>
+              <h3>It unwraps suspended tabs</h3>
+              <p>
+                Suspenders park your tab on their own page and hide the real address inside it, which no other
+                browser can reopen. TabsPack reads it back out, on export and on import, and counts them for you.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3h11l4 4v14H5zm11 1.5V8h3.5zM8 12h8v2H8zm0 4h8v2H8z" /></svg></span>
+              <h3>Snapshots, without a file</h3>
+              <p>
+                Name the session and keep it inside the extension for the days you do not want to think about
+                where a file goes. Snapshots survive a restart, and they are still only on this machine.
+              </p>
+            </article>
+            <article class="card">
+              <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg></span>
+              <h3>Keyboard, not menus</h3>
+              <p>
+                <kbd>Alt</kbd>&thinsp;+&thinsp;<kbd>Shift</kbd>&thinsp;+&thinsp;<kbd>E</kbd> exports everything,
+                <kbd>Alt</kbd>&thinsp;+&thinsp;<kbd>Shift</kbd>&thinsp;+&thinsp;<kbd>D</kbd> this window,
+                <kbd>Alt</kbd>&thinsp;+&thinsp;<kbd>Shift</kbd>&thinsp;+&thinsp;<kbd>S</kbd> saves a snapshot. The toolbar icon tells you it worked.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="how">
+        <div class="wrap">
+          <div class="center">
+            <span class="eyebrow">How it works</span>
+            <h2>Three clicks out, three clicks back.</h2>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Pack them</h3>
+              <p>
+                Open TabsPack, choose this window or all of them, and press Export. You get one
+                <code>.tabspack.json</code> file, named with the date, in your downloads folder.
+              </p>
+            </li>
+            <li>
+              <h3>Take it anywhere</h3>
+              <p>
+                Email it, drop it in a repository, put it on a stick. It is a small text file and it has no
+                secrets in it: no cookies, no tokens, nothing that could sign in as you.
+              </p>
+            </li>
+            <li>
+              <h3>Unpack them</h3>
+              <p>
+                In any browser with TabsPack, drop the file in. You see exactly what is about to open before
+                anything opens, then press Restore and your session is back.
+              </p>
+            </li>
+          </ol>
+          <figure class="shot" style="margin-top: 42px">
+            <img class="light-only" src="assets/img/import-light.png" width="1280" height="800" alt="The TabsPack import screen, previewing the windows, groups and tabs a file contains before anything is opened." />
+            <img class="dark-only" src="assets/img/import-dark.png" width="1280" height="800" alt="The TabsPack import screen in dark mode." />
+          </figure>
+        </div>
+      </section>
+
+      <section id="privacy">
+        <div class="wrap">
+          <div class="split">
+            <div>
+              <span class="eyebrow">Privacy</span>
+              <h2>Your tabs never leave this device.</h2>
+              <p class="lede" style="margin-bottom: 26px">
+                Not as a policy. As a property of the build: TabsPack asks for no host permission when you
+                install it, so out of the box it cannot reach any address on the internet at all.
+              </p>
+              <ul class="checklist">
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span><b>No account and no sync.</b> There is nothing to sign in to, so there is nothing of yours anywhere to sign in to.</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span><b>No analytics, no telemetry, no crash reporting.</b> Nothing counts what you do, because nothing is watching.</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span><b>No page access.</b> No content script is injected anywhere, so TabsPack cannot read or change a page even if it wanted to.</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span><b>An export cannot log in as you.</b> A pack holds addresses, titles and structure. Never cookies, tokens, headers or form data. That is written into the format specification, not left to the implementation.</span>
+                </li>
+                <li>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span><b>One request exists, and you make it.</b> Pressing Send in the Support pane sends the message you wrote. Your browser asks first, declining is fine, and nothing about your tabs is in it.</span>
+                </li>
+              </ul>
+              <div class="btn-row" style="margin-top: 28px">
+                <a class="btn btn-ghost" href="privacy/">Read the privacy policy</a>
+                <a class="btn btn-ghost" href="https://github.com/PalWorks/tabspack">Read the source</a>
+              </div>
+            </div>
+            <div>
+              <div class="note">
+                <p><b>How the claim is kept honest.</b></p>
+                <p>
+                  The build refuses to compile if anyone adds a network call. <code>scripts/lint.mjs</code> fails
+                  on <code>fetch</code>, <code>XMLHttpRequest</code>, <code>EventSource</code>,
+                  <code>WebSocket</code> or <code>importScripts</code> anywhere in the source, with one named
+                  exception: the eighty lines that send a support message and nothing else.
+                </p>
+                <p style="margin-bottom: 0">
+                  It also fails on any remote script, font, stylesheet or image. Everything TabsPack loads comes
+                  out of the package you installed.
+                </p>
+              </div>
+              <figure class="shot">
+                <img class="light-only" src="assets/img/popup-light.png" width="420" height="560" alt="The TabsPack toolbar popup, showing the export buttons and the line that reads: your tabs never leave this device." />
+                <img class="dark-only" src="assets/img/popup-dark.png" width="420" height="560" alt="The TabsPack toolbar popup in dark mode." />
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="formats">
+        <div class="wrap">
+          <div class="center">
+            <span class="eyebrow">Compatibility</span>
+            <h2>It reads what you already have.</h2>
+            <p class="lede">
+              You do not have to have been using TabsPack for TabsPack to be useful. Drop in the file your old
+              extension gave you.
+            </p>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <caption class="sr">Formats TabsPack can import, and what survives from each</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Where it came from</th>
+                  <th scope="col">Addresses</th>
+                  <th scope="col">Titles</th>
+                  <th scope="col">Windows</th>
+                  <th scope="col">Groups</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">TabsPack <code>.tabspack.json</code></th><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+                <tr><th scope="row">OneTab export</th><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">None in the file</td></tr>
+                <tr><th scope="row">Session Buddy, JSON and CSV</th><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">None in the file</td></tr>
+                <tr><th scope="row">Tab Session Manager</th><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">None in the file</td></tr>
+                <tr><th scope="row">Browser bookmarks, Netscape HTML</th><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">Folders become windows</td><td class="no">None in the file</td></tr>
+                <tr><th scope="row">A plain list of URLs</th><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+                <tr><th scope="row">Markdown links, or flat JSON</th><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="margin-top: 18px; color: var(--ink-3); font-size: 0.94rem">
+            TabsPack works out which of these a file is by reading it, not by its extension, and it tells you
+            what it found before it opens a single tab. Anything it cannot use is named in the report rather
+            than dropped in silence.
+          </p>
+        </div>
+      </section>
+
+      <section id="format">
+        <div class="wrap">
+          <div class="split">
+            <div>
+              <span class="eyebrow">The file</span>
+              <h2>A format you can read without us.</h2>
+              <p>
+                A <code>.tabspack.json</code> file is ordinary JSON against a published schema. Open it in a
+                text editor. Diff two of them. Keep one in a repository next to the project it belongs to.
+                Write a script that generates one.
+              </p>
+              <p>
+                The point is that your session is not locked inside an extension that might be delisted next
+                year. That has happened to a lot of people, and it is most of the reason this exists.
+              </p>
+              <p>
+                TabsPack also exports a plain list of addresses, a flat JSON file and a CSV when that is what
+                the next tool needs, and it tells you in the interface exactly what each of those loses.
+              </p>
+              <div class="btn-row" style="margin-top: 24px">
+                <a class="btn btn-ghost" href="https://github.com/PalWorks/tabspack/blob/main/docs/SPEC.md">Read the specification</a>
+                <a class="btn btn-ghost" href="https://github.com/PalWorks/tabspack/blob/main/schema/tabspack.v1.schema.json">The JSON schema</a>
+              </div>
+            </div>
+            <div>
+              <figure class="shot">
+                <img src="assets/img/snapshots-light.png" width="1280" height="800" alt="The TabsPack snapshots screen, listing saved sessions with their tab and window counts." />
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="faq">
+        <div class="wrap wrap-narrow">
+          <div class="center">
+            <span class="eyebrow">Questions</span>
+            <h2>The ones people actually ask.</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Does TabsPack send my tabs anywhere?</summary>
+              <p>
+                No. It asks for no host permission when you install it, so it cannot reach any address on the
+                internet. Your tabs are read only when you ask for an export, and they are written to a file on
+                your own machine. The one request TabsPack can ever make is a support message you write
+                yourself and press Send on, and your browser asks your permission before that happens.
+              </p>
+            </details>
+            <details>
+              <summary>Can I move my tabs from Chrome to Firefox?</summary>
+              <p>
+                Yes, and back again. Windows, tab order and pinned tabs come back everywhere. Tab groups come
+                back in the browsers that have them; where they do not exist the tabs are restored without the
+                grouping, and TabsPack says so rather than quietly dropping something.
+              </p>
+            </details>
+            <details>
+              <summary>Will restoring 200 tabs bring my computer to its knees?</summary>
+              <p>
+                No. Restored tabs open asleep: they are in the strip with their title and address, and they load
+                nothing until you click one. A measured restore of 200 real pages takes about nine seconds and
+                leaves 199 of them unloaded. You can turn that off if you would rather they all load.
+              </p>
+            </details>
+            <details>
+              <summary>What about tabs held by a suspender extension?</summary>
+              <p>
+                TabsPack unwraps them. Suspenders park a tab on their own page and hide the true address inside
+                it, which is useless anywhere else and worse than useless if the suspender is ever delisted.
+                TabsPack reads the real address back out, on export and on import, and tells you how many it
+                found.
+              </p>
+            </details>
+            <details>
+              <summary>Is it really free? What is the catch?</summary>
+              <p>
+                It is free, there is no paid tier, there is no account, and there is nothing to sell because
+                nothing is collected. It is published under the MIT licence and the source is on GitHub. See
+                <a href="pricing/">pricing</a> for the longer answer, including why it is free.
+              </p>
+            </details>
+            <details>
+              <summary>Can I read the file without the extension?</summary>
+              <p>
+                Yes. It is JSON with a published schema. A text editor opens it, a script can read it, and
+                <code>git diff</code> tells you what changed between two of them.
+              </p>
+            </details>
+            <details>
+              <summary>Does it work with private or incognito windows?</summary>
+              <p>
+                Private windows are left out of exports by default, and TabsPack cannot see them at all unless
+                you explicitly allow it in private mode in your browser's own settings and switch the option on
+                inside TabsPack. Two deliberate steps, because the default should be the careful one.
+              </p>
+            </details>
+            <details>
+              <summary>What happens to a tab I cannot reopen, like a settings page?</summary>
+              <p>
+                Browsers refuse to let an extension open their own internal pages. TabsPack keeps those
+                addresses in the file so nothing is lost, and on restore it opens a page listing the ones it was
+                not allowed to open, so you can click them yourself.
+              </p>
+            </details>
+          </div>
+          <p class="center" style="margin-top: 30px">
+            <a href="faq/">More questions and answers</a>
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <div class="cta">
+            <h2>Stop being afraid of the close button.</h2>
+            <p>
+              Free, open source, and it works in the browser you already have. Store listings are in review;
+              the build is available now.
+            </p>
+            <div class="btn-row" style="margin-top: 26px">
+              <a class="btn btn-primary btn-lg" href="https://github.com/PalWorks/tabspack/releases">Get TabsPack</a>
+              <a class="btn btn-ghost btn-lg" href="contact/">Tell me when it is on the store</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="brand" href="">
+              <img src="assets/img/icon-128.png" alt="" width="28" height="28" />
+              TabsPack
+            </a>
+            <p style="margin-top: 14px">
+              Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge
+              or Firefox. Built and maintained by <a href="https://palworks.ai">palworks.ai</a>.
+            </p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#how">How it works</a></li>
+              <li><a href="#formats">Formats it reads</a></li>
+              <li><a href="pricing/">Pricing</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/releases">Releases</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="about/">About us</a></li>
+              <li><a href="contact/">Contact us</a></li>
+              <li><a href="faq/">FAQ</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/">Source on GitHub</a></li>
+              <li><a href="https://palworks.ai">palworks.ai</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="privacy/">Privacy policy</a></li>
+              <li><a href="terms/">Terms of use</a></li>
+              <li><a href="cookies/">Cookie notice</a></li>
+              <li><a href="security/">Security</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/blob/main/LICENSE">Licence</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>&copy; 2026 palworks.ai. TabsPack is free and open source under the MIT licence.</span>
+          <span>This site sets no cookies, loads nothing from anyone else, and measures nothing.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/site.js" defer></script>
+  </body>
+</html>

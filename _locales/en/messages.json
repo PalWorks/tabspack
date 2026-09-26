@@ -16,7 +16,7 @@
     "message": "Save a snapshot of every window"
   },
   "trustLine": {
-    "message": "Nothing leaves your device."
+    "message": "Your tabs never leave this device."
   },
   "managerTitle": {
     "message": "TabsPack"
@@ -882,7 +882,7 @@
     }
   },
   "optionsPrivacy": {
-    "message": "No account, no sync, no tracking, and no network request of any kind. Everything stays in this browser until you export a file yourself."
+    "message": "No account, no sync, no tracking. Your tabs never leave this browser unless you export a file yourself. The one thing TabsPack ever sends is a support message you have written and pressed Send on."
   },
   "optionsReset": {
     "message": "Reset every setting"
@@ -1065,11 +1065,38 @@
   "supportSend": {
     "message": "Send"
   },
+  "supportMailApp": {
+    "message": "Use my email app"
+  },
+  "supportSending": {
+    "message": "Sending…"
+  },
+  "supportSentReply": {
+    "message": "Sent. Thank you. We will reply to $to$.",
+    "placeholders": {
+      "to": {
+        "content": "$1",
+        "example": "you@example.com"
+      }
+    }
+  },
+  "supportSentNoReply": {
+    "message": "Sent. Thank you. You did not leave an email address, so we cannot write back."
+  },
+  "supportRelayDenied": {
+    "message": "TabsPack was not allowed to connect, so the message is going to your email app instead."
+  },
+  "supportRelayBusy": {
+    "message": "Our inbox is taking too many messages right now, so this one is going to your email app instead."
+  },
+  "supportRelayFailed": {
+    "message": "That did not reach us, so the message is going to your email app instead."
+  },
   "supportCopy": {
     "message": "Copy instead"
   },
   "supportSendHint": {
-    "message": "Opens your email app with this message ready to send."
+    "message": "Send delivers it to us directly. It is the only part of TabsPack that uses the internet, so your browser asks your permission the first time. Say no and the message goes to your email app instead."
   },
   "supportHandedOff": {
     "message": "Your email app is open with the message ready to send to $to$.",

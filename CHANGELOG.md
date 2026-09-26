@@ -8,6 +8,17 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ### Added
 
+- **A public website**, in `website/`, deployed to GitHub Pages. Ten pages: the product, pricing, FAQ, about us, contact us, and the privacy policy, terms of use, cookie notice and security page each at their own address. Rendered from one layout by `scripts/gen-site.mjs` and committed, so what is served is what is in the repository. It loads nothing from any other server. ADR-040, T-716
+- `store_listing.md`, everything a store dashboard asks for in the order it asks: name, summary, detailed description, a justification for every permission, the privacy answers, the artwork list, and the three things that have to be done after each store accepts it
+- `scripts/check-site.mjs` and `scripts/check-site-browser.mjs`. The first checks links, images, metadata, structured data and the sitemap with no browser and runs in `npm run verify`; the second measures the pages at five widths and caught that every page scrolled sideways at 320 px
+- `scripts/gen-og.mjs`, the 1200 by 630 social card, drawn rather than screenshotted
+- `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, with `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` structured data generated from each page's own front matter
+- **Send, in the Support pane.** A support message now goes to us directly, through the relay in `server/support-worker/`. The mail client route is still there as a button of its own and as the fallback for every way the relay can fail. ADR-039, T-715
+- `src/core/relay.ts`, the only file in the source permitted to make a network request, and eleven tests covering every outcome it can return
+- `optional_host_permissions` for `https://support.palworks.ai/*` in both manifests. Nothing is requested at install; the browser asks the first time Send is pressed, and declining is handled
+- `hasOrigins` and `requestOrigins` on the adapter, host access being a separate list from the named permissions
+- A lint rule that fails the build if the relay's address disagrees between `src/core/relay.ts`, either manifest and the worker's own route
+- Five new icon candidates in `assets/candidates/`, drawn after the first two sets were thrown away for reading as a folder, a briefcase, a mushroom and a handbag at 16 pixels. `npm run icons:compare` now shows each one as a tile and as a bare glyph, at five sizes, in a toolbar between real neighbours
 - Plan of record, `PLAN.md` v0.2, merging the BRD and PRD v0.9 with the engineering plan derived from reading the source of TabsDump, Export Tabs, Copy All URLs and Tab Session Manager
 - `docs/SPEC.md`, the draft `tabspack` v1 format specification
 - `docs/ARCHITECTURE.md`, `docs/DOMAIN.md`, `docs/DECISIONS.md`, `docs/LIMITATIONS.md`, `docs/PLAYBOOK.md`, `docs/TESTING.md`, `docs/CONTEXT_MAP.md`
@@ -18,6 +29,11 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ### Changed
 
+- **The privacy claim, everywhere.** "TabsPack makes no network request" becomes "your tabs never leave this device, and the one thing TabsPack sends is a support message you wrote and pressed Send on". `PRIVACY.md` is version 1.1, and the interface, the README and both store documents say the same thing
+- `scripts/lint.mjs` allows `fetch` in `src/core/relay.ts` and nowhere else. Every other transport stays banned everywhere, including there
+- The support relay is hardened for a public endpoint: one path, JSON only, three caps, a honeypot, header hygiene and no stored state. Every refusal path was exercised against a local deployment
+- `npm run icons:compare` writes to `.tmp/icons/`, because `npm run smoke` deletes `.tmp/shots/` whole and ate the sheet once
+- Version 0.0.3, the internal counter agreed for pre-release builds
 - Product name fixed as TabsPack, and the file extension as `.tabspack.json`, superseding TabPack and `.tabpack` from v0.9
 
 - `docs/DESIGN.md`, the design system and UX specification: tokens, component rules, popup and manager layouts, accessibility contract and copy style

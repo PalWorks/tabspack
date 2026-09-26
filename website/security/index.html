@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Security — how to report a vulnerability in TabsPack</title>
+    <meta name="description" content="How to report a security problem in TabsPack, what is in scope, and the design decisions that reduce the attack surface: no host permissions, no content scripts, no remote code, no secrets in an export." />
+    <link rel="canonical" href="https://palworks.github.io/tabspack/security/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="palworks.ai" />
+    <meta name="publisher" content="palworks.ai" />
+    <meta name="keywords" content="TabsPack security, responsible disclosure, browser extension security, vulnerability report" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="sitemap" type="application/xml" href="https://palworks.github.io/tabspack/sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="https://palworks.github.io/tabspack/llms.txt" title="Plain text summary for language models" />
+    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TabsPack" />
+    <meta property="og:title" content="TabsPack security" />
+    <meta property="og:description" content="How to report a security problem in TabsPack, what is in scope, and the design decisions that reduce the attack surface: no host permissions, no content scripts, no remote code, no secrets in an export." />
+    <meta property="og:url" content="https://palworks.github.io/tabspack/security/" />
+    <meta property="og:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TabsPack: export every open tab to one file and restore them exactly, in Chrome, Edge or Firefox." />
+    <meta property="og:locale" content="en" />
+    <meta property="article:modified_time" content="2026-09-26" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TabsPack security" />
+    <meta name="twitter:description" content="How to report a security problem in TabsPack, what is in scope, and the design decisions that reduce the attack surface: no host permissions, no content scripts, no remote code, no secrets in an export." />
+    <meta name="twitter:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+
+    <link rel="icon" href="../assets/img/icon-128.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../assets/img/icon-128.png" />
+    <link rel="stylesheet" href="../assets/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "TabsPack security and responsible disclosure",
+        "url": "https://palworks.github.io/tabspack/security/",
+        "datePublished": "2026-09-26",
+        "inLanguage": "en"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://palworks.github.io/tabspack/#org",
+            "name": "palworks.ai",
+            "url": "https://palworks.ai",
+            "logo": "https://palworks.github.io/tabspack/assets/img/icon-128.png",
+            "sameAs": [
+              "https://github.com/PalWorks",
+              "https://palworks.ai"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "email": "support@palworks.ai",
+              "url": "https://palworks.github.io/tabspack/contact/",
+              "availableLanguage": [
+                "en"
+              ]
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://palworks.github.io/tabspack/#site",
+            "name": "TabsPack",
+            "url": "https://palworks.github.io/tabspack/",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "description": "TabsPack exports every open browser tab to one file and restores them exactly as they were, in Chrome, Edge or Firefox."
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://palworks.github.io/tabspack/security/#page",
+            "url": "https://palworks.github.io/tabspack/security/",
+            "name": "Security — how to report a vulnerability in TabsPack",
+            "description": "How to report a security problem in TabsPack, what is in scope, and the design decisions that reduce the attack surface: no host permissions, no content scripts, no remote code, no secrets in an export.",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://palworks.github.io/tabspack/#site"
+            },
+            "about": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "primaryImageOfPage": "https://palworks.github.io/tabspack/assets/img/og.png",
+            "dateModified": "2026-09-26",
+            "datePublished": "2026-09-26"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://palworks.github.io/tabspack/security/#crumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "TabsPack",
+                "item": "https://palworks.github.io/tabspack/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Security",
+                "item": "https://palworks.github.io/tabspack/security/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="../">
+          <img src="../assets/img/icon-128.png" alt="" width="28" height="28" />
+          TabsPack
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr">Menu</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="../#features">Features</a></li>
+          <li><a href="../#privacy">Privacy</a></li>
+          <li><a href="../pricing/">Pricing</a></li>
+          <li><a href="../faq/">FAQ</a></li>
+          <li><a href="../about/">About</a></li>
+          <li><a href="../contact/">Contact</a></li>
+          <li><a class="btn btn-primary" href="https://github.com/PalWorks/tabspack/">Get TabsPack</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page-head">
+        <div class="wrap wrap-narrow">
+          <span class="eyebrow">Legal and security</span>
+          <h1>Security</h1>
+          <p class="lede">
+            An extension that can read every tab you have open deserves to be held to a high standard. Here is
+            how to tell us about a problem, and what the product does to have fewer of them.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <div class="wrap wrap-narrow">
+          <div class="note warn">
+            <p><strong>Reporting a vulnerability.</strong> Please do not open a public issue.</p>
+            <p style="margin-bottom: 0">
+              Write to <a href="mailto:security@palworks.ai">security@palworks.ai</a> with what you found, how
+              to reproduce it, and what an attacker could do with it. We will acknowledge within three working
+              days and tell you what we intend to do. Give us a reasonable chance to fix it before publishing,
+              and we will credit you in the release notes unless you would rather we did not.
+            </p>
+          </div>
+
+          <h2>In scope</h2>
+          <ul>
+            <li>The extension: anything that lets a web page, another extension, or a crafted import file read or change something it should not.</li>
+            <li>The import path, which is the most exposed surface: a hostile <code>.tabspack.json</code> or foreign export that causes script execution, a navigation to a dangerous scheme, or a crash that loses data.</li>
+            <li>Anything that causes a secret to end up in an exported file. This should be impossible by construction; if it is not, it is the most serious class of bug this project can have.</li>
+            <li>The support relay at <code>support.palworks.ai</code>: anything that lets somebody send mail as us, read another person's message, or use it to reach a third party.</li>
+            <li>This website, if it can be made to serve something it should not.</li>
+          </ul>
+
+          <h2>Out of scope</h2>
+          <ul>
+            <li>Findings that require the attacker to already have your unlocked machine, or to have installed a malicious extension with its own permissions.</li>
+            <li>Volumetric denial of service against the support relay. It is rate limited on purpose and past its cap the extension simply uses your mail client instead; we know it can be flooded, and the cost of that is a slower support channel.</li>
+            <li>Missing headers on a static site that serves no user content and sets no cookies, unless you can show an actual exploit.</li>
+            <li>Reports produced by a scanner with no demonstrated impact.</li>
+          </ul>
+
+          <h2>What the design already does about it</h2>
+          <p>
+            Most of the security of an extension is decided before any code is written, by what it asks the
+            browser for. TabsPack asks for as little as it can:
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th scope="col">Decision</th><th scope="col">What it removes</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">No host permissions at install</th><td>The extension cannot reach any address. The only one it can ever be granted is the support relay, and you grant it at the moment you press Send</td></tr>
+                <tr><th scope="row">No content scripts, ever</th><td>Nothing of ours runs inside a web page, so a hostile page has nothing of ours to attack and we have no way to read a page</td></tr>
+                <tr><th scope="row">No remote code, and a strict content security policy</th><td>Scripts are pinned to the package. Nothing can be loaded and run from anywhere else, which is also a hard store policy requirement</td></tr>
+                <tr><th scope="row">No <code>innerHTML</code>, anywhere</th><td>The build fails on it. Every piece of text from a file becomes a text node, so a title containing markup is a title, not markup</td></tr>
+                <tr><th scope="row">Dangerous schemes are refused on import</th><td><code>javascript:</code>, <code>data:</code> and their relatives are never turned into a link or opened, and the report says a tab was skipped rather than dropping it silently</td></tr>
+                <tr><th scope="row">No secrets in an export, by specification</th><td>Cookies, tokens, headers and form data are excluded by the format definition. A pack cannot sign in as you</td></tr>
+                <tr><th scope="row">One file may make a request</th><td>The build fails on any transport anywhere else in the source, so the network surface is eighty lines that a reviewer can read in full</td></tr>
+                <tr><th scope="row">No key ships in the package</th><td>The mail key lives on the relay. A key inside a published extension is a public key, and this project will not ship one</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Checking it yourself</h2>
+          <p>
+            You do not have to take any of that on trust. The source is at
+            <a href="https://github.com/PalWorks/tabspack">github.com/PalWorks/tabspack</a> under the MIT
+            licence, the checks that enforce the claims above are in <code>scripts/lint.mjs</code>, and the
+            reasoning behind every non-obvious decision is written down as a numbered record in
+            <code>docs/DECISIONS.md</code>.
+          </p>
+          <p>
+            You can also unzip the published package and compare it: the build is deterministic from the
+            source tree, and the source archive is submitted to addons.mozilla.org alongside the extension.
+          </p>
+
+          <h2>If something does go wrong</h2>
+          <p>
+            A fix ships as soon as it is ready, and store review time is outside our control. The release notes
+            say what happened in plain language rather than "various security improvements", the privacy policy
+            changes in the same release if anything about data handling changed, and a decision record explains
+            how it was allowed to happen.
+          </p>
+
+          <div class="btn-row" style="margin-top: 32px">
+            <a class="btn btn-primary" href="mailto:security@palworks.ai">Report a vulnerability</a>
+            <a class="btn btn-ghost" href="https://github.com/PalWorks/tabspack/blob/main/SECURITY.md">SECURITY.md in the repository</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="brand" href="../">
+              <img src="../assets/img/icon-128.png" alt="" width="28" height="28" />
+              TabsPack
+            </a>
+            <p style="margin-top: 14px">
+              Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge
+              or Firefox. Built and maintained by <a href="https://palworks.ai">palworks.ai</a>.
+            </p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="../#features">Features</a></li>
+              <li><a href="../#how">How it works</a></li>
+              <li><a href="../#formats">Formats it reads</a></li>
+              <li><a href="../pricing/">Pricing</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/releases">Releases</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="../about/">About us</a></li>
+              <li><a href="../contact/">Contact us</a></li>
+              <li><a href="../faq/">FAQ</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/">Source on GitHub</a></li>
+              <li><a href="https://palworks.ai">palworks.ai</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="../privacy/">Privacy policy</a></li>
+              <li><a href="../terms/">Terms of use</a></li>
+              <li><a href="../cookies/">Cookie notice</a></li>
+              <li><a href="../security/">Security</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/blob/main/LICENSE">Licence</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>&copy; 2026 palworks.ai. TabsPack is free and open source under the MIT licence.</span>
+          <span>This site sets no cookies, loads nothing from anyone else, and measures nothing.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../assets/site.js" defer></script>
+  </body>
+</html>

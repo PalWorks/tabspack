@@ -2,12 +2,13 @@
  * The support message, composed here so that what is sent can be tested and,
  * more to the point, shown to the user before it goes anywhere.
  *
- * TabsPack's promise is that nothing leaves the device. A support form is the
- * one exception a user asks for themselves, so it is held to the rule that
- * makes the exception safe: **the message is exactly what is on screen.** No
- * field is added on the way out, nothing is collected in the background, and
- * the diagnostics are a short list the user can read and switch off. No tab
- * address, no tab title and no count of either ever appears in it: ADR-035.
+ * TabsPack's promise is that your tabs never leave the device. A support form
+ * is the one thing a user sends themselves, so it is held to the rule that
+ * makes that safe: **the message is exactly what is on screen.** No field is
+ * added on the way out, nothing is collected in the background, and the
+ * diagnostics are a short list the user can read and switch off. No tab
+ * address, no tab title and no count of either ever appears in it, by either
+ * route it can leave by: ADR-035, ADR-039.
  */
 
 export type SupportTopic = "broken" | "idea" | "question" | "other";
@@ -94,10 +95,11 @@ export function composeSupportMessage(draft: SupportDraft, context: SupportConte
 /**
  * A `mailto:` address for the composed message.
  *
- * This is the shipped route, because the alternative is an API key inside a
- * published extension, which is a key anybody can read: ADR-035. The user's own
- * mail client sends the mail, so the extension makes no network request and the
- * user sees the message one more time before it goes.
+ * This was the only route in the first version, and it is now the second of
+ * two: `core/relay.ts` sends directly, and this is what Send falls back to
+ * when the relay is declined, unreachable, busy or refused, as well as being a
+ * button of its own for people who would rather send it themselves. It needs
+ * no permission and makes no request. ADR-035, ADR-039.
  *
  * Mail clients and the browsers that hand off to them disagree about how long a
  * `mailto:` may be, and a truncated bug report is worse than none, so a long

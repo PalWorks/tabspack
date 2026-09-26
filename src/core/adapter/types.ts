@@ -190,6 +190,19 @@ export interface BrowserAdapter {
   isAllowedFileSchemeAccess(): Promise<boolean>;
   hasPermissions(permissions: string[]): Promise<boolean>;
   requestPermissions(permissions: string[]): Promise<boolean>;
+  /**
+   * Host access, which is a separate list from the named permissions above and
+   * has to be asked for separately. TabsPack has no host permissions at all by
+   * default; the only one it can ever hold is the support relay's origin, and
+   * only after the user presses Send and agrees: ADR-039.
+   */
+  hasOrigins(origins: string[]): Promise<boolean>;
+  /**
+   * Chromium only honours this inside the click that caused it, so a caller
+   * must not await anything before calling it. Already granted resolves true
+   * with no prompt.
+   */
+  requestOrigins(origins: string[]): Promise<boolean>;
   isAllowedIncognitoAccess(): Promise<boolean>;
   download(request: DownloadRequest): Promise<number | null>;
   storageGet<T extends Record<string, unknown>>(defaults: T): Promise<T>;

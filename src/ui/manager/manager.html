@@ -19,7 +19,7 @@
           </svg>
           <span data-i18n="extName">TabsPack</span>
         </span>
-        <span class="page-trust" data-i18n="trustLine">Nothing leaves your device.</span>
+        <span class="page-trust" data-i18n="trustLine">Your tabs never leave this device.</span>
       </header>
 
       <div class="shell">
@@ -373,9 +373,13 @@
 
               <div class="actions">
                 <button id="support-send" class="btn btn-primary action" type="button" disabled data-i18n="supportSend">Send</button>
+                <button id="support-mail" class="btn btn-secondary" type="button" disabled data-i18n="supportMailApp">Use my email app</button>
                 <button id="support-copy" class="btn btn-secondary" type="button" data-i18n="supportCopy">Copy instead</button>
-                <span class="hint" data-i18n="supportSendHint">Opens your email app with this message ready to send.</span>
               </div>
+              <p class="hint support-send-hint" data-i18n="supportSendHint">
+                Send delivers it to us directly. It is the only part of TabsPack that uses the internet, so your browser
+                asks your permission the first time. Say no and the message goes to your email app instead.
+              </p>
 
               <div id="support-report" class="report" role="status" aria-live="polite"></div>
             </section>
@@ -385,7 +389,7 @@
             <section class="card" aria-labelledby="about-legend">
               <h2 class="legend" id="about-legend" data-i18n="taskAbout">About</h2>
               <p class="summary"><span id="version"></span></p>
-              <p class="hint" data-i18n="optionsPrivacy">No account, no sync, no tracking, and no network request of any kind. Everything stays in this browser until you export a file yourself.</p>
+              <p class="hint" data-i18n="optionsPrivacy">No account, no sync, no tracking. Your tabs never leave this browser unless you export a file yourself. The one thing TabsPack ever sends is a support message you have written and pressed Send on.</p>
             </section>
 
             <section class="card" aria-labelledby="shortcuts-legend">

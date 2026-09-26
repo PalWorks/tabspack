@@ -2,5 +2,33 @@ name = "tabspack-support"
 main = "worker.js"
 compatibility_date = "2026-09-01"
 
-# The key is a secret, never a variable here:
+# The origin the extension asks permission for. `scripts/lint.mjs` checks that
+# this, `RELAY_ORIGIN` in `src/core/relay.ts` and `optional_host_permissions` in
+# both manifests all name the same host, because three copies of one address is
+# three chances to ship a Send button that reaches nothing.
+routes = [
+  { pattern = "support.palworks.ai", custom_domain = true }
+]
+
+# The Resend key is a secret and is never written here or committed:
 #   npx wrangler secret put RESEND_API_KEY
+
+# Burst limit, per IP, per data centre. `period` may only be 10 or 60.
+[[ratelimits]]
+name = "BURST"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
+
+# Daily caps, per IP and global. Optional: the worker runs without this binding
+# and simply has no daily cap. To switch it on:
+#
+#   npx wrangler kv namespace create tabspack-support-counters
+#
+# then paste the id it prints below and uncomment both lines.
+#
+# [[kv_namespaces]]
+# binding = "COUNTERS"
+# id = "paste-the-id-here"
+
+[observability]
+enabled = true

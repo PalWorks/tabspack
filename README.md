@@ -41,7 +41,9 @@ Working today:
 - **Export** the current window, all windows or the selected tabs, to `.tabspack.json`, a plain URL list or the clipboard.
 - **Captured faithfully:** window position and state, tab order, pinned tabs, the active tab, muted and unloaded tabs, opener relationships, and tab groups with title, colour and collapsed state.
 - **Filters** for duplicates, non web pages, pinned tabs, a wildcard exclude list and sorting, with every dropped tab named in the report.
-- **Nothing leaves your machine.** No account, no sync, no telemetry, and no network request at all, which `npm run lint` enforces rather than promises.
+**Website:** <https://palworks.github.io/tabspack/> &nbsp;·&nbsp; **Privacy:** <https://palworks.github.io/tabspack/privacy/>
+
+- **Your tabs never leave your machine.** No account, no sync, no telemetry, and no host permission at install, so out of the box TabsPack cannot reach any address. The one request it can make is a support message you write and press Send on, which the browser asks your permission for; `npm run lint` enforces that there is exactly one place in the source that can make it.
 - **Import and preview** a pack before anything opens: a tree of windows, groups and tabs, with per row selection, that stays responsive at 5000 tabs.
 - **Restore without freezing the browser.** Tabs are created inactive, in throttled batches, and unloaded by default, so a 200 tab pack costs almost nothing until you open a tab. The one tab you land on in each window loads, and the rest wait for you.
 - **Suspended tabs come back as pages, not as placeholders.** A tab parked by The Great Suspender, Tiny Suspender, Auto Tab Discard or a fork of any of them is read back to the address it stands for, on export and on import, and the count is reported. Without this, a session full of suspended tabs exports as a list of pages no browser will reopen.
@@ -201,7 +203,7 @@ New here? Read in this order: this file, then [PLAN.md](PLAN.md), then [docs/DOM
 
 ## Privacy
 
-TabsPack makes no network request. It has no account, no sync and no telemetry, and an export never contains cookies, tokens, form data or storage contents. See [PRIVACY.md](PRIVACY.md), which is also the privacy policy the stores require.
+TabsPack sends nothing about your tabs anywhere. It has no account, no sync and no telemetry, it requests no host permission at install, and an export never contains cookies, tokens, form data or storage contents. The single exception is the Support pane's Send button, which sends the message you wrote after your browser has asked you. See [PRIVACY.md](PRIVACY.md), which is also the privacy policy the stores require.
 
 ## Contributing
 

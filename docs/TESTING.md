@@ -24,7 +24,10 @@ The browser APIs are wrapped by `src/core/adapter/*` for exactly this reason: `c
 | Round trip | node plus a real browser for the restore half | Export, import, restore, re export, field by field comparison | Every milestone exit, and before every release |
 | Cross browser matrix | Chrome, Edge, Firefox, loaded unpacked | Adapter behaviour, capability probes, restore engine, permission prompts | Before every release |
 | Performance | Real browser, synthetic fixtures | NFR-001 to NFR-005 | At the milestone that introduces the code path, then before every release |
-| Manifest and privacy assertions | node | Exactly three required permissions, no host permissions, no network call in the built bundle | Every pull request |
+| Manifest and privacy assertions | node | Exactly three required permissions, no required host permission, one optional host permission whose address matches the relay's in all four places it is written, and no transport anywhere in the source except `fetch` in `src/core/relay.ts` | Every pull request |
+| Support relay | node against the worker running locally, and a real Chromium against an intercepted endpoint | Every refusal path in the worker; the client's four outcomes; that exactly four fields leave and none of them is about a tab | Before every release, and whenever either side changes |
+| Website, static | node, no browser | Every internal link resolves, every image has dimensions and alt text, every page has a title, description, canonical and OG image, structured data parses, the sitemap matches the pages, no page links to its own origin absolutely | Every pull request, through `npm run verify` |
+| Website, in a browser | Chromium at 320, 390, 768, 1024 and 1440 px | Horizontal overflow, script errors, tap targets under 24 px. The questions a layout engine has to answer and reading the CSS cannot | Before every deploy of the site |
 
 ## The round trip test, defined precisely
 
@@ -135,6 +138,8 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | The browser's own permission dialog | No driver can answer it. Ours is the click that summons it, and that is asserted | A person, ROADMAP Table R10 |
 | A rating ask appearing | There is no store listing to link to until something is published, so nothing is shown by design | Unit tests drive the same functions in the same order, from install to settled |
 | A `mailto:` reaching a mail client | Headless has no mail client. That the handoff is a real `mailto:` and not one glued to the extension origin **is** asserted | The audit in `.tmp/probe`, and ADR-038 |
+| A user agreeing to the relay's host | Chrome answers `permissions.request` with its own bubble, which is browser chrome and no script can click | `npm run smoke` launches a second context loading a copy of the build whose optional host permission has been promoted to a required one. Everything after the consent is then real: `requestOrigins` runs, `contains` answers true, and the page makes an actual request, which the run intercepts so a smoke check never mails anybody |
+| A real message arriving in the inbox | A smoke run must not send mail, and the worker's upstream needs a live key | The curl check in `server/support-worker/README.md`, run once against the deployment |
 | How it looks | Nothing automated has an opinion | A person, and the screenshots `npm run smoke` writes |
 
 ### Table X4: How each browser is driven

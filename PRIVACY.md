@@ -1,14 +1,16 @@
 # Privacy Policy
 
-**Version 1.0, dated 2026-09-24. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
+**Version 1.1, dated 2026-09-26. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
 
 This document is both the plain answer and the policy the browser stores require.
 
 ## The short version
 
-TabsPack makes no network request. Nothing you do in it leaves your computer unless you export a file and send that file somewhere yourself.
+TabsPack makes **one** network request, and only if you ask it to: pressing Send in the Support pane sends the message you wrote and read, to us. Your browser asks your permission the first time, and saying no is fine.
 
-There is no account, no sign in, no sync, no analytics, no telemetry, no crash reporting, no advertising, no tracking of any kind. No data is collected, transmitted, sold, shared or disclosed, because none of it ever leaves the browser.
+Everything else stays on your computer. Your tabs are never sent anywhere. Nothing you do in TabsPack leaves the machine unless you export a file and send that file somewhere yourself.
+
+There is no account, no sign in, no sync, no analytics, no telemetry, no crash reporting, no advertising, no tracking of any kind. Nothing is collected in the background, sold, shared or disclosed.
 
 ## What the extension reads
 
@@ -48,8 +50,9 @@ Private windows are excluded from exports by default. TabsPack cannot see them a
 | `downloads` | To write the export file you asked for |
 | `tabGroups`, optional | Requested the first time you use a feature involving tab groups, and only then |
 | `offscreen`, optional | Requested only to copy text to your clipboard |
+| `https://support.palworks.ai/*`, optional | Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message |
 
-There are no host permissions, so the extension cannot read or modify the content of any web page.
+TabsPack asks for **no** host permission when you install it, so out of the box it cannot reach any address at all. The one it can ever be granted is `support.palworks.ai`, it is granted by you at the moment you press Send, and you can take it back at any time in your browser's extension settings. TabsPack still cannot read or modify the content of any web page, ever.
 
 ## Children
 
@@ -58,13 +61,23 @@ TabsPack collects no data from anyone, of any age.
 ## The support form
 
 TabsPack has a Support pane. It is the one place where anything you write is
-meant to reach us, so it is worth being exact about how.
+meant to reach us, and the only place TabsPack uses the internet, so it is
+worth being exact about how.
 
-The form composes a message from what you type and hands it to **your own email
-app**. TabsPack does not send it, and makes no network request to do it: the
-message goes out from your mail client, under your control, after you have seen
-it one more time. If no mail app opens, the message is copied to your clipboard
-instead and the page says so.
+There are two ways to send, and you choose:
+
+**Send** delivers the message to us directly. The first time, your browser asks
+whether TabsPack may connect to `support.palworks.ai`. If you agree, the
+message is posted there and forwarded to our inbox. Nothing else goes with it:
+no identifier, no account, no cookie, no counter, no record of you having used
+the extension. We receive the message you wrote, and the address you typed if
+you typed one.
+
+**Use my email app** composes the same message and hands it to your own mail
+client instead. TabsPack sends nothing and makes no request. This is also where
+Send falls back to if you decline the permission, if you are offline, or if
+anything else goes wrong, and if no mail app opens the message goes to your
+clipboard and the page says so. A message is never lost to a failure.
 
 What travels is what is on the screen and nothing else. If you leave the "include
 which browser I am using" box ticked, five lines go with it, and they are shown
@@ -77,8 +90,20 @@ enforced by a test, not by a promise.
 
 ## Third parties
 
-There are none. No service provider, no processor, no sub processor, no analytics
-vendor. The extension contains no third party script, font or remote resource.
+No analytics vendor, no advertising network, no tracker, no sub processor of
+anything to do with your tabs. The extension contains no third party script,
+font or remote resource: every byte a TabsPack page loads comes from the
+package itself.
+
+Two services carry a support message you choose to send, and only that:
+
+| | What it handles | What it never sees |
+|---|---|---|
+| Cloudflare Workers | Receives the message at `support.palworks.ai` and passes it on. Stores nothing. Keeps no log of the message | Anything about your tabs, your settings or your browsing |
+| Resend | Delivers that message to our inbox as email | The same |
+
+If you use the mail client route instead, neither is involved and TabsPack makes
+no request at all.
 
 Two addresses appear in the interface as links you can choose to click: the
 maker's site, `palworks.ai`, at the foot of About, and, once TabsPack is
@@ -88,8 +113,8 @@ any TabsPack page.
 
 ## Changes to this policy
 
-If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduced any network transmission would require a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) superseding ADR-005, and it would be stated plainly in the store listing rather than buried here.
+If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduces or widens any network transmission requires a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) and is stated plainly in the store listing rather than buried here. Version 1.1 of this policy is such a change: see ADR-039, which explains why the support form gained a direct Send and what was given up for it.
 
 ## Contact
 
-Raise a question as a GitHub issue on this repository. For a security concern, follow [SECURITY.md](SECURITY.md) instead.
+Use the Support pane, or raise a question as a GitHub issue on this repository. For a security concern, follow [SECURITY.md](SECURITY.md) instead.

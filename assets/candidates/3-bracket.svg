@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#0f172a;--brand-2:#334155">
+  <!--
+    3. Packed.
+
+    Two brackets closed around a stack of tabs. Brackets stay crisp at any
+    size, they already mean "these are one thing now", and nothing else in a
+    toolbar is using them. Three tabs rather than two, because two reads as an
+    equals sign; at 16 px they merge into one block, which is still a stack
+    inside brackets and still nothing else.
+  -->
+  <defs>
+    <linearGradient id="b3-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#b3-bg)" />
+  <g class="fg" fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M44 26H28v76h16" />
+    <path d="M84 26h16v76H84" />
+  </g>
+  <g class="fg accent" fill="#fbbf24">
+    <rect x="50" y="36" width="28" height="16" rx="8" />
+    <rect x="50" y="56" width="28" height="16" rx="8" />
+    <rect x="50" y="76" width="28" height="16" rx="8" />
+  </g>
+</svg>

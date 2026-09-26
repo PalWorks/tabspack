@@ -235,6 +235,24 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
+  async hasOrigins(origins: string[]): Promise<boolean> {
+    try {
+      return await browser.permissions.contains({ origins });
+    } catch {
+      return false;
+    }
+  },
+
+  async requestOrigins(origins: string[]): Promise<boolean> {
+    try {
+      return await browser.permissions.request({ origins });
+    } catch {
+      // A browser that refuses the call outright is a browser with no host
+      // access, which the caller handles the same way as a declined prompt.
+      return false;
+    }
+  },
+
   async isAllowedIncognitoAccess(): Promise<boolean> {
     try {
       const fn = browser.extension?.isAllowedIncognitoAccess;

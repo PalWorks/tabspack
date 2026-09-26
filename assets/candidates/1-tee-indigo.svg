@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#4338ca;--brand-2:#6366f1">
+  <!--
+    1. The T, in indigo.
+
+    A letterform, because a letter is the one thing that still reads when the
+    mark is four pixels tall. The crossbar is cut into three tabs and the
+    middle one carries on down as the stem: at 16 px the cuts close up and you
+    see a T, at 32 and above you see what it is made of. Detail that rewards
+    looking closer and costs nothing when nobody does.
+
+    The cuts are 4 px wide rather than the 6 of the first draft, which is what
+    stopped the two ends reading as a separate pair of objects at 128.
+  -->
+  <defs>
+    <linearGradient id="t1-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#t1-bg)" />
+  <g class="fg" fill="#ffffff">
+    <rect x="16" y="26" width="31" height="24" rx="11" />
+    <rect x="81" y="26" width="31" height="24" rx="11" />
+    <rect x="51" y="26" width="26" height="86" rx="12" />
+  </g>
+</svg>

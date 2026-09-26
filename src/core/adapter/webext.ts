@@ -52,8 +52,8 @@ export interface WebExtApi {
     };
   };
   permissions: {
-    contains(permissions: { permissions: string[] }): Promise<boolean>;
-    request(permissions: { permissions: string[] }): Promise<boolean>;
+    contains(permissions: { permissions?: string[]; origins?: string[] }): Promise<boolean>;
+    request(permissions: { permissions?: string[]; origins?: string[] }): Promise<boolean>;
   };
   downloads?: {
     download(options: Record<string, unknown>): Promise<number>;

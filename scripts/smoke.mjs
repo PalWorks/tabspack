@@ -12,7 +12,7 @@
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { mkdtemp } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -906,6 +906,47 @@ try {
   );
   await options.screenshot({ path: path.join(shots, "settings-light.png"), fullPage: true });
 
+  /* Support, with the extension as it installs: no host permission ------- */
+  await options.click("#tab-support");
+  const sendOff = await options.isDisabled("#support-send");
+  const mailOff = await options.isDisabled("#support-mail");
+  check("neither send is offered until there is something to send", sendOff && mailOff);
+
+  await options.fill("#support-message", "The preview did not appear after I chose a file.");
+  await options.waitForTimeout(150);
+  check("a real message enables both routes", !(await options.isDisabled("#support-send")));
+
+  await options.fill("#support-reply", "not-an-address");
+  await options.waitForTimeout(150);
+  check(
+    "a malformed reply address blocks both routes, not just one",
+    (await options.isDisabled("#support-send")) && (await options.isDisabled("#support-mail")),
+  );
+  await options.fill("#support-reply", "someone@example.com");
+  await options.waitForTimeout(150);
+  check("a good one unblocks them", !(await options.isDisabled("#support-send")));
+
+  const diagnostics = (await options.textContent("#support-diagnostics")) ?? "";
+  check("the diagnostics name the browser", /Chrom/i.test(diagnostics), diagnostics);
+  check(
+    "and carry nothing about the tabs",
+    !/example\.com|http/i.test(diagnostics) && !/\b\d+ tabs?\b/i.test(diagnostics),
+    diagnostics,
+  );
+
+  /*
+   * Send is deliberately not pressed here. With no host permission Chrome puts
+   * up its own permission bubble, which is browser chrome no script can answer,
+   * so the granted path is exercised in a second context below where the host
+   * is already held. What is checked here is the route that needs nothing.
+   */
+  const noHost = await options.evaluate(() =>
+    chrome.permissions.contains({ origins: ["https://support.palworks.ai/*"] }),
+  );
+  check("a default install holds no host permission at all", noHost === false, String(noHost));
+  // Back to where the rest of this run expects to be.
+  await options.click("#tab-settings");
+
   // T-501: a setting takes effect on a surface that is already open.
   await options.click("#theme button[data-value='dark']");
   await manager.waitForFunction(() => document.documentElement.dataset.theme === "dark", {
@@ -918,6 +959,104 @@ try {
 } finally {
   await context.close();
   await rm(profile, { recursive: true, force: true });
+}
+
+/* The relay, in a browser that has already granted the host ---------------- */
+
+/*
+ * A second context, loading a copy of the build whose optional host permission
+ * has been promoted to a required one. This is the only way to reach the code
+ * that runs after a user has agreed: Chrome answers `permissions.request` with
+ * its own bubble, which is browser chrome and no script can click it.
+ *
+ * What is being tested is real. `requestOrigins` runs, `contains` answers true,
+ * and `sendViaRelay` makes an actual request out of an actual extension page.
+ * Only the consent is simulated, and only because a machine cannot give it.
+ * The relay itself is intercepted, because a smoke run must not mail anybody.
+ */
+{
+  const granted = path.join(root, ".tmp", "smoke-ext-granted");
+  await rm(granted, { recursive: true, force: true });
+  await cp(extension, granted, { recursive: true });
+  const manifestPath = path.join(granted, "manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.host_permissions = manifest.optional_host_permissions;
+  delete manifest.optional_host_permissions;
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const profile2 = await mkdtemp(path.join(tmpdir(), "tabspack-relay-"));
+  const context2 = await chromium.launchPersistentContext(profile2, {
+    ...(executablePath ? { executablePath } : { channel: "chrome" }),
+    headless: !headed,
+    args: [
+      "--disable-features=DisableLoadExtensionCommandLineSwitch",
+      `--disable-extensions-except=${granted}`,
+      `--load-extension=${granted}`,
+    ],
+  });
+
+  /** Every request the page made to the relay, and what the relay answered. */
+  const seen = [];
+  let answer = 200;
+  await context2.route("https://support.palworks.ai/**", async (route) => {
+    seen.push({ url: route.request().url(), body: route.request().postData() });
+    await route.fulfill({
+      status: answer,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: answer < 400 }),
+    });
+  });
+
+  try {
+    const id2 = unpackedExtensionId(granted);
+    const page = await context2.newPage();
+    await page.goto(`chrome-extension://${id2}/manager.html#support`);
+    await page.waitForSelector("#support-send");
+
+    await page.fill("#support-message", "The preview did not appear after I chose a file.");
+    await page.fill("#support-reply", "someone@example.com");
+    await page.waitForTimeout(150);
+    await page.click("#support-send");
+    await page.waitForFunction(() => /Sent/.test(document.querySelector("#support-report")?.textContent ?? ""), {
+      timeout: 10_000,
+    });
+
+    check("a granted host sends, and the page says so", true, (await page.textContent("#support-report")) ?? "");
+    check("the message box is cleared, so the same report cannot go twice", (await page.inputValue("#support-message")) === "");
+    check("exactly one request left", seen.length === 1, String(seen.length));
+    check("and it went to the pinned endpoint", seen[0]?.url === "https://support.palworks.ai/v1/support", seen[0]?.url);
+
+    const payload = JSON.parse(seen[0]?.body ?? "{}");
+    check(
+      "carrying exactly four fields",
+      JSON.stringify(Object.keys(payload).sort()) === JSON.stringify(["body", "replyTo", "subject", "website"]),
+      Object.keys(payload).join(","),
+    );
+    check("with the honeypot empty", payload.website === "");
+    check(
+      "and nothing about the tabs anywhere in it",
+      !/example\.com\/one|example\.com\/two|favicon|windowId/i.test(seen[0]?.body ?? ""),
+    );
+
+    // A relay that refuses must not lose the message.
+    answer = 500;
+    await page.fill("#support-message", "A second report, for the failure path.");
+    await page.waitForTimeout(150);
+    await page.click("#support-send");
+    await page.waitForFunction(
+      () => /email app|clipboard/i.test(document.querySelector("#support-report")?.textContent ?? ""),
+      { timeout: 10_000 },
+    );
+    check("a refusal falls back to the mail app rather than failing", true, (await page.textContent("#support-report")) ?? "");
+    check(
+      "and the message is still there to send",
+      (await page.inputValue("#support-message")) === "A second report, for the failure path.",
+    );
+  } finally {
+    await context2.close();
+    await rm(profile2, { recursive: true, force: true });
+    await rm(granted, { recursive: true, force: true });
+  }
 }
 
 if (failures.length > 0) {

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}" />
+    <link rel="canonical" href="{{canonical}}" />
+    <meta name="robots" content="{{robots}}" />
+    <meta name="author" content="palworks.ai" />
+    <meta name="publisher" content="palworks.ai" />
+    <meta name="keywords" content="{{keywords}}" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="sitemap" type="application/xml" href="{{site}}sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="{{site}}llms.txt" title="Plain text summary for language models" />
+    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TabsPack" />
+    <meta property="og:title" content="{{ogTitle}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta property="og:url" content="{{canonical}}" />
+    <meta property="og:image" content="{{site}}assets/img/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TabsPack: export every open tab to one file and restore them exactly, in Chrome, Edge or Firefox." />
+    <meta property="og:locale" content="en" />
+    {{modified}}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ogTitle}}" />
+    <meta name="twitter:description" content="{{description}}" />
+    <meta name="twitter:image" content="{{site}}assets/img/og.png" />
+
+    <link rel="icon" href="{{root}}assets/img/icon-128.png" type="image/png" />
+    <link rel="apple-touch-icon" href="{{root}}assets/img/icon-128.png" />
+    <link rel="stylesheet" href="{{root}}assets/site.css" />
+    <script type="application/ld+json">
+{{jsonld}}
+    </script>
+    <script type="application/ld+json">
+{{sitewide}}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="{{root}}">
+          <img src="{{root}}assets/img/icon-128.png" alt="" width="28" height="28" />
+          TabsPack
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr">Menu</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="{{root}}#features"{{navFeatures}}>Features</a></li>
+          <li><a href="{{root}}#privacy"{{navPrivacy}}>Privacy</a></li>
+          <li><a href="{{root}}pricing/"{{navPricing}}>Pricing</a></li>
+          <li><a href="{{root}}faq/"{{navFaq}}>FAQ</a></li>
+          <li><a href="{{root}}about/"{{navAbout}}>About</a></li>
+          <li><a href="{{root}}contact/"{{navContact}}>Contact</a></li>
+          <li><a class="btn btn-primary" href="{{repo}}">Get TabsPack</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="main">
+{{body}}
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="brand" href="{{root}}">
+              <img src="{{root}}assets/img/icon-128.png" alt="" width="28" height="28" />
+              TabsPack
+            </a>
+            <p style="margin-top: 14px">
+              Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge
+              or Firefox. Built and maintained by <a href="https://palworks.ai">palworks.ai</a>.
+            </p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="{{root}}#features">Features</a></li>
+              <li><a href="{{root}}#how">How it works</a></li>
+              <li><a href="{{root}}#formats">Formats it reads</a></li>
+              <li><a href="{{root}}pricing/">Pricing</a></li>
+              <li><a href="{{repo}}releases">Releases</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="{{root}}about/">About us</a></li>
+              <li><a href="{{root}}contact/">Contact us</a></li>
+              <li><a href="{{root}}faq/">FAQ</a></li>
+              <li><a href="{{repo}}">Source on GitHub</a></li>
+              <li><a href="https://palworks.ai">palworks.ai</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="{{root}}privacy/">Privacy policy</a></li>
+              <li><a href="{{root}}terms/">Terms of use</a></li>
+              <li><a href="{{root}}cookies/">Cookie notice</a></li>
+              <li><a href="{{root}}security/">Security</a></li>
+              <li><a href="{{repo}}blob/main/LICENSE">Licence</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>&copy; {{year}} palworks.ai. TabsPack is free and open source under the MIT licence.</span>
+          <span>This site sets no cookies, loads nothing from anyone else, and measures nothing.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{{root}}assets/site.js" defer></script>
+  </body>
+</html>

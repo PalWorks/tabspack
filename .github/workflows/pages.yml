@@ -1,0 +1,56 @@
+# Publishes website/ to GitHub Pages.
+#
+# The site is committed as rendered HTML, so this workflow deploys what is in
+# the repository rather than building something nobody can inspect. It does
+# check two things first: that the committed HTML still matches what the
+# generator produces, which catches a layout change that was never regenerated,
+# and that every link, image and piece of structured data in it holds up.
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "scripts/site/**"
+      - "scripts/gen-site.mjs"
+      - "scripts/check-site.mjs"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. A queued run is not cancelled, because the last
+# push is the one that should win and cancelling it would publish the one before.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: The committed HTML matches the generator
+        run: node scripts/gen-site.mjs --check
+      - name: Links, images, metadata and structured data
+        run: node scripts/check-site.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

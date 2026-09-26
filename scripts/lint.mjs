@@ -13,6 +13,17 @@ import { files as walkFiles } from "./lib/walk.mjs";
 const root = path.resolve(import.meta.dirname, "..");
 const failures = [];
 
+/**
+ * The support relay's address, read from the one file that declares it rather
+ * than written here a second time. It also appears in both manifests and in
+ * the worker's own route, and `ruleRelayOrigin` below fails the build if any
+ * of them disagree: a Send button pointing at a host nobody deployed is a
+ * silent failure, and the only cheap defence is to refuse to build. ADR-039.
+ */
+const RELAY_ORIGIN = (
+  /RELAY_ORIGIN = "([^"]+)"/.exec(await readFile(path.join(root, "src/core/relay.ts"), "utf8")) ?? []
+)[1];
+
 function fail(file, line, rule, detail) {
   failures.push({ file, line, rule, detail });
 }
@@ -71,14 +82,28 @@ const NETWORK_ALLOWLIST = [
   "http://www.w3.org/2000/svg",
   // Who made it, linked once at the foot of About: ADR-037.
   "https://palworks.ai",
+  // The support relay, which is the one request the extension can make, and
+  // only after the user presses Send and grants the host: ADR-039.
+  RELAY_ORIGIN,
 ];
+
+/**
+ * The only file allowed to make a request, so "TabsPack talks to exactly one
+ * address, from exactly one place" is a fact a reviewer can check in a minute
+ * rather than a claim they have to take on trust: ADR-039.
+ */
+const NETWORK_FILE = "src/core/relay.ts";
 
 async function ruleNoNetwork() {
   const banned = /\b(fetch|XMLHttpRequest|EventSource|WebSocket|importScripts)\s*\(/g;
   for (const file of await files("src/**/*.{ts,html,css}")) {
     const raw = await readFile(path.join(root, file), "utf8");
     const source = file.endsWith(".ts") ? stripComments(raw) : raw;
+    const isRelay = file.replaceAll("\\", "/") === NETWORK_FILE;
     for (const match of source.matchAll(banned)) {
+      // `fetch` in the relay is the point of the relay. Everything else, and
+      // every other transport even there, is still forbidden.
+      if (isRelay && match[1] === "fetch") continue;
       fail(file, lineOf(source, match.index), "no-network", `${match[1]} is forbidden: NFR-006`);
     }
     for (const match of source.matchAll(/https?:\/\/[^\s"'`)]+/g)) {
@@ -222,12 +247,40 @@ async function ruleManifests() {
         fail(file, 1, "manifest", `optional permission ${optional} is not in the agreed set`);
       }
     }
-    if (manifest.host_permissions) fail(file, 1, "manifest", "host permissions are never allowed");
+    if (manifest.host_permissions) fail(file, 1, "manifest", "a required host permission is never allowed");
+    const optionalHosts = manifest.optional_host_permissions ?? [];
+    if (optionalHosts.length !== 1 || optionalHosts[0] !== `${RELAY_ORIGIN}/*`) {
+      fail(
+        file,
+        1,
+        "manifest",
+        `optional_host_permissions must be exactly ["${RELAY_ORIGIN}/*"], found ${optionalHosts.join(", ") || "none"}`,
+      );
+    }
     if (manifest.content_scripts) fail(file, 1, "manifest", "content scripts are never allowed");
     const csp = manifest.content_security_policy?.extension_pages ?? "";
     if (!csp.includes("script-src 'self'") || !csp.includes("object-src 'none'")) {
       fail(file, 1, "manifest", "extension_pages CSP must pin script-src to self and object-src to none");
     }
+  }
+}
+
+/**
+ * The fourth copy of the address: the worker's own route. A deploy that lands
+ * somewhere the extension is not allowed to reach is a support form that
+ * silently never works, and nothing else in the build would notice.
+ */
+async function ruleRelayOrigin() {
+  const file = "server/support-worker/wrangler.toml";
+  if (!RELAY_ORIGIN) {
+    fail("src/core/relay.ts", 1, "relay-origin", "RELAY_ORIGIN could not be read");
+    return;
+  }
+  const host = new URL(RELAY_ORIGIN).host;
+  const toml = await readFile(path.join(root, file), "utf8");
+  const route = /pattern\s*=\s*"([^"]+)"/.exec(toml)?.[1];
+  if (route !== host) {
+    fail(file, 1, "relay-origin", `route is ${route ?? "missing"} but src/core/relay.ts says ${host}`);
   }
 }
 
@@ -237,6 +290,7 @@ await ruleNoNetwork();
 await ruleNoUnexplainedAny();
 await ruleI18n();
 await ruleManifests();
+await ruleRelayOrigin();
 
 if (failures.length === 0) {
   console.log("lint: clean");

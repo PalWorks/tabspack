@@ -64,6 +64,12 @@ export interface FakeState {
    * discarded, which is what Gecko says in as many words: ADR-027.
    */
   gecko?: boolean;
+  /**
+   * Whether the browser grants the support relay's host when asked. Default
+   * false, because a default install has no host access at all and the
+   * interface has to work that way round: ADR-039.
+   */
+  grantOrigins?: boolean;
 }
 
 export interface FakeAdapter extends BrowserAdapter {
@@ -73,6 +79,8 @@ export interface FakeAdapter extends BrowserAdapter {
   /** Every tooltip the surfaces set, in order. */
   actionTitles: string[];
   opened: string[];
+  /** Every host permission the interface asked for, in order. */
+  originsAsked: string[];
   /** Every mutating call, in order, so a test can assert the sequence. */
   calls: { method: string; detail?: unknown }[];
   storageListeners: ((keys: string[]) => void)[];
@@ -149,6 +157,7 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     badges: [],
     actionTitles: [],
     opened: [],
+    originsAsked: [],
     calls: [],
     storageListeners: [],
 
@@ -399,6 +408,14 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     },
     async requestPermissions() {
       return true;
+    },
+    async hasOrigins(origins: string[]) {
+      adapter.originsAsked.push(...origins);
+      return state.grantOrigins ?? false;
+    },
+    async requestOrigins(origins: string[]) {
+      adapter.originsAsked.push(...origins);
+      return state.grantOrigins ?? false;
     },
     async isAllowedIncognitoAccess() {
       return state.incognitoAllowed ?? false;

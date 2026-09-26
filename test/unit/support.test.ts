@@ -17,7 +17,7 @@ import {
 } from "../../src/core/support.js";
 
 const context: SupportContext = {
-  extensionVersion: "0.0.2",
+  extensionVersion: "0.0.3",
   browser: "Microsoft Edge",
   browserVersion: "153",
   os: "linux",
@@ -35,7 +35,7 @@ const draft: SupportDraft = {
 
 test("the message is the user's words, and the subject names the topic", () => {
   const composed = composeSupportMessage(draft, context);
-  assert.equal(composed.subject, "TabsPack 0.0.2: Something is broken");
+  assert.equal(composed.subject, "TabsPack 0.0.3: Something is broken");
   assert.ok(composed.body.startsWith("The preview did not appear after I chose a file."));
 });
 

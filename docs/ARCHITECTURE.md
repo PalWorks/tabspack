@@ -4,7 +4,7 @@ Status: describes the code as built through M2. When code and this document dive
 
 ## 1. Shape of the thing
 
-TabsPack is a browser extension with no server, no network access and no runtime dependencies beyond one polyfill. All state is local. There are four execution contexts and a rule about each.
+TabsPack is a browser extension with no runtime dependencies beyond one polyfill, and no network access except one request the user grants at the point of use: the Support pane's Send button, which posts to the relay in `server/support-worker/` and nothing else. ADR-039. All other state is local. There are four execution contexts and a rule about each.
 
 ### Table A1: Execution contexts
 
@@ -14,7 +14,7 @@ TabsPack is a browser extension with no server, no network access and no runtime
 | Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, an import button that hands off to the manager page and a gear that opens settings. Never a file dialog, never a long task |
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
 | Settings and About | `src/ui/manager/settings-panel.ts` | While open | Two panes of the manager page, not a page of their own: a setting that belongs to a task lives with that task, and these hold what belongs to none. Written the moment it changes, no Save button, because a settings page with one invents a state where what you see is not what is in force. ADR-028 |
-| Support | `src/ui/manager/support-panel.ts` | While open | A pane of the manager page. Composes a message in `core/support.ts`, shows it in full, and hands it to the user's own mail client. Makes no network request and ships no key: ADR-035 |
+| Support | `src/ui/manager/support-panel.ts` | While open | A pane of the manager page. Composes a message in `core/support.ts`, shows it in full, and sends it through `core/relay.ts` or hands it to the user's own mail client. The only surface that can make a request, and only after the browser has granted the relay's host: ADR-035, ADR-039 |
 | Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |
 
 The single most important placement decision: **import and export do not live in the popup**. A popup closes when the file picker takes focus, which is the most common cause of broken import in the extensions we studied. The popup is a launcher.
@@ -237,4 +237,6 @@ Why TypeScript: the published JSON Schema is generated from `src/types/tabspack.
 
 ## 10. What is deliberately absent
 
-No server. No network calls. No analytics. No message passing to other extensions. No content scripts, because nothing needs to run inside a page. No `<all_urls>`. No remote code, which is also a hard store policy requirement.
+One server, `server/support-worker/`, which exists to hold a mail key the extension must not ship, receives only what a user typed into the Support pane, and stores nothing. No analytics. No message passing to other extensions. No content scripts, because nothing needs to run inside a page. No `<all_urls>`, and no host permission at all until a user grants one. No remote code, which is also a hard store policy requirement.
+
+Exactly one file in `src/` may make a request, `src/core/relay.ts`, and only with `fetch`. `scripts/lint.mjs` fails the build on any transport anywhere else, and on `XMLHttpRequest`, `EventSource`, `WebSocket` or `importScripts` even there. The relay's address is written in four places, and a lint rule fails the build if they disagree.

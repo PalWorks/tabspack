@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#0e7490;--brand-2:#06b6d4">
+  <!--
+    5. The tab itself.
+
+    A tab standing on a strip, which is the shape a browser draws and no other
+    extension's mark claims. The strip runs the full width and is thicker than
+    the first draft's, because the floor is the thing that stops this being a
+    folder. The shorter second tab is what makes it plural.
+  -->
+  <defs>
+    <linearGradient id="t5-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#t5-bg)" />
+  <g class="fg" fill="#ffffff">
+    <path d="M16 28a10 10 0 0 1 10-10h36a10 10 0 0 1 10 10v50H16z" />
+    <path d="M80 52a10 10 0 0 1 10-10h12a10 10 0 0 1 10 10v26H80z" opacity="0.5" />
+    <rect x="12" y="84" width="104" height="26" rx="13" />
+  </g>
+</svg>

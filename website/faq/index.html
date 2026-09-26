@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FAQ — TabsPack questions and answers</title>
+    <meta name="description" content="Answers about TabsPack: what it costs, whether it sends anything anywhere, moving tabs between Chrome, Edge and Firefox, restoring hundreds of tabs, suspended tabs, file formats and keyboard shortcuts." />
+    <link rel="canonical" href="https://palworks.github.io/tabspack/faq/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="palworks.ai" />
+    <meta name="publisher" content="palworks.ai" />
+    <meta name="keywords" content="TabsPack FAQ, export browser tabs, restore tabs, move tabs between browsers, tab manager questions" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="sitemap" type="application/xml" href="https://palworks.github.io/tabspack/sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="https://palworks.github.io/tabspack/llms.txt" title="Plain text summary for language models" />
+    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TabsPack" />
+    <meta property="og:title" content="TabsPack FAQ" />
+    <meta property="og:description" content="Answers about TabsPack: what it costs, whether it sends anything anywhere, moving tabs between Chrome, Edge and Firefox, restoring hundreds of tabs, suspended tabs, file formats and keyboard shortcuts." />
+    <meta property="og:url" content="https://palworks.github.io/tabspack/faq/" />
+    <meta property="og:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TabsPack: export every open tab to one file and restore them exactly, in Chrome, Edge or Firefox." />
+    <meta property="og:locale" content="en" />
+    <!-- no modification date: this page is not dated content -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TabsPack FAQ" />
+    <meta name="twitter:description" content="Answers about TabsPack: what it costs, whether it sends anything anywhere, moving tabs between Chrome, Edge and Firefox, restoring hundreds of tabs, suspended tabs, file formats and keyboard shortcuts." />
+    <meta name="twitter:image" content="https://palworks.github.io/tabspack/assets/img/og.png" />
+
+    <link rel="icon" href="../assets/img/icon-128.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../assets/img/icon-128.png" />
+    <link rel="stylesheet" href="../assets/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "url": "https://palworks.github.io/tabspack/faq/",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is TabsPack free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, completely. There is no paid tier, no trial, no account and no advertising. It is published under the MIT licence and the source is on GitHub. The pricing page explains why, at length, because \"free\" in a browser extension is usually the beginning of a worse story."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does TabsPack send my tabs anywhere?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. TabsPack requests no host permission when you install it, so out of the box it cannot reach any address on the internet at all. Your tabs are read only when you ask for an export, and they are written to a file on your own machine. The only request TabsPack can ever make is a support message you write yourself and press Send on, and your browser asks your permission before that happens."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which browsers does it work in?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Chrome, Microsoft Edge and Firefox, from one source tree, and any other Chromium browser that accepts Chrome Web Store extensions. Tab groups need a browser that has tab groups; where they do not exist the tabs are restored ungrouped and TabsPack tells you so."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I move a session from Chrome to Firefox, or the other way?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. A .tabspack.json file written in one restores in the other. Windows, tab order, pinned tabs and the active tab come back in all of them. Where a browser lacks a feature the file describes, TabsPack restores everything it can and names what it could not do, rather than failing the whole restore."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What exactly comes back when I restore?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The windows and their position and size, every tab in its original order, which tabs were pinned, which tab was active in each window, tab groups with their names, colours and collapsed state, and which tabs were muted. What does not come back is anything that would be a security problem to carry: you are not logged into anything by restoring a pack."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Will restoring hundreds of tabs freeze my machine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Restored tabs are opened asleep by default: they appear in the strip with their title and address and load nothing until you click one. A measured restore of two hundred real pages takes about nine seconds and leaves one hundred and ninety-nine of them unloaded. If you would rather they all load, there is a setting."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What happens to tabs held by a suspender extension?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "TabsPack unwraps them. Suspenders such as The Great Suspender and the extensions that replaced it park your tab on their own internal page and hide the true address inside that page's address. No other browser can reopen it, and if the suspender is ever removed from the store the tab is lost. TabsPack reads the real address back out, both when exporting and when importing, and tells you how many it recovered."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I open a TabsPack file without the extension?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. It is ordinary JSON against a published schema. A text editor opens it, a script can read it, and git diff will tell you what changed between two of them. That is deliberate: your session should not be locked inside an extension that might be delisted."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What other formats can it import?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "OneTab exports, Session Buddy JSON and CSV, Tab Session Manager exports, browser bookmarks in Netscape HTML, Markdown link lists, flat JSON and a plain list of addresses. TabsPack identifies the file by reading it rather than trusting its name, and reports what it found before opening anything."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What can it export to, besides its own format?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A plain list of addresses, a flat JSON file, and CSV. The interface says what each one loses before you choose it: a list of addresses cannot carry windows, groups or order, and TabsPack would rather tell you that than let you find out later."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does it ask for a tab groups permission?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Because without it the browser does not expose the tab groups interface at all, so a group's name and colour cannot be read and your export would quietly contain unnamed groups. TabsPack asks for it before you export rather than after, which is the point at which the information would otherwise be lost. Refusing is fine: the tabs still come back grouped, just unnamed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does it work with private or incognito windows?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Private windows are excluded by default and TabsPack cannot see them at all unless you take two deliberate steps: allow the extension in private mode in your browser's own settings, and switch the option on inside TabsPack."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What about pages a browser will not let an extension open?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Browsers refuse to let extensions open their own internal pages, such as settings or the extensions list. TabsPack keeps those addresses in the file so nothing is lost, and on restore it opens a page listing the ones it was not allowed to open so you can click them yourself."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Firefox says the add-on \"appears to be corrupt\". Is it broken?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Release Firefox refuses to install any extension Mozilla has not signed and reports that refusal with an unhelpful sentence about corruption. Until the listing is live on addons.mozilla.org, install it through about:debugging and Load Temporary Add-on, which lasts until you close Firefox, or use Firefox Developer Edition with xpinstall.signatures.required set to false."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What are the keyboard shortcuts?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Alt + Shift + E exports every window, Alt + Shift + D exports the current one, and Alt + Shift + S saves a snapshot. Your browser owns these and you can change them; TabsPack reads back whatever the browser actually accepted and shows it in About."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where are snapshots stored, and do they sync?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "In your browser's local extension storage, on the machine where you made them. They are not synced across your devices, they survive a browser restart, and they are removed if you uninstall the extension. Files you have exported are never touched."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does an export contain anything sensitive?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. A pack holds addresses, titles and structure. Never cookies, session tokens, authorization headers, form contents or page contents. An exported file cannot be used to sign in as you anywhere, and that is written into the format specification as a requirement rather than left to the implementation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is the source available?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, all of it, under the MIT licence, at github.com/PalWorks/tabspack, including the build checks that enforce the privacy claims and the thirty-nine decision records explaining why it is built the way it is."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://palworks.github.io/tabspack/#org",
+            "name": "palworks.ai",
+            "url": "https://palworks.ai",
+            "logo": "https://palworks.github.io/tabspack/assets/img/icon-128.png",
+            "sameAs": [
+              "https://github.com/PalWorks",
+              "https://palworks.ai"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer support",
+              "email": "support@palworks.ai",
+              "url": "https://palworks.github.io/tabspack/contact/",
+              "availableLanguage": [
+                "en"
+              ]
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://palworks.github.io/tabspack/#site",
+            "name": "TabsPack",
+            "url": "https://palworks.github.io/tabspack/",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "description": "TabsPack exports every open browser tab to one file and restores them exactly as they were, in Chrome, Edge or Firefox."
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://palworks.github.io/tabspack/faq/#page",
+            "url": "https://palworks.github.io/tabspack/faq/",
+            "name": "FAQ — TabsPack questions and answers",
+            "description": "Answers about TabsPack: what it costs, whether it sends anything anywhere, moving tabs between Chrome, Edge and Firefox, restoring hundreds of tabs, suspended tabs, file formats and keyboard shortcuts.",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://palworks.github.io/tabspack/#site"
+            },
+            "about": {
+              "@id": "https://palworks.github.io/tabspack/#org"
+            },
+            "primaryImageOfPage": "https://palworks.github.io/tabspack/assets/img/og.png"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://palworks.github.io/tabspack/faq/#crumbs",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "TabsPack",
+                "item": "https://palworks.github.io/tabspack/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "FAQ",
+                "item": "https://palworks.github.io/tabspack/faq/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="../">
+          <img src="../assets/img/icon-128.png" alt="" width="28" height="28" />
+          TabsPack
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr">Menu</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="../#features">Features</a></li>
+          <li><a href="../#privacy">Privacy</a></li>
+          <li><a href="../pricing/">Pricing</a></li>
+          <li><a href="../faq/" aria-current="page">FAQ</a></li>
+          <li><a href="../about/">About</a></li>
+          <li><a href="../contact/">Contact</a></li>
+          <li><a class="btn btn-primary" href="https://github.com/PalWorks/tabspack/">Get TabsPack</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page-head">
+        <div class="wrap wrap-narrow">
+          <span class="eyebrow">FAQ</span>
+          <h1>Questions, answered properly.</h1>
+          <p class="lede">
+            If the answer you need is not here, the <a href="../contact/">contact page</a> has three ways to ask,
+            and a person reads all of them.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <div class="wrap wrap-narrow">
+          <div class="faq" style="margin-top: 0">
+            <details>
+              <summary>Is TabsPack free?</summary>
+              <p>Yes, completely. There is no paid tier, no trial, no account and no advertising. It is published under the MIT licence and the source is on GitHub. The <a href="../pricing/">pricing page</a> explains why, at length, because "free" in a browser extension is usually the beginning of a worse story.</p>
+            </details>
+            <details>
+              <summary>Does TabsPack send my tabs anywhere?</summary>
+              <p>No. TabsPack requests no host permission when you install it, so out of the box it cannot reach any address on the internet at all. Your tabs are read only when you ask for an export, and they are written to a file on your own machine. The only request TabsPack can ever make is a support message you write yourself and press Send on, and your browser asks your permission before that happens.</p>
+            </details>
+            <details>
+              <summary>Which browsers does it work in?</summary>
+              <p>Chrome, Microsoft Edge and Firefox, from one source tree, and any other Chromium browser that accepts Chrome Web Store extensions. Tab groups need a browser that has tab groups; where they do not exist the tabs are restored ungrouped and TabsPack tells you so.</p>
+            </details>
+            <details>
+              <summary>Can I move a session from Chrome to Firefox, or the other way?</summary>
+              <p>Yes. A <code>.tabspack.json</code> file written in one restores in the other. Windows, tab order, pinned tabs and the active tab come back in all of them. Where a browser lacks a feature the file describes, TabsPack restores everything it can and names what it could not do, rather than failing the whole restore.</p>
+            </details>
+            <details>
+              <summary>What exactly comes back when I restore?</summary>
+              <p>The windows and their position and size, every tab in its original order, which tabs were pinned, which tab was active in each window, tab groups with their names, colours and collapsed state, and which tabs were muted. What does not come back is anything that would be a security problem to carry: you are not logged into anything by restoring a pack.</p>
+            </details>
+            <details>
+              <summary>Will restoring hundreds of tabs freeze my machine?</summary>
+              <p>No. Restored tabs are opened asleep by default: they appear in the strip with their title and address and load nothing until you click one. A measured restore of two hundred real pages takes about nine seconds and leaves one hundred and ninety-nine of them unloaded. If you would rather they all load, there is a setting.</p>
+            </details>
+            <details>
+              <summary>What happens to tabs held by a suspender extension?</summary>
+              <p>TabsPack unwraps them. Suspenders such as The Great Suspender and the extensions that replaced it park your tab on their own internal page and hide the true address inside that page's address. No other browser can reopen it, and if the suspender is ever removed from the store the tab is lost. TabsPack reads the real address back out, both when exporting and when importing, and tells you how many it recovered.</p>
+            </details>
+            <details>
+              <summary>Can I open a TabsPack file without the extension?</summary>
+              <p>Yes. It is ordinary JSON against a <a href="https://github.com/PalWorks/tabspack/blob/main/schema/tabspack.v1.schema.json">published schema</a>. A text editor opens it, a script can read it, and <code>git diff</code> will tell you what changed between two of them. That is deliberate: your session should not be locked inside an extension that might be delisted.</p>
+            </details>
+            <details>
+              <summary>What other formats can it import?</summary>
+              <p>OneTab exports, Session Buddy JSON and CSV, Tab Session Manager exports, browser bookmarks in Netscape HTML, Markdown link lists, flat JSON and a plain list of addresses. TabsPack identifies the file by reading it rather than trusting its name, and reports what it found before opening anything.</p>
+            </details>
+            <details>
+              <summary>What can it export to, besides its own format?</summary>
+              <p>A plain list of addresses, a flat JSON file, and CSV. The interface says what each one loses before you choose it: a list of addresses cannot carry windows, groups or order, and TabsPack would rather tell you that than let you find out later.</p>
+            </details>
+            <details>
+              <summary>Why does it ask for a tab groups permission?</summary>
+              <p>Because without it the browser does not expose the tab groups interface at all, so a group's name and colour cannot be read and your export would quietly contain unnamed groups. TabsPack asks for it before you export rather than after, which is the point at which the information would otherwise be lost. Refusing is fine: the tabs still come back grouped, just unnamed.</p>
+            </details>
+            <details>
+              <summary>Does it work with private or incognito windows?</summary>
+              <p>Private windows are excluded by default and TabsPack cannot see them at all unless you take two deliberate steps: allow the extension in private mode in your browser's own settings, and switch the option on inside TabsPack.</p>
+            </details>
+            <details>
+              <summary>What about pages a browser will not let an extension open?</summary>
+              <p>Browsers refuse to let extensions open their own internal pages, such as settings or the extensions list. TabsPack keeps those addresses in the file so nothing is lost, and on restore it opens a page listing the ones it was not allowed to open so you can click them yourself.</p>
+            </details>
+            <details>
+              <summary>Firefox says the add-on "appears to be corrupt". Is it broken?</summary>
+              <p>No. Release Firefox refuses to install any extension Mozilla has not signed and reports that refusal with an unhelpful sentence about corruption. Until the listing is live on addons.mozilla.org, install it through <code>about:debugging</code> and Load Temporary Add-on, which lasts until you close Firefox, or use Firefox Developer Edition with <code>xpinstall.signatures.required</code> set to false.</p>
+            </details>
+            <details>
+              <summary>What are the keyboard shortcuts?</summary>
+              <p><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd> exports every window, <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd> exports the current one, and <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> saves a snapshot. Your browser owns these and you can change them; TabsPack reads back whatever the browser actually accepted and shows it in About.</p>
+            </details>
+            <details>
+              <summary>Where are snapshots stored, and do they sync?</summary>
+              <p>In your browser's local extension storage, on the machine where you made them. They are not synced across your devices, they survive a browser restart, and they are removed if you uninstall the extension. Files you have exported are never touched.</p>
+            </details>
+            <details>
+              <summary>Does an export contain anything sensitive?</summary>
+              <p>No. A pack holds addresses, titles and structure. Never cookies, session tokens, authorization headers, form contents or page contents. An exported file cannot be used to sign in as you anywhere, and that is written into the format specification as a requirement rather than left to the implementation.</p>
+            </details>
+            <details>
+              <summary>Is the source available?</summary>
+              <p>Yes, all of it, under the MIT licence, at <a href="https://github.com/PalWorks/tabspack">github.com/PalWorks/tabspack</a>, including the build checks that enforce the privacy claims and the thirty-nine decision records explaining why it is built the way it is.</p>
+            </details>
+          </div>
+
+          <div class="note" style="margin-top: 40px">
+            <p style="margin-bottom: 0">
+              <b>Still stuck?</b> Write to <a href="mailto:support@palworks.ai">support@palworks.ai</a>, use the
+              Support pane inside TabsPack, or
+              <a href="https://github.com/PalWorks/tabspack/issues/new/choose">open an issue</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="brand" href="../">
+              <img src="../assets/img/icon-128.png" alt="" width="28" height="28" />
+              TabsPack
+            </a>
+            <p style="margin-top: 14px">
+              Export every open tab to one small file and put them back exactly as they were, in Chrome, Edge
+              or Firefox. Built and maintained by <a href="https://palworks.ai">palworks.ai</a>.
+            </p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><a href="../#features">Features</a></li>
+              <li><a href="../#how">How it works</a></li>
+              <li><a href="../#formats">Formats it reads</a></li>
+              <li><a href="../pricing/">Pricing</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/releases">Releases</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="../about/">About us</a></li>
+              <li><a href="../contact/">Contact us</a></li>
+              <li><a href="../faq/">FAQ</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/">Source on GitHub</a></li>
+              <li><a href="https://palworks.ai">palworks.ai</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="../privacy/">Privacy policy</a></li>
+              <li><a href="../terms/">Terms of use</a></li>
+              <li><a href="../cookies/">Cookie notice</a></li>
+              <li><a href="../security/">Security</a></li>
+              <li><a href="https://github.com/PalWorks/tabspack/blob/main/LICENSE">Licence</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-base">
+          <span>&copy; 2026 palworks.ai. TabsPack is free and open source under the MIT licence.</span>
+          <span>This site sets no cookies, loads nothing from anyone else, and measures nothing.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../assets/site.js" defer></script>
+  </body>
+</html>
