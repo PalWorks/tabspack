@@ -180,9 +180,17 @@ one decision to take.
 
 **Table E2: what each row's status becomes**
 
-| Row | Status after this plan | What is left |
-|---|---|---|
-| `T-717` | `done` | Nothing. Revisit only if `tabspack.dev` is bought |
-| `B-202` | `done` | The archive-and-close follow-up, as its own row |
-| `T-507` | `for a person` | Four checks, twenty minutes, checklist provided |
-| `T-509` | `next` | The maintainer's go, plus an Edge account and an AMO account |
+| Row | Status after this plan | Outcome | What is left |
+|---|---|---|---|
+| `T-717` | `done` | The `$id` points at the site and resolves in production, guarded by `ruleSchemaId`, which was tested by breaking it three ways. The Gecko id moved to `tabspack@palworks.ai` and installed under that id in a real Firefox. ADR-043 | Nothing. Revisit only if `tabspack.dev` is bought, and that is a `schemaVersion` decision |
+| `B-202` | `done` | `src/core/staleness.ts`, a filter, a report, 15 unit tests and 9 browser checks. Off by default. A pinned tab and a tab with no timestamp are never called old. ADR-044 | `B-204`, archive and close, as its own row rather than half built |
+| `T-507` | `for a person` | Re-run against the shipping tree: Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed. The three sets of totals that were in circulation differed by configuration, not by tree, and TESTING.md now says so beside the number | Four checks, twenty minutes, in [../MANUAL-CHECKS.md](../MANUAL-CHECKS.md). Every row of Table M1 says `not yet` |
+| `T-509` | `next` | Version 1.0.0, four packages built and audited, Chrome credentials verified read only, the exact upload call written down. Nothing submitted | The maintainer's go, plus an Edge account and an AMO account |
+
+**One correction to this plan's own record.** Before the matrix was re-run, the
+working assumption here was that the highest set of totals in circulation was
+stale. It was not. It was the only set produced with the documented flags, and
+the lower numbers were the headless runs. The plan said to settle it with a run
+rather than an argument about which log was newer, and that was the right call
+for the wrong reason: the logs were all correct, and each was measuring a
+different rig.
