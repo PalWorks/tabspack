@@ -6,6 +6,12 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.0.0] - 2026-09-26
+
+The first release. Everything below was built before any store had seen it, which is why the list is long and the version number jumps from an internal counter straight to 1.0.0: `0.0.x` was never published to anyone.
+
 ### Added
 
 - **A public website**, in `website/`, deployed to GitHub Pages. Ten pages: the product, pricing, FAQ, about us, contact us, and the privacy policy, terms of use, cookie notice and security page each at their own address. Rendered from one layout by `scripts/gen-site.mjs` and committed, so what is served is what is in the repository. It loads nothing from any other server. ADR-040, T-716
@@ -15,6 +21,7 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, with `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` structured data generated from each page's own front matter
 - **The mark is chosen** (T-713): the maintainer's own illustration, a fan of coloured tabs behind a browser window with a restore arrow across it. `assets/icon.png` at 512 px is the master and `scripts/gen-assets.mjs` renders it down with a sharpening pass, hardest at 16 px where the loss is. Two vector redraws were tried and both were worse than the artwork they copied. ADR-041
 - Effort and impact columns on the roadmap's open work, with problem and solution moved to the last two columns and a date raised column second, so everything you scan for stays readable without scrolling
+- **Version 1.0.0** (T-509), and the four store packages built from it and audited: the manifest sits at the archive root, no source map, no `.env`, no account id and no credential shape anywhere in the source archive. The Chrome Web Store credentials were verified with a read-only token exchange. Nothing has been submitted: a public listing under somebody's own developer account is theirs to authorise, and two of the three stores have no account yet. `docs/store/submission.md` records where it stands and the exact call.
 - **The matrix re-run against the tree as it ships** (T-507): Chrome 27 of 27, Edge 27 of 27, Firefox 26 of 28 with 2 skipped, nothing failed, on Chrome 154, Edge 154 and Firefox 156. Three sets of totals were in circulation from earlier runs and none of them matched; the reason turned out to be the configuration rather than the tree. Headless and without the flags the same code reports Chrome 22 of 25, and every one of those failures is the rig: the group rows need `--grant-groups` because a driver cannot answer a permission prompt, and the bounds row needs a window manager. `docs/TESTING.md` now says so next to the totals.
 - `docs/MANUAL-CHECKS.md`, the four checks a machine cannot do, written so the sitting is twenty minutes with one document open. It ends in a results table where every row reads `not yet`, which is the honest state of a check nobody has done.
 - **Tab age** (B-202). The export pane says how old the tabs in the scope are, in bands, and a new filter skips tabs not opened in a month, three months, six months or a year. Off by default, and two exemptions that matter more than the feature itself: a pinned tab is never stale however old it looks, and a tab the browser gives no date for is never stale either. Unknown is its own band, counted and shown, never guessed at. Age is measured before any filter runs, so turning the filter on cannot make the old tabs vanish from the line that justified it. ADR-044

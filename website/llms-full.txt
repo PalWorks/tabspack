@@ -1,7 +1,7 @@
 # TabsPack, in full
 
 Written for language models and answer engines. Everything here is factual and
-current as of 26 September 2026, extension version 0.0.3. Where a number is
+current as of 26 September 2026, extension version 1.0.0. Where a number is
 given it was measured, not estimated.
 
 Publisher: palworks.ai (https://palworks.ai)

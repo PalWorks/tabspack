@@ -100,3 +100,61 @@ the listing is public.
 3. `npm run verify` and `npm run smoke` are green.
 4. The version in `package.json` and both manifests match, and CHANGELOG.md has
    a heading for it.
+
+## Where 1.0.0 stands, 2026-09-26
+
+Everything that can be prepared without a person is prepared. What is left needs
+an account, a fee or a decision, and none of those is something an agent may do
+on somebody's behalf.
+
+### Table T5: The pre-submission gate, checked
+
+| Gate | State |
+|---|---|
+| Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13 |
+| Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, re-run 2026-09-26 against this tree. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
+| `npm run verify` | Green, including 275 unit tests and 0 addons-linter errors |
+| `npm run smoke` | Green, 107 checks |
+| Version | `1.0.0` in `package.json` and both manifests, with a CHANGELOG heading |
+| Packages | Built, in `dist/artifacts/`, and audited: manifest at the archive root, no source map, no `.env`, no 32 character account id, no credential shape anywhere in the source archive |
+
+### Table T6: What is actually blocking each store
+
+| Store | Credential | Blocking |
+|---|---|---|
+| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | The maintainer's go. A listing goes live under their own developer account and an unpublish leaves a record |
+| **Edge Add-ons** | None on this machine | An account has to be created |
+| **AMO** | None on this machine | An account has to be created |
+
+### The Chrome upload, when the word is given
+
+A new item, so it is a `POST` to the items endpoint rather than a `PUT` to one.
+Nothing here publishes: the upload creates a draft, and publishing is a second,
+separate call or a button in the dashboard.
+
+```
+ACCESS=$(curl -s https://oauth2.googleapis.com/token \
+  -d client_id=... -d client_secret=... \
+  -d refresh_token=... -d grant_type=refresh_token | jq -r .access_token)
+
+curl -s -X POST -H "Authorization: Bearer $ACCESS" \
+  -H "x-goog-api-version: 2" \
+  -T dist/artifacts/tabspack-1.0.0-chrome.zip \
+  "https://www.googleapis.com/upload/chromewebstore/v1.1/items"
+```
+
+The credentials are in `~/.secrets` and are read at the moment of use. None of
+them is in this repository and none of them should ever be.
+
+The listing text to paste into the dashboard is [`store_listing.md`](../../store_listing.md),
+which carries the name, the summary, the description, a justification for every
+permission, the privacy answers and the artwork list, in the order the dashboard
+asks for them.
+
+### After a store accepts it
+
+Table S11 of `store_listing.md` has the three things, and the one that changes
+behaviour is this: the listing URL goes into `LISTINGS` in `src/core/rating.ts`
+and into `NETWORK_ALLOWLIST` in `scripts/lint.mjs`. Until then `anyListingKnown()`
+is false and no rating ask is ever shown, which is correct: an ask with nowhere
+to go is worse than no ask.

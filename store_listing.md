@@ -5,7 +5,7 @@ for it.** Copy from here rather than writing it again in the form: the wording
 below is the wording that has been checked against what the extension actually
 does, and against [PRIVACY.md](PRIVACY.md), which the stores also read.
 
-Version 0.0.3. Prepared 2026-09-26. Covers the Chrome Web Store, Microsoft Edge
+Version 1.0.0. Prepared 2026-09-26. Covers the Chrome Web Store, Microsoft Edge
 Add-ons and addons.mozilla.org.
 
 > **The support relay is live** at `tabspack-support.palworks.ai`, so every
