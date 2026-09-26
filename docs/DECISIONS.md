@@ -836,3 +836,23 @@ The line **says nothing** when every tab is recent or when no tab has a date, be
 **Consequence.** Staleness joins scheme and pinned as an intrinsic property of a tab in the filter pipeline, at step 3 of 6, before the exclude list and before dedupe. Running before dedupe means a stale duplicate is counted once, as stale, which is the reason it went.
 
 What this deliberately does not do is close anything. Archiving the stale tabs and then closing them is the feature this one implies and the only destructive thing TabsPack would ever do. It needs its own row, its own confirmation, and a guarantee that no tab closes before its export is on disk. B-204 carries it.
+
+---
+
+## ADR-045: Store art is the real extension, photographed, in a designed frame
+
+Date 2026-09-26. Status accepted.
+
+**Context.** The listing needed five screenshots, a small promo tile and a marquee. The shots that existed were smoke test output: `example.com` addresses, a warning callout, a file called `smoke.tabspack.json`. Honest, and useless as marketing.
+
+**Options.** Draw the interface in a design tool, which looks polished and is a picture of a product that does not exist; the store's own policy is that screenshots show what the extension does. Screenshot the extension by hand, which cannot be reproduced after the next change to the interface. Photograph the built extension with a script and compose the photographs into designed frames.
+
+**Decision.** The last. `scripts/gen-store-art.mjs` runs the built extension in a real Chromium, loads a demo session, photographs the popup, the export pane, the import preview, a restore and the snapshots pane, and records where each card and each line of text sits. `assets/promo/art.html` lays those photographs into the frames, cropping to the measured boxes rather than to coordinates chosen by eye, which drifted every time a page scrolled differently.
+
+**What is staged, and it is written down in three places.** The session is a demo one, and the time each tab was last opened is fed to the export pane, because a browser sets that value itself and no API can. The page, the code and the words are the shipped ones.
+
+**No capture reaches the internet, and the first version did.** The demo uses real public addresses. Playwright's request interception was meant to answer every page locally; it does not see tabs the extension opens in new windows, and the first runs loaded the real pages, which showed up as two sites redirecting to their login pages. The guarantee is now in the browser's resolver: every hostname fails to resolve, and the run fails if any tab ends up anywhere other than where it was sent.
+
+**Two things learned on the way.** `tabs.discard` crashes any browser Playwright launches, including the installed Edge 154, while the same Edge launched directly restores 200 tabs with unloading on; docs/LIMITATIONS.md Table L3 now says so precisely, and the capture restores with unloading off. And the design device every asset shares, the fan of tab cards from the mark, is drawn the same way in the explainer, the screenshots and both tiles, so the listing reads as one piece of work.
+
+**Consequence.** Changing the interface means running `npm run store-art` and looking at the result, not redrawing anything. The captures are committed, so a headline can change with `npm run store-art:compose` and no browser.

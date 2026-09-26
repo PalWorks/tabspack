@@ -22,6 +22,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { mkdtemp, rm, writeFile, mkdir } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
+import { quietDesktop } from "./lib/no-mail-client.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const require = createRequire(import.meta.url);
@@ -80,9 +81,12 @@ function record(requirement, what, value, budget, unit) {
 const extension = path.join(root, "dist", "chrome");
 const profile = await mkdtemp(path.join(tmpdir(), "tabspack-perf-"));
 const executablePath = findBundledChromium();
+// No run may start a desktop application: scripts/lib/no-mail-client.mjs.
+const desktop = await quietDesktop();
 const context = await chromium.launchPersistentContext(profile, {
   ...(executablePath ? { executablePath } : { channel: "chrome" }),
   headless: true,
+  env: desktop.env,
   args: [
     "--disable-features=DisableLoadExtensionCommandLineSwitch",
     `--disable-extensions-except=${extension}`,

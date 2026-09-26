@@ -23,6 +23,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { createServer } from "node:http";
 import path from "node:path";
+import { quietDesktop } from "./lib/no-mail-client.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const require = createRequire(import.meta.url);
@@ -122,7 +123,10 @@ async function start(profileDir) {
       : []),
     "about:blank",
   ];
-  const child = spawn(plan.binary, args, { stdio: "ignore", detached: true });
+  // The installed Chrome and Edge are the maintainer's own browsers, so the
+  // guard matters more here, not less: scripts/lib/no-mail-client.mjs.
+  const desktop = await quietDesktop();
+  const child = spawn(plan.binary, args, { stdio: "ignore", detached: true, env: desktop.env });
 
   let browser = null;
   for (let attempt = 0; attempt < 40 && !browser; attempt += 1) {

@@ -2,7 +2,7 @@
 
 As of 1.0.0: **275 unit tests**, the number `npm test` reports, with 21
 conformance fixtures, 17 foreign format fixtures, 46 contrast pairs, 2
-performance budgets in node and 3 more measured in a browser, a **107 check**
+performance budgets in node and 3 more measured in a browser, a **109 check**
 browser run covering export, import, restore, search, snapshots, tab age, the
 settings pane, the support form and the theme, and a cross browser matrix green
 on Chrome, Edge and Firefox. The contract below is what they are for.
@@ -118,7 +118,7 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | Automated | How |
 |---|---|
 | Everything in `src/core/` | 275 unit tests against a writable fake browser that models the awkward parts of the real one |
-| The whole interface in Chromium, including import, restore, search, snapshots, the settings pane, the support form and the theme | `npm run smoke`, 107 checks against the built extension in a real Chromium |
+| The whole interface in Chromium, including import, restore, search, snapshots, the settings pane, the support form and the theme | `npm run smoke`, 109 checks against the built extension in a real Chromium |
 | That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
 | That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |

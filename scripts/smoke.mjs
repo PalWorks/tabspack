@@ -17,6 +17,7 @@ import { mkdtemp } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
+import { quietDesktop } from "./lib/no-mail-client.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const shotsArg = process.argv.find((a) => a.startsWith("--shots="));
@@ -125,31 +126,15 @@ async function settle(page) {
   );
 }
 
-/**
- * A profile that will not hand `mailto:` to the operating system.
- *
- * The support fallback test is supposed to end in a mail client, and on a real
- * desktop that is exactly what it did: every smoke run opened the maintainer's
- * mail app. A test that launches a GUI application is a bad test, and this one
- * was doing it several times an hour.
- *
- * `protocol_handler.excluded_schemes` is Chromium's own "never hand this scheme
- * to an external application" list. With `mailto` on it the browser refuses the
- * navigation, which is precisely the case the fallback exists for: the
- * extension catches the refusal and puts the message on the clipboard instead.
- * So the test still covers the path, and covers the harder half of it.
+/*
+ * No test run may start a desktop application. The mail fallback test used to
+ * open the maintainer's mail client on every run, and the first fix, a Chromium
+ * preference, was measured not to stop it. See scripts/lib/no-mail-client.mjs
+ * for what does, and why.
  */
-async function quietProfile(dir) {
-  await mkdir(path.join(dir, "Default"), { recursive: true });
-  await writeFile(
-    path.join(dir, "Default", "Preferences"),
-    JSON.stringify({ protocol_handler: { excluded_schemes: { mailto: true } } }),
-    "utf8",
-  );
-}
+const desktop = await quietDesktop();
 
 const profile = await mkdtemp(path.join(tmpdir(), "tabspack-profile-"));
-await quietProfile(profile);
 await rm(shots, { recursive: true, force: true });
 await mkdir(shots, { recursive: true });
 
@@ -164,6 +149,7 @@ const executablePath = findBundledChromium();
 const context = await chromium.launchPersistentContext(profile, {
   ...(executablePath ? { executablePath } : { channel: "chrome" }),
   headless: !headed,
+  env: desktop.env,
   args: [
     // Recent Chrome ignores --load-extension unless this hardening feature is
     // turned off. Without it the browser starts with no extension at all.
@@ -1072,10 +1058,10 @@ try {
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
   const profile2 = await mkdtemp(path.join(tmpdir(), "tabspack-relay-"));
-  await quietProfile(profile2);
   const context2 = await chromium.launchPersistentContext(profile2, {
     ...(executablePath ? { executablePath } : { channel: "chrome" }),
     headless: !headed,
+    env: desktop.env,
     args: [
       "--disable-features=DisableLoadExtensionCommandLineSwitch",
       `--disable-extensions-except=${granted}`,
@@ -1139,6 +1125,19 @@ try {
     check(
       "and the message is still there to send",
       (await page.inputValue("#support-message")) === "A second report, for the failure path.",
+    );
+    // The handoff reached the desktop boundary, and stopped there. Before the
+    // stand-ins, this is the line that opened the maintainer's mail client.
+    const handed = await desktop.handedOff();
+    const mail = handed.filter((line) => line.includes("mailto:"));
+    check(
+      "the fallback hands a mailto to the desktop, addressed to support",
+      mail.length >= 1 && mail.every((line) => line.includes("mailto:support%40palworks.ai") || line.includes("mailto:support@palworks.ai")),
+      mail[0]?.slice(0, 80) ?? "nothing handed off",
+    );
+    check(
+      "and carries the message the user wrote",
+      mail.some((line) => line.includes(encodeURIComponent("A second report, for the failure path."))),
     );
   } finally {
     await context2.close();

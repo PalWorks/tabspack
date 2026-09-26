@@ -54,8 +54,10 @@ security policy pins `script-src` to `'self'`.
 
 - Single purpose: exporting the tabs you have open to a file, and restoring them from one.
 - Upload the contents of `dist/chrome`, zipped, not the folder itself.
-- Assets: 128 px icon, at least one 1280 by 800 screenshot, the 440 by 280 small
-  promo tile. All in `assets/store/`, screenshots from `npm run smoke`.
+- Assets: the 128 px store icon, five 1280 by 800 screenshots, the 440 by 280
+  small promo tile and the 1400 by 560 marquee. All in `assets/store/`, made by
+  `npm run store-art`. The upload order and what each shows are in
+  `store_listing.md` Table S10.
 
 ## Edge Add-ons
 

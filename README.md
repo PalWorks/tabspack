@@ -137,7 +137,8 @@ npm run verify         # typecheck, lint, schema check, tests, budgets, build
 | `npm run schema:check` | Fails if the generated schema no longer matches the types |
 | `npm run perf` | The performance budgets in `test/tools/bench.ts` |
 | `npm run smoke` | Loads the build into a real Chromium and drives both surfaces. Local only |
-| `npm run fixtures`, `npm run assets` | Regenerate fixtures and the icon and store artwork |
+| `npm run fixtures`, `npm run assets` | Regenerate fixtures, the extension icons and Edge's store logo |
+| `npm run store-art` | Photograph the built extension and compose the Chrome Web Store screenshots, tiles and store icon. `npm run store-art:compose` recomposes from the committed captures without a browser |
 | `npm run pack` | Every store archive into `dist/artifacts/`: Chrome, Edge, the Firefox `.xpi` and the source zip AMO asks for |
 | `npm run icons:compare` | Renders every candidate in `assets/candidates/` at 16, 32, 48 and 128 in both themes. A mark is chosen at 16 px in a toolbar, not at 128 on a slide |
 
@@ -189,7 +190,7 @@ Three properties get the test budget: a file round trips without loss, a malform
 
 ```bash
 npm run verify        # typecheck, lint, schema, site, 275 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 107 checks against the built extension in a real Chromium
+npm run smoke         # 109 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
 npm run matrix:firefox -- --headed --grant-groups

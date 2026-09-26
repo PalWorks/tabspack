@@ -25,6 +25,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { files as walkFiles } from "./lib/walk.mjs";
+import { quietDesktop } from "./lib/no-mail-client.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const require = createRequire(import.meta.url);
@@ -62,7 +63,10 @@ const WIDTHS = [320, 390, 768, 1024, 1440];
 const pages = (await walkFiles("website/**/*.html", root)).filter((p) => !p.endsWith("404.html")).sort();
 const problems = [];
 
-const browser = await chromium.launch({ executablePath: bundled() ?? undefined });
+// The site has mailto links. Nothing here clicks them, and nothing here may
+// ever be able to open a mail client if something does: no-mail-client.mjs.
+const desktop = await quietDesktop();
+const browser = await chromium.launch({ executablePath: bundled() ?? undefined, env: desktop.env });
 try {
   for (const width of WIDTHS) {
     for (const rel of pages) {

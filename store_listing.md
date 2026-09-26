@@ -11,10 +11,14 @@ Add-ons and addons.mozilla.org.
 > **The support relay is live** at `tabspack-support.palworks.ai`, so every
 > answer below about the network is describing something that actually runs.
 >
-> **Before you paste anything**, three fields do not exist yet and must be filled
-> in first: the three store listing URLs. They also have to go into `LISTINGS`
-> in `src/core/rating.ts` and into `NETWORK_ALLOWLIST` in `scripts/lint.mjs`,
-> which is what turns the rating ask on. See Table S11.
+> **In the Chrome Web Store dashboard right now?** Table S14, at the end, walks
+> every field in the order the dashboard presents it, with the answer and where
+> it comes from. The artwork is in Table S10.
+>
+> **After a store accepts it**, its listing URL goes into `LISTINGS` in
+> `src/core/rating.ts` and into `NETWORK_ALLOWLIST` in `scripts/lint.mjs`, which
+> is what turns the rating ask on. A listing URL cannot exist before the listing
+> does, so this is the one step that has to come after. See Table S11.
 
 ---
 
@@ -153,122 +157,96 @@ rank.
 
 ## Detailed description
 
-Paste the block between the rules exactly. It is about 4,750 characters,
-against a 16,000 limit. Short is deliberate: the fields below the fold are read
-by almost nobody, and a long listing dilutes the phrases that matter.
+Paste the block between the rules exactly. It is **3,938 characters** against a 16,000 limit,
+counted by the script that wrote this section. Short is deliberate: a long listing
+dilutes the phrases that matter, and the fields below the fold are read by almost nobody.
 
-The first paragraph is written to be the AI Overview snippet. It answers "what
-is TabsPack" in one sentence, then "what problem does it solve" in the next.
+### How it is formatted, and why
+
+The Chrome Web Store description is **plain text**. There is no bold, no heading
+and no link; line breaks and Unicode are the only formatting there is. So:
+
+| Rule | Why |
+|---|---|
+| One emoji per section heading, none inside sentences | In a field with no bold, an emoji is the only way a heading can stand out when somebody scrolls. Scattered through prose it reads as spam, and store search ignores emoji entirely |
+| No emoji in the first two sentences | Those are the search snippet and the sentence an answer engine quotes. They stay plain and carry the keywords |
+| No emoji in the name or the summary | Store policies discourage special characters there, and they add nothing to search |
+| Single codepoint emoji only: 📦 🔁 💤 ⏳ 🔓 📥 🔒 📄 ⚡ 🎁 | A composite emoji such as ⌨️ or 🕰️ needs an invisible variation character and falls back to a plain text glyph on some systems |
+| ✓ for capabilities, • for facts | Both render everywhere, and the difference tells a scanning eye which list is a promise and which is a property |
+| Headings in capitals | The only emphasis plain text has, used once per section |
+| Links as plain text, no emoji | They are not clickable in the listing either way, and the section above spent the emphasis budget |
+
+The same text works unchanged for Edge Add-ons, which is also plain text, and for
+AMO, which renders it as written.
 
 ---
 
 Close your browser without losing your place.
 
-TabsPack exports every tab you have open into a single small file, and puts
-them back exactly as they were: the same windows, the same order, the same
-pinned tabs, the same groups. In the same browser, or a different one.
+TabsPack saves every tab you have open into one small file and puts them back exactly as they were: the same windows, the same order, the same pinned tabs, the same tab groups. In the same browser, or a different one.
 
-If you keep ninety tabs open because each one is the only record that you meant
-to come back to it, this is the thing that lets you close them.
+If you keep ninety tabs open because each one is a note to your future self, this is what lets you close them.
 
-WHAT IT DOES
+📦 WHAT IT DOES
 
-• Export all your open tabs to one .tabspack.json file, or just the current
-  window, or just the tabs you selected.
-• Restore that file in Chrome, Microsoft Edge or Firefox and get your session
-  back, not just a list of links.
-• Move a working session from one browser to another. Chrome to Firefox,
-  Firefox to Edge, work laptop to home machine.
-• Keep named snapshots inside the extension, for when you do not want to think
-  about where a file goes.
-• Export a plain list of addresses, flat JSON or CSV when that is what the next
-  tool needs.
+✓ Export all your open tabs to one .tabspack.json file, or just this window, or just the tabs you selected
+✓ Restore the file in Chrome, Microsoft Edge or Firefox and get your session back, not a list of links
+✓ Move a working session between browsers: Chrome to Firefox, Firefox to Edge, work laptop to home machine
+✓ Keep named snapshots inside the extension for the days you do not want to think about files
+✓ Export a plain list of addresses, flat JSON or CSV when another tool needs it
 
-EVERYTHING COMES BACK, NOT JUST THE ADDRESSES
+🔁 EVERYTHING COMES BACK, NOT JUST THE ADDRESSES
 
-Most exporters give you a list of links. A list of links is not a session.
+Most exporters hand you a list of links. A list of links is not a session.
 
-TabsPack restores your windows and their size and position, every tab in its
-original order, which tabs were pinned, which tab was active in each window,
-and your tab groups with their names, colours and collapsed state.
+TabsPack restores your windows with their size and position, every tab in its original order, which tabs were pinned, which tab was active in each window, and your tab groups with their names, colours and collapsed state.
 
-TWO HUNDRED TABS, AND YOUR COMPUTER DOES NOT NOTICE
+💤 TWO HUNDRED TABS, AND YOUR COMPUTER DOES NOT NOTICE
 
-Restored tabs open asleep. They appear in the tab strip with their title and
-address, and they load nothing until you click one.
+Restored tabs open asleep. They sit in the tab strip with their title and address, and load nothing until you click one.
 
-A restore of 200 real pages takes about nine seconds and leaves 199 of them
-unloaded. That number was measured in a real browser, not estimated.
+A restore of 200 real pages takes about nine seconds and leaves 199 of them unloaded. That was measured in a real browser, not estimated.
 
-IT UNWRAPS SUSPENDED TABS
+⏳ SEE WHICH TABS DIED MONTHS AGO
 
-Tab suspender extensions park your tab on their own page and hide the real
-address inside it. No other browser can reopen that, and if the suspender is
-ever removed from the store, the tab is gone for good. It has happened to a lot
-of people.
+TabsPack groups your open tabs by when you last looked at them, and can leave anything untouched for a month, three months, six months or a year out of the export, so you can archive it and close it with a clear conscience.
 
-TabsPack reads the real address back out, both when exporting and when
-importing, and tells you how many it recovered.
+It never guesses. A pinned tab is never called old, and a tab your browser gives no date for is counted separately and never dropped.
 
-IT READS WHAT YOU ALREADY HAVE
+🔓 IT UNWRAPS SUSPENDED TABS
 
-Import from OneTab, Session Buddy (JSON and CSV), Tab Session Manager, browser
-bookmarks in Netscape HTML, Markdown link lists, flat JSON, and plain lists of
-URLs. TabsPack works out what a file is by reading it, not by its name, and
-shows you what it found before it opens a single tab.
+Tab suspender extensions park your tab on their own page and hide the real address inside it. No other browser can reopen that, and if the suspender ever leaves the store, the tab goes with it.
 
-IT SHOWS YOU WHICH TABS DIED MONTHS AGO
+TabsPack reads the real address back out, on export and on import, and tells you how many it recovered.
 
-Most people keep hundreds of tabs because they cannot tell which ones still
-matter. TabsPack groups your open tabs by when you last looked at them, and can
-leave the ones you have not touched in a month, three months, six months or a
-year out of the export, so you can archive them and close them with a clear
-conscience.
+📥 IT READS WHAT YOU ALREADY HAVE
 
-It never guesses. A pinned tab is never called old, however long ago you last
-clicked it, and a tab your browser gives no date for is counted separately and
-never treated as stale.
+Import from OneTab, Session Buddy (JSON and CSV), Tab Session Manager, browser bookmark files, Markdown link lists, flat JSON and plain lists of URLs. TabsPack works out what a file is by reading it, not by its name, and shows you what it found before a single tab opens.
 
-YOUR TABS NEVER LEAVE YOUR DEVICE
+🔒 YOUR TABS NEVER LEAVE YOUR DEVICE
 
 This is not a policy. It is a property of the build.
 
-TabsPack asks for no host permission when you install it, so out of the box it
-cannot reach any address on the internet. There is no account, no sync, no
-analytics, no telemetry, no crash reporting and no advertising. No content
-script is injected into any page, so TabsPack cannot read a page even if it
-wanted to.
+• No host permission at install, so out of the box TabsPack cannot reach any website
+• No account, no sync, no analytics, no telemetry, no advertising
+• No content script, so it cannot read a page even if it wanted to
+• An export holds addresses, titles and structure. Never cookies, passwords or form data
 
-An exported file holds addresses, titles and structure. Never cookies, never
-session tokens, never form data. A TabsPack file cannot be used to sign in as
-you anywhere, and that is written into the file format specification as a
-requirement.
+There is exactly one network request TabsPack can make, and you make it: pressing Send in the Support pane. Your browser asks your permission first, and if you decline, the message goes to your own email app instead.
 
-There is exactly one network request TabsPack can make, and you make it: if you
-write a message in the Support pane and press Send, it is sent to us. Your
-browser asks your permission first, and declining is fine, in which case the
-message goes to your own email app instead.
+📄 AN OPEN FORMAT, SO IT DOES NOT MATTER IF WE DISAPPEAR
 
-AN OPEN FORMAT, SO IT DOES NOT MATTER IF WE DISAPPEAR
+A .tabspack.json file is ordinary JSON against a published schema. Open it in a text editor, compare two of them, keep one in a repository. The whole source is published under the MIT licence.
 
-A .tabspack.json file is ordinary JSON against a published schema. Open it in a
-text editor. Diff two of them. Keep one in a repository.
+⚡ KEYBOARD SHORTCUTS
 
-Your session should not be locked inside an extension that might be delisted
-next year. The whole source is published under the MIT licence.
+Alt+Shift+E exports every window. Alt+Shift+D exports the current one. Alt+Shift+S saves a snapshot. You can change all three in your browser.
 
-KEYBOARD
+🎁 FREE
 
-Alt+Shift+E exports every window. Alt+Shift+D exports the current one.
-Alt+Shift+S saves a snapshot. You can change all three in your browser.
+No paid tier, no trial, no account, no advertising, no data collection.
 
-FREE
-
-No paid tier, no trial, no account, no advertising, no data collection. The
-source, the file format specification and the reasoning behind every design
-decision are all public.
-
-Built and maintained by palworks.ai.
+Built and maintained by palworks.ai
 
 Website: https://palworks.github.io/tabspack/
 Source: https://github.com/PalWorks/tabspack
@@ -351,26 +329,42 @@ three are true.
 
 ### Table S10: Artwork
 
-| Asset | Size | Where it is | Store |
+Every file is at the exact size the dashboard asks for, checked by opening each
+one rather than trusting the file name. Regenerate them all with
+`npm run store-art`, or only the compositions with `npm run store-art:compose`.
+
+| Asset | Size | File | Store |
 |---|---|---|---|
-| Icon | 128×128 PNG | `assets/icons/icon-128.png` | All three |
-| Small promo tile | 440×280 | `assets/store/promo-small-440x280.png` | Chrome |
-| Marquee promo tile | 1400×560 | `assets/store/promo-marquee-1400x560.png` | Chrome, optional but it is what gets you featured |
+| Store icon | 128×128, transparent, the mark at 96 px inside 16 px of padding | `assets/store/store-icon-128.png` | Chrome |
+| Screenshot 1 | 1280×800, 24-bit, no alpha | `assets/store/screenshot-1-export-in-one-click-1280x800.png` | Chrome, Edge |
+| Screenshot 2 | 1280×800 | `assets/store/screenshot-2-everything-comes-back-1280x800.png` | Chrome, Edge |
+| Screenshot 3 | 1280×800 | `assets/store/screenshot-3-any-browser-1280x800.png` | Chrome, Edge |
+| Screenshot 4 | 1280×800 | `assets/store/screenshot-4-tabs-you-forgot-1280x800.png` | Chrome, Edge |
+| Screenshot 5 | 1280×800 | `assets/store/screenshot-5-never-leaves-your-device-1280x800.png` | Chrome, Edge |
+| Small promo tile | 440×280 | `assets/store/promo-small-440x280.png` | Chrome, Edge |
+| Marquee promo tile | 1400×560 | `assets/store/promo-marquee-1400x560.png` | Chrome. Optional, and it is what a featured placement uses |
 | Logo | 300×300 | `assets/store/logo-300x300.png` | Edge |
-| Screenshots | 1280×800, up to 5 | `.tmp/shots/`, written by `npm run smoke` | All three |
-| Social card | 1200×630 | `website/assets/img/og.png` | Not a store asset; used when the site is shared |
+| Explainer animation | 16 seconds, HTML | `assets/promo/explainer.html` | None directly. The store takes a YouTube link for a promo video; this can be recorded to video from the same timeline if you want one |
 
-**Screenshot order matters more than the images do.** Store search ranks on the
-first one and most people never reach the third.
+**Upload the screenshots in this order.** The first one is the thumbnail in
+search results and most people never reach the third, so the order is the
+argument, from the widest benefit to the narrowest.
 
-1. `manager-light.png` — the export screen. Shows the product doing its job.
-2. `manager-import.png` — the import preview. Shows that you see what will open before it opens.
-3. `manager-snapshots.png` — snapshots.
-4. `settings-light.png` — settings, which demonstrates there is no account.
-5. `manager-dark.png` — dark mode, because people look for it.
+| # | Headline on the image | What it shows, all real captures of the extension |
+|---|---|---|
+| 1 | Every tab, one file. | The popup over a crowded browser, "Export 30 tabs" |
+| 2 | Everything comes back. | The import preview: windows, pinned tabs, and named, coloured groups |
+| 3 | Take it to any browser. | The file, three browsers, and the restore's own report |
+| 4 | Find the tabs you forgot. | The export pane with the age line ringed and the age filter on |
+| 5 | Your tabs never leave this device. | The snapshots pane, with Free, Open source and No account |
 
-Add a one-line caption to each. A screenshot with no caption is a screenshot
-nobody reads.
+**There is no caption field.** The Chrome Web Store shows screenshots without
+text of their own, which is why each headline is part of the image.
+
+**What in them is staged, said plainly.** The session is a demo one, from
+`assets/promo/demo-session.mjs`, and the time each tab was last opened is staged
+because no API can set it. Everything else is the shipped extension photographed
+in a real browser. No capture run reaches the internet.
 
 ---
 
@@ -382,7 +376,7 @@ These are easy to forget and each one is a silent failure if it is missed.
 |---|---|---|
 | 1 | Put the listing URL into `LISTINGS` in `src/core/rating.ts` | Until a store's URL is there, `reviewUrl()` returns null and **the rating ask never appears**. That is deliberate: an ask that leads to a page that does not exist is worse than no ask |
 | 2 | Add the same URL to `NETWORK_ALLOWLIST` in `scripts/lint.mjs` | The linter fails the build on any remote URL that is not on the list. This is the step that makes adding one a conscious act |
-| 3 | Put all three URLs in `README.md` and on the website's home page | The install buttons currently point at GitHub releases and say the listings are in review |
+| 3 | Put all three URLs in `README.md` and on the website's home page | The install buttons currently point at GitHub releases, and the home page says the extension is not in the stores yet. Both need the real link the day it exists |
 
 ---
 
@@ -390,7 +384,7 @@ These are easy to forget and each one is a silent failure if it is missed.
 
 | Store | Note |
 |---|---|
-| **Chrome Web Store** | Upload the **contents** of `dist/chrome`, zipped, not the folder itself. First review of a new extension is typically a few days and is slower when any permission justification is thin, which is what Table S6 is for. |
+| **Chrome Web Store** | Upload `dist/artifacts/tabspack-1.0.0-chrome.zip`, written by `npm run pack` and audited: the manifest is at the archive root, which is the mistake that gets a hand-made zip rejected. The first review of a new extension is often a few days, and slower when a permission justification is thin, which is what Table S6 is for. |
 | **Edge Add-ons** | Takes the same package as Chrome. Note in the submission notes that the extension requests no host permission at install and makes no network request unless the user presses Send in the Support pane. |
 | **Firefox AMO** | `npm run pack` writes every archive to `dist/artifacts/`, including the `.xpi` and the source zip. Upload those rather than zipping a folder by hand. AMO requires the source because the submitted code is produced by a build step: submit the repository archive and state the build command, which is `npm ci && npm run build`. `npm run lint:amo` must be clean of errors first; the `tabGroups` and `permissions.request` warnings about Firefox 115 are expected and are guarded by capability checks at runtime. |
 
@@ -412,3 +406,47 @@ listing quotable, and all five are done above.
 The website carries the structured data that the store listing cannot: see
 `scripts/site/pages/index.html` for the `SoftwareApplication` and `FAQPage`
 graphs, and `scripts/site/llms-full.txt` for the version written for models.
+
+---
+
+## Table S14: The Chrome Web Store dashboard, field by field
+
+Everything the dashboard asks for, in the order its tabs present it, with where
+the answer is. **Title** and **Summary** are not typed in: they come from the
+manifest inside the package, which is why the package is uploaded first.
+
+The dashboard changes more often than this file. Where it asks for something not
+listed here, that is a question to answer and record, not a sentence to improvise.
+
+| Dashboard tab | Field | What to enter | Source |
+|---|---|---|---|
+| **Package** | Upload new package | `dist/artifacts/tabspack-1.0.0-chrome.zip` | `npm run pack` |
+| **Store listing** | Title | Read from the manifest: `TabsPack: Cross Browser Tab Export & Restore` | Table S3 |
+| | Summary | Read from the manifest, 129 characters | Table S4 |
+| | Description | The block in "Detailed description", pasted exactly | Above |
+| | Category | Workflow & Planning. Check it is still offered; the store has renamed categories before | Table S5 |
+| | Language | English | Table S5 |
+| | Store icon | `assets/store/store-icon-128.png` | Table S10 |
+| | Global promo video | Optional, a YouTube link. None yet | Table S10 |
+| | Screenshots | The five, in the order in Table S10 | Table S10 |
+| | Small promo tile | `assets/store/promo-small-440x280.png` | Table S10 |
+| | Marquee promo tile | `assets/store/promo-marquee-1400x560.png` | Table S10 |
+| | Official URL | Leave empty unless the site is verified in Google Search Console under your account. It is an unverified claim otherwise | Table S9 |
+| | Homepage URL | `https://palworks.github.io/tabspack/` | Table S9 |
+| | Support URL | `https://palworks.github.io/tabspack/contact/` | Table S9 |
+| | Mature content | No | Table S9 |
+| **Privacy practices** | Single purpose | "Exporting the tabs you have open to a file, and restoring them from one." | `docs/store/submission.md` |
+| | Permission justification, one per permission | `tabs`, `storage`, `downloads`, the optional `tabGroups`, and the optional support host, word for word | Table S6 |
+| | Are you using remote code? | No. Everything runs from the package, and the content security policy pins scripts to it | Table S8 |
+| | Data usage | The answers in Table S8. The one that needs care: a support message the user chooses to send is "personal communications", and an optional reply address is "personally identifiable information". Both are sent only when the user presses Send, and only to answer them | Table S8 |
+| | The three certifications | Tick all three: not sold, not used for anything unrelated to the single purpose, not used for creditworthiness or lending | Table S8 |
+| | Privacy policy URL | `https://palworks.github.io/tabspack/privacy/` | Table S9 |
+| **Distribution** | Visibility | Public. Choose Unlisted for a soft launch where only people with the link can install it | Table S9 |
+| | Regions | All regions | Table S9 |
+| | Pricing | Free. The store has no payments of its own any more | Table S9 |
+| **Account** | Trader or non-trader declaration | Required for listings shown in the EU. A trader's contact details are shown publicly on the listing. Which one applies is a question about how palworks.ai operates, and it is yours to answer rather than mine | Not in this repository |
+| | Verified contact email | Must be verified before the first submission is accepted | Your developer account |
+
+**Before pressing Submit for review:** preview the listing from the dashboard and
+read it once as a stranger would. The first screenshot and the summary are what
+most people will ever see of it.

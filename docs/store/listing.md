@@ -7,8 +7,10 @@
 # Listing text
 
 Identical across Chrome Web Store, Edge Add-ons and AMO, apart from the length
-limits each one enforces. Sentence case, no exclamation marks, no emoji, and no
-claim the product cannot keep.
+limits each one enforces. Sentence case, no exclamation marks, and no claim the product cannot keep.
+Emoji are used in one place only, one per section heading of the store
+description, for the reasons in `store_listing.md` under "How it is formatted,
+and why".
 
 ## Name
 

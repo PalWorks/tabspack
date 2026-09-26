@@ -1,0 +1,57 @@
+{
+  "import": {
+    "meta": "research.tabspack.json · 3 windows · 28 tabs · 4 groups · 7.5 KB",
+    "card": {
+      "x": 280,
+      "y": 69.890625,
+      "width": 864,
+      "height": 1005.765625,
+      "scrollY": 0
+    }
+  },
+  "restore": {
+    "report": "Restored 28 tabs3 windows · 4 groups",
+    "text": {
+      "width": 134.65625,
+      "height": 38.234375,
+      "full": 830
+    }
+  },
+  "network": "no tab left its demo address",
+  "popup": {
+    "summary": "3 windows · 30 tabs · 4 groups",
+    "button": "Export 30 tabs"
+  },
+  "export": {
+    "age": "Last opened: 5 today · 7 this week · 7 this month · 4 within 3 months · 6 over 3 months ago",
+    "summary": "3 windows · 23 tabs · 4 groups",
+    "ageBox": {
+      "x": 297,
+      "y": 484.75,
+      "width": 830,
+      "height": 17.390625
+    },
+    "ageText": {
+      "x": 297,
+      "y": 486.75,
+      "width": 480.09375,
+      "height": 13
+    },
+    "card": {
+      "x": 280,
+      "y": 44.890625,
+      "width": 864,
+      "height": 486.25,
+      "scrollY": 25
+    }
+  },
+  "snapshots": {
+    "card": {
+      "x": 280,
+      "y": 69.890625,
+      "width": 864,
+      "height": 475.640625,
+      "scrollY": 0
+    }
+  }
+}

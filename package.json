@@ -18,6 +18,8 @@
     "schema:check": "node scripts/gen-schema.mjs --check",
     "fixtures": "node scripts/gen-fixtures.mjs",
     "assets": "node scripts/gen-assets.mjs",
+    "store-art": "node scripts/gen-store-art.mjs",
+    "store-art:compose": "node scripts/gen-store-art.mjs --compose",
     "site": "node scripts/gen-site.mjs",
     "site:check": "node scripts/gen-site.mjs --check && node scripts/check-site.mjs",
     "og": "node scripts/gen-og.mjs",

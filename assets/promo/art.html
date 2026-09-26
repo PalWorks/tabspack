@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>TabsPack Store Art</title>
+<!--
+  The store artwork, as templates. scripts/gen-store-art.mjs opens this page once
+  per asset with a query string, ?slide=1 to ?slide=5, ?tile=marquee,
+  ?tile=small or ?tile=icon, at the asset's exact pixel size, and photographs it.
+
+  The interface inside every screenshot is a capture of the real extension, from
+  ./captures/. Nothing here draws a fake version of the product. What is drawn
+  here is the frame around it: the field, the words, the browser chrome, and the
+  fan of tab cards from the mark, which is the one device every asset shares so
+  the five screenshots read as a set in the store's carousel.
+-->
+<style>
+@font-face { font-family: "Bricolage"; src: url("fonts/bricolage-grotesque.woff2") format("woff2"); font-weight: 200 800; font-display: block; }
+@font-face { font-family: "Figtree"; src: url("fonts/figtree.woff2") format("woff2"); font-weight: 300 900; font-display: block; }
+@font-face { font-family: "JBMono"; src: url("fonts/jetbrains-mono.woff2") format("woff2"); font-weight: 100 800; font-display: block; }
+
+:root {
+  --signal: #2563ff;
+  --violet: #5b3df5;
+  --paper: #ffffff;
+  --ink: #0f1b3d;
+  --ink-2: #4a5578;
+  --mist: #e8edff;
+  --amber: #fbbf24;
+  --tangerine: #fb923c;
+  --leaf: #34d399;
+  --grape: #a78bfa;
+  --display: "Bricolage", "Figtree", system-ui, sans-serif;
+  --body: "Figtree", system-ui, sans-serif;
+  --mono: "JBMono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body { font-family: var(--body); color: var(--paper); background: transparent; }
+
+.field {
+  position: absolute; inset: 0; overflow: hidden;
+  background:
+    radial-gradient(900px 620px at 82% 8%, rgb(255 255 255 / 16%), transparent 60%),
+    radial-gradient(760px 520px at 4% 104%, rgb(20 10 90 / 38%), transparent 70%),
+    linear-gradient(135deg, var(--signal) 0%, #3b4cf8 55%, var(--violet) 100%);
+}
+
+/* Copy ---------------------------------------------------------------- */
+.copy { position: absolute; left: 72px; top: 0; bottom: 0; width: 400px; display: flex; flex-direction: column; justify-content: center; }
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; }
+.brand img { width: 40px; height: 40px; }
+.brand span { font: 700 22px/1 var(--body); letter-spacing: -0.01em; color: rgb(255 255 255 / 92%); }
+h1 {
+  font-family: var(--display); font-weight: 760; font-variation-settings: "opsz" 96;
+  font-size: 60px; line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 22px;
+}
+.sub { font-size: 22px; line-height: 1.42; color: rgb(255 255 255 / 84%); max-width: 400px; text-wrap: pretty; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+.chips span {
+  font: 650 16px/1 var(--body); padding: 12px 16px; border-radius: 999px;
+  background: rgb(255 255 255 / 14%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 24%);
+}
+
+/* The browser frame around a capture ---------------------------------- */
+.device {
+  position: absolute; background: var(--paper); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 50px 100px -34px rgb(8 10 60 / 60%), 0 3px 10px rgb(8 10 60 / 18%);
+}
+.device .bar { height: 44px; background: var(--mist); display: flex; align-items: center; padding: 0 16px; gap: 7px; }
+.device .bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.device .bar i:nth-child(1) { background: #ff5f57; } .device .bar i:nth-child(2) { background: #febc2e; } .device .bar i:nth-child(3) { background: #28c840; }
+.device .bar .title {
+  margin-left: 14px; height: 30px; padding: 0 14px 0 10px; border-radius: 9px 9px 0 0; align-self: flex-end;
+  background: var(--paper); display: flex; align-items: center; gap: 8px;
+  font: 600 13px/1 var(--body); color: var(--ink);
+}
+.device .bar .title img { width: 16px; height: 16px; }
+.shot { position: relative; overflow: hidden; }
+.shot img { position: absolute; left: 0; top: 0; image-rendering: auto; }
+/* A capture cut short fades out rather than ending mid-row. */
+.shot.fade { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 80px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 80px), transparent); }
+h1.long { font-size: 54px; }
+
+/* The fan, from the mark. Behind every frame. */
+.fan { position: absolute; }
+.fan b { position: absolute; width: 180px; height: 120px; border-radius: 16px; transform-origin: 50% 100%; box-shadow: 0 16px 30px -18px rgb(8 10 60 / 60%); }
+
+/* Pieces reused from the explainer ------------------------------------ */
+.file {
+  position: absolute; width: 330px; height: 204px; border-radius: 22px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 44px 80px -26px rgb(8 10 60 / 62%), 0 2px 8px rgb(8 10 60 / 20%);
+}
+.file .tabs b { position: absolute; top: -20px; width: 104px; height: 38px; border-radius: 11px 11px 4px 4px; }
+.file .glyph { position: absolute; left: 24px; top: 32px; }
+.file .name { position: absolute; left: 88px; top: 40px; font: 600 17px/1.2 var(--mono); letter-spacing: -0.01em; }
+.file .meta { position: absolute; left: 88px; top: 67px; font: 500 14.5px/1.2 var(--body); color: var(--ink-2); }
+.file .json { position: absolute; left: 24px; top: 112px; font: 400 13px/1.62 var(--mono); color: #7a86ad; white-space: pre; }
+.file .json em { font-style: normal; color: var(--signal); }
+.mini { position: absolute; width: 200px; height: 136px; border-radius: 14px; background: var(--paper); box-shadow: 0 26px 50px -22px rgb(8 10 60 / 60%); overflow: hidden; }
+.mini .mb { height: 28px; background: var(--mist); display: flex; gap: 6px; align-items: center; padding-left: 12px; }
+.mini .mb i { width: 8px; height: 8px; border-radius: 50%; display: block; }
+.mini .mb i:nth-child(1) { background: #ff5f57; } .mini .mb i:nth-child(2) { background: #febc2e; } .mini .mb i:nth-child(3) { background: #28c840; }
+.mini .strip { display: flex; gap: 4px; padding: 10px 12px 0; }
+.mini .strip s { display: block; height: 16px; flex: 1; border-radius: 5px 5px 2px 2px; text-decoration: none; }
+.mini .ln { height: 8px; border-radius: 4px; background: #edf0f8; margin: 10px 14px 0; }
+.label { position: absolute; width: 200px; text-align: center; font: 650 20px/1 var(--body); }
+.toast {
+  position: absolute; background: var(--paper); border-radius: 16px; padding: 14px 22px 14px 18px;
+  box-shadow: 0 30px 60px -24px rgb(8 10 60 / 60%);
+}
+.ring { position: absolute; border-radius: 12px; box-shadow: 0 0 0 3px var(--amber), 0 0 0 10px rgb(251 191 36 / 28%); }
+.flag {
+  position: absolute; font: 700 14px/1 var(--body); color: var(--ink); background: var(--amber);
+  padding: 9px 12px; border-radius: 10px; box-shadow: 0 12px 24px -12px rgb(8 10 60 / 60%);
+}
+
+/* Tiles --------------------------------------------------------------- */
+.tile-word { font-family: var(--display); font-weight: 800; font-variation-settings: "opsz" 96; letter-spacing: -0.035em; line-height: 1; }
+</style>
+</head>
+<body>
+<div class="field" id="root"></div>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const root = document.getElementById("root");
+  const META = window.__META__ || {};
+  const COLORS = ["#fbbf24", "#fb923c", "#34d399", "#a78bfa", "#38bdf8"];
+
+  const el = (tag, attrs = {}, html = "") => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "style") Object.assign(n.style, v); else n.setAttribute(k, v);
+    }
+    if (html) n.innerHTML = html;
+    return n;
+  };
+  const px = (n) => `${n}px`;
+  /* A tab card: a coloured band on a light page with two lines of text, which
+     is how the explainer draws a tab once it leaves the strip. */
+  const page = (c) => `linear-gradient(rgb(15 27 61 / 13%), rgb(15 27 61 / 13%)) 18px 50px / 56% 9px no-repeat, linear-gradient(rgb(15 27 61 / 8%), rgb(15 27 61 / 8%)) 18px 68px / 36% 9px no-repeat, linear-gradient(${c} 0 30px, #f4f6ff 30px 100%)`;
+
+  /* A crop of a capture. Captures are 2x, so a CSS pixel of the page is two
+     pixels of the file, and `scale` is how big one CSS pixel of the page is
+     drawn here. */
+  function shot(src, crop, scale, pageWidth = 1200) {
+    const box = el("div", { class: "shot", style: { width: px(crop.w * scale), height: px(crop.h * scale) } });
+    const img = el("img", { src: `captures/${src}`, alt: "" });
+    img.style.width = px(pageWidth * scale);
+    img.style.left = px(-crop.x * scale);
+    img.style.top = px(-crop.y * scale);
+    box.appendChild(img);
+    return box;
+  }
+  /* A card from a capture, cropped to its measured box, fitted to a frame
+     width, and faded if it has to be cut short. */
+  function cardShot(src, box, frameW, maxH, fullPage = false) {
+    const pad = 14;
+    const crop = { x: box.x - pad, y: box.y + (fullPage ? box.scrollY : 0) - pad, w: box.width + pad * 2, h: box.height + pad * 2 };
+    const scale = frameW / crop.w;
+    const cut = crop.h * scale > maxH;
+    if (cut) crop.h = maxH / scale;
+    const node = shot(src, crop, scale);
+    if (cut) node.classList.add("fade");
+    return { node, crop, scale, height: crop.h * scale };
+  }
+  /* The frame, centred on the canvas's height like the copy is. */
+  function framed(src, box, opts = {}) {
+    const frameW = opts.width || 700, x = opts.x || 540, maxH = opts.maxH || 560;
+    const c = cardShot(src, box, frameW, maxH, opts.fullPage);
+    const top = Math.round((800 - (44 + c.height)) / 2);
+    fan(x + 10, top - 34, 4, 9);
+    device(x, top, c.node);
+    return { ...c, x, top: top + 44 };
+  }
+  function device(x, y, content, title = "TabsPack") {
+    const d = el("div", { class: "device", style: { left: px(x), top: px(y) } });
+    d.appendChild(el("div", { class: "bar" }, `<i></i><i></i><i></i><span class="title"><img src="../icon.png" alt="">${title}</span>`));
+    d.appendChild(content);
+    root.appendChild(d);
+    return d;
+  }
+  function fan(x, y, n = 4, spread = 9, scale = 1) {
+    const f = el("div", { class: "fan", style: { left: px(x), top: px(y), transform: `scale(${scale})`, transformOrigin: "0 0" } });
+    for (let i = 0; i < n; i += 1) {
+      const b = el("b");
+      b.style.background = page(COLORS[(n - 1 - i) % COLORS.length]);
+      b.style.transform = `rotate(${(i - (n - 1)) * spread}deg)`;
+      b.style.left = px(i * 10);
+      f.appendChild(b);
+    }
+    root.appendChild(f);
+    return f;
+  }
+  function copy(headline, sub, extra = "") {
+    const long = headline.replace(/<[^>]+>/g, "").length > 26 ? ' class="long"' : "";
+    root.appendChild(el("div", { class: "copy" }, `<div class="brand"><img src="../icon.png" alt=""><span>TabsPack</span></div><h1${long}>${headline}</h1><p class="sub">${sub}</p>${extra}`));
+  }
+  function fileCard(x, y, scale = 1) {
+    const f = el("div", { class: "file", style: { left: px(x), top: px(y), transform: `scale(${scale})`, transformOrigin: "0 0" } });
+    f.innerHTML = `
+      <div class="tabs"><b style="left:44px;background:var(--grape);transform:rotate(8deg)"></b><b style="left:32px;background:var(--leaf);transform:rotate(4deg)"></b><b style="left:20px;background:var(--tangerine)"></b></div>
+      <div class="glyph"><svg width="50" height="60" viewBox="0 0 46 56" fill="none"><path d="M6 2h24l14 14v34a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4z" fill="#eef2ff" stroke="#2563ff" stroke-width="2.5"/><path d="M30 2v10a4 4 0 0 0 4 4h10" stroke="#2563ff" stroke-width="2.5"/><path d="M13 32h20M13 40h14" stroke="#2563ff" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+      <div class="name">research.tabspack.json</div>
+      <div class="meta">3 windows · 28 tabs · 4 groups</div>
+      <div class="json">{ <em>"format"</em>: "tabspack",\n  <em>"schemaVersion"</em>: 1,\n  <em>"windows"</em>: [ … ] }</div>`;
+    root.appendChild(f);
+    return f;
+  }
+  function mini(x, y, label) {
+    const m = el("div", { class: "mini", style: { left: px(x), top: px(y) } });
+    const strip = COLORS.map((c) => `<s style="background:${c}33;box-shadow:inset 0 -2px 0 ${c}"></s>`).join("");
+    m.innerHTML = `<div class="mb"><i></i><i></i><i></i></div><div class="strip">${strip}</div><div class="ln" style="width:70%"></div><div class="ln" style="width:52%"></div><div class="ln" style="width:80%"></div>`;
+    root.appendChild(m);
+    root.appendChild(el("div", { class: "label", style: { left: px(x), top: px(y + 152) } }, label));
+  }
+
+  /* The five screenshots ------------------------------------------------ */
+  const SLIDES = {
+    1() {
+      copy("Every tab,<br>one file.", "Export every window, with its pinned tabs and its groups, in a single click.");
+      fan(640, 132, 5, 8);
+      // A crowded browser behind the popup, drawn, because the popup is what
+      // is captured and a popup floating in blue says nothing about tabs.
+      const back = el("div", { class: "device", style: { left: px(560), top: px(150), width: px(660), height: px(520) } });
+      const strip = Array.from({ length: 22 }, (_, i) => `<s style="display:block;width:22px;height:28px;border-radius:7px 7px 3px 3px;background:#dfe6ff;position:relative"><em style="position:absolute;left:6px;top:9px;width:10px;height:10px;border-radius:3px;background:${COLORS[i % 5]}"></em></s>`).join("");
+      back.innerHTML = `<div class="bar" style="gap:7px"><i></i><i></i><i></i><div style="display:flex;gap:3px;margin-left:14px;align-self:flex-end;padding-bottom:4px">${strip}</div></div>
+        <div style="padding:22px 28px"><div style="height:30px;border-radius:15px;background:#f1f4fd;margin-bottom:26px"></div>
+        <div style="height:12px;width:60%;border-radius:6px;background:#edf0f8;margin-bottom:14px"></div><div style="height:12px;width:78%;border-radius:6px;background:#edf0f8;margin-bottom:14px"></div>
+        <div style="height:160px;border-radius:14px;background:#f3f5fb;margin:22px 0"></div><div style="height:12px;width:66%;border-radius:6px;background:#edf0f8"></div></div>`;
+      root.appendChild(back);
+      const pop = el("div", { class: "device", style: { left: px(760), top: px(250), borderRadius: "16px" } });
+      const p = el("img", { src: "captures/popup.png", alt: "" });
+      p.style.width = px(430); p.style.display = "block";
+      pop.appendChild(p);
+      root.appendChild(pop);
+    },
+    2() {
+      copy("Everything comes back.", "Windows, tab order, pinned tabs, and groups with their names and colours. See all of it before a single tab opens.");
+      framed("import.png", META.import.card, { fullPage: true, maxH: 600 });
+    },
+    3() {
+      copy("Take it to any browser.", "Pack a session in one browser and open it in another. The same file works in Chrome, Edge and Firefox.");
+      fileCard(735, 96);
+      mini(560, 380, "Chrome");
+      mini(800, 380, "Edge");
+      mini(1040, 380, "Firefox");
+      // The restore's own sentence, cropped to its text.
+      const r = META.restore.text;
+      const w = Math.ceil(r.width + 10), h = Math.ceil(r.height);
+      const t = el("div", { class: "toast" });
+      t.appendChild(shot("restored.png", { x: 0, y: 0, w, h }, 1.15, r.full));
+      t.style.left = px(900 - (w * 1.15 + 40) / 2);
+      t.style.top = px(612);
+      root.appendChild(t);
+      // An arc from the file to the browsers, drawn once rather than three times.
+      const svg = el("div", { style: { position: "absolute", left: "0", top: "0" } }, `<svg width="1280" height="800" viewBox="0 0 1280 800" fill="none"><path d="M790 306 C 720 340, 665 350, 660 376" stroke="rgb(255 255 255 / 55%)" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><path d="M900 306 L 900 376" stroke="rgb(255 255 255 / 55%)" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><path d="M1010 306 C 1080 340, 1135 350, 1140 376" stroke="rgb(255 255 255 / 55%)" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/></svg>`);
+      root.insertBefore(svg, root.firstChild);
+    },
+    4() {
+      copy("Find the tabs you forgot.", "See how long since you opened each tab, and leave the stale ones out. Pinned tabs are always kept.");
+      const f = framed("export.png", META.export.card, { maxH: 560 });
+      const a = META.export.ageText;
+      const ax = f.x + (a.x - f.crop.x) * f.scale - 10, ay = f.top + (a.y - f.crop.y) * f.scale - 8;
+      const aw = a.width * f.scale + 20, ah = a.height * f.scale + 16;
+      root.appendChild(el("div", { class: "ring", style: { left: px(ax), top: px(ay), width: px(aw), height: px(ah) } }));
+      root.appendChild(el("div", { class: "flag", style: { left: px(ax + 6), top: px(ay + ah + 12) } }, "How long since you last opened them"));
+    },
+    5() {
+      copy("Your tabs never leave this device.", "No account, no sync, no tracking, and nothing sent anywhere. Snapshots stay on this machine.",
+        `<div class="chips"><span>Free</span><span>Open source</span><span>No account</span></div>`);
+      framed("snapshots.png", META.snapshots.card, { maxH: 560 });
+    },
+  };
+
+  /* Tiles --------------------------------------------------------------- */
+  const TILES = {
+    marquee() {
+      root.appendChild(el("div", { style: { position: "absolute", left: "84px", top: "0", bottom: "0", width: "640px", display: "flex", flexDirection: "column", justifyContent: "center" } },
+        `<div style="display:flex;align-items:center;gap:22px;margin-bottom:30px"><img src="../icon.png" alt="" style="width:108px;height:108px;filter:drop-shadow(0 18px 30px rgb(8 10 60 / 45%))"><div class="tile-word" style="font-size:88px">TabsPack</div></div>
+         <div style="font-family:var(--display);font-weight:720;font-variation-settings:'opsz' 96;font-size:46px;line-height:1.06;letter-spacing:-0.025em;max-width:600px">Pack your tabs.<br>Open them anywhere.</div>
+         <div style="font:600 19px/1 var(--body);color:rgb(255 255 255 / 80%);margin-top:26px;letter-spacing:0.01em">Chrome · Edge · Firefox</div>`));
+      // The signature, large: a hand of tab cards fanned from behind the file.
+      const f = el("div", { class: "fan", style: { left: "930px", top: "150px" } });
+      for (let i = 0; i < 7; i += 1) {
+        const b = el("b");
+        b.style.width = "210px"; b.style.height = "140px"; b.style.borderRadius = "18px";
+        b.style.background = page(COLORS[i % 5]);
+        b.style.transform = `rotate(${(i - 3) * 13}deg)`;
+        b.style.left = "0"; b.style.top = "0";
+        b.style.transformOrigin = "50% 260%";
+        f.appendChild(b);
+      }
+      root.appendChild(f);
+      fileCard(880, 250, 1.05);
+    },
+    small() {
+      const f = el("div", { class: "fan", style: { left: "300px", top: "150px" } });
+      for (let i = 0; i < 5; i += 1) {
+        const b = el("b");
+        b.style.width = "128px"; b.style.height = "86px"; b.style.borderRadius = "12px";
+        // At this size the two text lines are noise, so the card is only its
+        // band and its page.
+        b.style.background = `linear-gradient(${COLORS[(4 - i) % 5]} 0 22px, #ffffff 22px 100%)`;
+        b.style.transform = `rotate(${(i - 2) * 13}deg)`;
+        b.style.transformOrigin = "50% 230%";
+        f.appendChild(b);
+      }
+      root.appendChild(f);
+      root.appendChild(el("div", { style: { position: "absolute", left: "30px", top: "34px", width: "270px" } },
+        `<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px"><img src="../icon.png" alt="" style="width:64px;height:64px;filter:drop-shadow(0 10px 18px rgb(8 10 60 / 45%))"><div class="tile-word" style="font-size:42px">TabsPack</div></div>
+         <div style="font-family:var(--display);font-weight:720;font-variation-settings:'opsz' 96;font-size:27px;line-height:1.08;letter-spacing:-0.02em">Export and restore<br>tabs in any browser</div>`));
+    },
+    icon() {
+      root.style.background = "transparent";
+      root.appendChild(el("img", { src: "../icon.png", alt: "", style: { position: "absolute", left: "16px", top: "16px", width: "96px", height: "96px" } }));
+    },
+  };
+
+  if (q.has("slide")) SLIDES[q.get("slide")]();
+  else TILES[q.get("tile") || "marquee"]();
+
+  // Ready when the fonts and every image have arrived, so no still is taken
+  // half drawn.
+  const imgs = [...document.images].map((i) => (i.complete ? Promise.resolve() : new Promise((r) => { i.onload = r; i.onerror = r; })));
+  Promise.all([document.fonts.ready, ...imgs]).then(() => requestAnimationFrame(() => { document.body.dataset.ready = "1"; }));
+})();
+</script>
+</body>
+</html>

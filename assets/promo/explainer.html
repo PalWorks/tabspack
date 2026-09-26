@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TabsPack Explainer</title>
+<meta name="description" content="A sixteen second animation of what TabsPack does: pack every open tab into one file, open it in any browser, and get every window, group and pinned tab back." />
+<!--
+  The TabsPack explainer.
+
+  One self-contained page. The fonts are in ./fonts and the mark is ../icon.png,
+  so nothing is fetched from anywhere else, which is the same rule the site keeps.
+
+  The whole animation is one timeline of sixteen seconds. Every element has a
+  single Web Animations track spanning the full timeline, driven by one clock, so
+  any instant can be rendered exactly: window.tabspackExplainer.seek(ms). The
+  store art pipeline uses that to render stills, and a video can be rendered the
+  same way, frame by frame.
+
+  Reduced motion is respected: the page opens paused on the final frame, with a
+  Play button for anyone who wants to watch it.
+-->
+<style>
+@font-face { font-family: "Bricolage"; src: url("fonts/bricolage-grotesque.woff2") format("woff2"); font-weight: 200 800; font-display: block; }
+@font-face { font-family: "Figtree"; src: url("fonts/figtree.woff2") format("woff2"); font-weight: 300 900; font-display: block; }
+@font-face { font-family: "JBMono"; src: url("fonts/jetbrains-mono.woff2") format("woff2"); font-weight: 100 800; font-display: block; }
+
+:root {
+  --signal: #2563ff;
+  --violet: #5b3df5;
+  --paper: #ffffff;
+  --ink: #0f1b3d;
+  --ink-2: #4a5578;
+  --mist: #e8edff;
+  --amber: #fbbf24;
+  --tangerine: #fb923c;
+  --leaf: #34d399;
+  --grape: #a78bfa;
+  --sky: #38bdf8;
+  --g-green: #1e8e3e;
+  --g-orange: #e8710a;
+  --g-purple: #9334e6;
+
+  --page: #eef1f8;
+  --page-ink: #1b2440;
+  --page-ink-2: #5a6482;
+  --control: rgb(15 27 61 / 8%);
+  --control-strong: rgb(15 27 61 / 16%);
+
+  --display: "Bricolage", "Figtree", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JBMono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0b1024;
+    --page-ink: #e7ebf7;
+    --page-ink-2: #98a2c3;
+    --control: rgb(255 255 255 / 8%);
+    --control-strong: rgb(255 255 255 / 18%);
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0b1024;
+  --page-ink: #e7ebf7;
+  --page-ink-2: #98a2c3;
+  --control: rgb(255 255 255 / 8%);
+  --control-strong: rgb(255 255 255 / 18%);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page);
+  color: var(--page-ink);
+  font-family: var(--body);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.player { width: min(1280px, 100%); }
+
+/* The stage is always 1280 by 720 and is scaled to fit, so every position in the
+   timeline is an honest pixel and a still renders the same at any size. */
+.viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -30px rgb(20 30 90 / 45%), 0 2px 6px rgb(20 30 90 / 12%);
+  background: var(--signal);
+}
+.stage {
+  position: absolute;
+  left: 0; top: 0;
+  width: 1280px; height: 720px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 600px at 78% 12%, rgb(255 255 255 / 16%), transparent 60%),
+    radial-gradient(700px 500px at 8% 100%, rgb(20 10 90 / 35%), transparent 70%),
+    linear-gradient(135deg, var(--signal) 0%, #3b4cf8 55%, var(--violet) 100%);
+  font-family: var(--body);
+  color: var(--paper);
+}
+.stage * { position: absolute; }
+.stage .caption > *, .stage .file .json *, .stage .end .chips > * { position: static; }
+
+/* Captions ------------------------------------------------------------ */
+.caption { left: 72px; top: 232px; width: 360px; opacity: 0; }
+.caption h2 {
+  margin: 0 0 18px;
+  font-family: var(--display);
+  font-weight: 760;
+  font-variation-settings: "opsz" 96;
+  font-size: 50px;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+.caption p {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 82%);
+  max-width: 330px;
+}
+.caption .names { font-family: var(--mono); font-size: 15px; letter-spacing: 0.02em; color: rgb(255 255 255 / 90%); margin-top: 16px; }
+
+/* The browser window -------------------------------------------------- */
+.win {
+  left: 470px; top: 96px; width: 740px; height: 528px;
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 40px 90px -30px rgb(10 12 60 / 55%), 0 3px 10px rgb(10 12 60 / 18%);
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+.win .bar { left: 0; top: 0; right: 0; height: 46px; border-radius: 18px 18px 0 0; background: var(--mist); }
+.dot { width: 11px; height: 11px; border-radius: 50%; top: 18px; }
+.dot.r { left: 18px; background: #ff5f57; } .dot.y { left: 35px; background: #febc2e; } .dot.g { left: 52px; background: #28c840; }
+.win .addr { left: 16px; right: 16px; top: 56px; height: 30px; border-radius: 15px; background: #f1f4fd; }
+.win .addr i { left: 16px; top: 11px; width: 190px; height: 8px; border-radius: 4px; background: #d5dcf2; }
+.sk { left: 44px; height: 12px; border-radius: 6px; background: #edf0f8; }
+.win .page-live { left: 32px; top: 112px; width: 676px; height: 380px; border-radius: 14px; opacity: 0;
+  background: linear-gradient(160deg, #eef3ff, #f8f5ff); }
+.page-live .hero-block { left: 28px; top: 28px; width: 300px; height: 150px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--leaf), #10b981); }
+.page-live .l1 { left: 356px; top: 40px; width: 260px; height: 16px; border-radius: 8px; background: #cfd7f1; }
+.page-live .l2 { left: 356px; top: 70px; width: 210px; height: 12px; border-radius: 6px; background: #e0e5f6; }
+.page-live .l3 { left: 356px; top: 94px; width: 236px; height: 12px; border-radius: 6px; background: #e0e5f6; }
+.win .tag {
+  right: 20px; bottom: 16px;
+  font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+  background: #f1f4fd; border-radius: 999px; padding: 6px 12px; opacity: 0;
+}
+
+/* Tabs. Each one is a stage element, not a child of a window, because it has to
+   leave the window, become a card, fold into a file and come back. */
+.tab {
+  left: 0; top: 0;
+  width: 22px; height: 30px;
+  border-radius: 8px 8px 3px 3px;
+  background: #dfe6ff;
+  box-shadow: inset 0 0 0 1px rgb(37 99 255 / 10%);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  overflow: hidden;
+}
+.tab .fav { left: 6px; top: 10px; width: 10px; height: 10px; border-radius: 3px; }
+.tab .ttl { left: 22px; top: 12px; height: 6px; border-radius: 3px; background: #b9c4e8; width: 40px; opacity: 0; }
+.tab .card-face { inset: 0; opacity: 0; }
+.tab .card-face .band { left: 0; top: 0; right: 0; height: 30px; }
+.tab .card-face .cl1 { left: 16px; top: 46px; width: 60%; height: 9px; border-radius: 5px; background: rgb(15 27 61 / 14%); }
+.tab .card-face .cl2 { left: 16px; top: 64px; width: 42%; height: 9px; border-radius: 5px; background: rgb(15 27 61 / 9%); }
+.tab .moon { right: 5px; top: 8px; width: 12px; height: 12px; opacity: 0; }
+.tab .moon svg { position: static; display: block; }
+.tab .glow { inset: 0; border-radius: inherit; background: var(--paper); box-shadow: 0 4px 14px rgb(37 99 255 / 28%); opacity: 0; }
+.tab .glow + .fav, .tab .glow ~ .fav { z-index: 1; }
+
+.chip {
+  top: 104px; height: 22px; border-radius: 999px; padding: 0 10px;
+  font: 700 11.5px/22px var(--body); letter-spacing: 0.02em; color: #fff;
+  white-space: nowrap; opacity: 0; transform-origin: 50% 50%;
+}
+.uline { top: 139px; height: 3px; border-radius: 2px; opacity: 0; }
+
+/* The file ------------------------------------------------------------ */
+.file {
+  left: 0; top: 0; width: 300px; height: 190px;
+  border-radius: 20px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 40px 70px -24px rgb(10 12 60 / 60%), 0 2px 8px rgb(10 12 60 / 20%);
+  opacity: 0; transform-origin: 50% 50%;
+}
+.file .fan { left: 22px; top: -18px; width: 120px; height: 40px; }
+.file .fan b { width: 96px; height: 34px; border-radius: 10px 10px 4px 4px; top: 0; }
+.file .glyph { left: 22px; top: 30px; width: 46px; height: 56px; }
+.file .glyph svg { position: static; display: block; }
+.file .name { left: 82px; top: 36px; font: 600 16px/1.2 var(--mono); letter-spacing: -0.01em; }
+.file .meta { left: 82px; top: 62px; font: 500 13.5px/1.2 var(--body); color: var(--ink-2); }
+.file .json { left: 22px; top: 104px; right: 22px; font: 400 12.5px/1.6 var(--mono); color: #7a86ad; white-space: pre; }
+.file .json em { font-style: normal; color: var(--signal); }
+
+/* Three browsers ------------------------------------------------------ */
+.mini {
+  left: 0; top: 0; width: 220px; height: 150px; border-radius: 14px;
+  background: var(--paper); opacity: 0;
+  box-shadow: 0 24px 50px -20px rgb(10 12 60 / 55%);
+}
+.mini .mbar { left: 0; top: 0; right: 0; height: 30px; border-radius: 14px 14px 0 0; background: var(--mist); }
+.mini .dot { top: 11px; width: 8px; height: 8px; }
+.mini .dot.r { left: 12px; } .mini .dot.y { left: 24px; } .mini .dot.g { left: 36px; }
+.mini .ms1 { left: 18px; top: 50px; width: 150px; height: 9px; border-radius: 5px; background: #edf0f8; }
+.mini .ms2 { left: 18px; top: 70px; width: 110px; height: 9px; border-radius: 5px; background: #edf0f8; }
+.mini .ms3 { left: 18px; top: 90px; width: 170px; height: 9px; border-radius: 5px; background: #edf0f8; }
+.mini-label {
+  left: 0; top: 466px; width: 220px; text-align: center;
+  font: 650 19px/1 var(--body); letter-spacing: -0.005em; color: #fff; opacity: 0;
+}
+
+/* End card ------------------------------------------------------------ */
+.end { left: 0; top: 0; width: 1280px; height: 720px; opacity: 0; }
+.end .mark { left: 574px; top: 172px; width: 132px; height: 132px; filter: drop-shadow(0 24px 40px rgb(10 12 60 / 45%)); }
+.end .word {
+  left: 0; top: 326px; width: 1280px; text-align: center;
+  font-family: var(--display); font-weight: 800; font-variation-settings: "opsz" 96;
+  font-size: 78px; letter-spacing: -0.035em; line-height: 1;
+}
+.end .line { left: 0; top: 426px; width: 1280px; text-align: center; font-size: 28px; font-weight: 500; color: rgb(255 255 255 / 90%); letter-spacing: -0.01em; }
+.end .chips { left: 0; top: 500px; width: 1280px; display: flex; justify-content: center; gap: 12px; }
+.end .chips span {
+  position: static; font: 600 15px/1 var(--body); color: #fff;
+  padding: 11px 18px; border-radius: 999px; background: rgb(255 255 255 / 14%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
+}
+
+/* Controls, outside the art so a still never carries them. */
+.controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.controls button {
+  font: 600 14px/1 var(--body); color: var(--page-ink);
+  background: var(--control); border: 0; border-radius: 999px;
+  padding: 11px 16px; min-height: 40px; cursor: pointer;
+}
+.controls button:hover { background: var(--control-strong); }
+.controls button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.controls input[type="range"] { flex: 1; min-width: 80px; accent-color: var(--signal); height: 40px; }
+.controls .time { font: 500 13px/1 var(--mono); color: var(--page-ink-2); min-width: 86px; text-align: right; }
+.note { margin: 10px 2px 0; font-size: 13px; color: var(--page-ink-2); }
+
+@media (max-width: 560px) {
+  .controls { flex-wrap: wrap; }
+  .controls input[type="range"] { order: 3; flex-basis: 100%; }
+}
+</style>
+</head>
+<body>
+<main class="player">
+  <div class="viewport" id="viewport" role="img" aria-label="Animation: a browser crowded with tabs packs them into one TabsPack file, the file opens in Chrome, Edge or Firefox, and every window, group and pinned tab comes back.">
+    <div class="stage" id="stage" aria-hidden="true">
+
+      <div class="caption" id="c1"><h2>Too many tabs to close?</h2><p>83 tabs across four windows, and every one of them is something you meant to come back to.</p></div>
+      <div class="caption" id="c2"><h2>Pack them into one file.</h2><p>Every window, in order, with its pinned tabs and its groups. One click.</p></div>
+      <div class="caption" id="c3"><h2>Open it in any browser.</h2><p>The same file and the same session, wherever you happen to be working.</p></div>
+      <div class="caption" id="c4"><h2>Everything comes back.</h2><p>Windows, order, pinned tabs, and groups with their names and colours. Tabs wake only when you click them.</p></div>
+
+      <div class="win" id="win">
+        <div class="bar"></div>
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <div class="addr"><i></i></div>
+        <span class="sk" style="top:124px;width:420px"></span>
+        <span class="sk" style="top:150px;width:560px"></span>
+        <span class="sk" style="top:176px;width:380px"></span>
+        <span class="sk" style="top:230px;width:600px;height:150px;border-radius:14px"></span>
+        <span class="sk" style="top:404px;width:470px"></span>
+        <span class="sk" style="top:430px;width:520px"></span>
+        <div class="page-live" id="live"><span class="hero-block"></span><span class="l1"></span><span class="l2"></span><span class="l3"></span></div>
+        <div class="tag" id="tag">1 loaded · 82 asleep</div>
+      </div>
+
+      <div id="tabs"></div>
+
+      <div class="chip" id="chipR" style="background:var(--g-green)">Research</div>
+      <div class="chip" id="chipT" style="background:var(--g-orange)">Trip · 9</div>
+      <div class="chip" id="chipW" style="background:var(--g-purple)">Work · 9</div>
+      <div class="uline" id="ulR" style="background:var(--g-green)"></div>
+
+      <div class="mini" id="m1"><div class="mbar"></div><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ms1"></span><span class="ms2"></span><span class="ms3"></span></div>
+      <div class="mini" id="m2"><div class="mbar"></div><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ms1"></span><span class="ms2"></span><span class="ms3"></span></div>
+      <div class="mini" id="m3"><div class="mbar"></div><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="ms1"></span><span class="ms2"></span><span class="ms3"></span></div>
+      <div class="mini-label" id="l1">Chrome</div>
+      <div class="mini-label" id="l2">Edge</div>
+      <div class="mini-label" id="l3">Firefox</div>
+
+      <div class="file" id="file">
+        <div class="fan">
+          <b style="left:36px;background:var(--grape);transform:rotate(8deg)"></b>
+          <b style="left:24px;background:var(--leaf);transform:rotate(4deg)"></b>
+          <b style="left:12px;background:var(--tangerine)"></b>
+        </div>
+        <div class="glyph"><svg width="46" height="56" viewBox="0 0 46 56" fill="none"><path d="M6 2h24l14 14v34a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4z" fill="#eef2ff" stroke="#2563ff" stroke-width="2.5"/><path d="M30 2v10a4 4 0 0 0 4 4h10" stroke="#2563ff" stroke-width="2.5"/><path d="M13 32h20M13 40h14" stroke="#2563ff" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+        <div class="name">research.tabspack.json</div>
+        <div class="meta">4 windows · 83 tabs · 5 groups</div>
+        <div class="json">{ <em>"format"</em>: "tabspack",
+  <em>"schemaVersion"</em>: 1,
+  <em>"windows"</em>: [ … ] }</div>
+      </div>
+
+      <div class="end" id="end">
+        <img class="mark" src="../icon.png" alt="" />
+        <div class="word">TabsPack</div>
+        <div class="line">Export your tabs. Restore them anywhere.</div>
+        <div class="chips"><span>Free</span><span>Open source</span><span>Your tabs never leave this device</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button type="button" id="play" aria-label="Pause">Pause</button>
+    <button type="button" id="replay">Replay</button>
+    <input type="range" id="scrub" min="0" max="16000" step="10" value="0" aria-label="Position in the animation" />
+    <span class="time" id="time">0.0 / 16.0 s</span>
+  </div>
+  <p class="note" id="note" hidden>Your system asks for reduced motion, so this starts paused on the last frame. Press Play to watch it.</p>
+</main>
+
+<script>
+(() => {
+  const T = 16000;
+  const stage = document.getElementById("stage");
+  const viewport = document.getElementById("viewport");
+  const anims = [];
+  const EASE = "cubic-bezier(0.2, 0, 0, 1)";
+  const OUT = "cubic-bezier(0.3, 0, 0.8, 0.15)";
+  const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+
+  /*
+   * One animation per element, spanning the whole timeline. Frames are
+   * [ms, properties, easing for the segment that starts here]. A single track
+   * per element is what makes seek(ms) exact: two animations on one property
+   * would fight in their fill phases.
+   */
+  function track(el, frames) {
+    const kf = frames.map(([ms, props, easing]) => ({ ...props, offset: Math.min(1, Math.max(0, ms / T)), easing: easing || EASE }));
+    if (kf[0].offset > 0) kf.unshift({ ...kf[0], offset: 0 });
+    if (kf[kf.length - 1].offset < 1) kf.push({ ...kf[kf.length - 1], offset: 1 });
+    const a = el.animate(kf, { duration: T, fill: "both" });
+    a.pause();
+    anims.push(a);
+  }
+  const px = (n) => `${n}px`;
+  const tf = (x, y, r = 0, s = 1) => `translate(${x}px, ${y}px) rotate(${r}deg) scale(${s})`;
+
+  /* Scale the 1280 by 720 stage to the viewport. */
+  const fit = () => { stage.style.transform = `scale(${viewport.clientWidth / 1280})`; };
+  new ResizeObserver(fit).observe(viewport);
+  fit();
+
+  /* Captions --------------------------------------------------------- */
+  const cap = (id, inAt, outAt) => {
+    const hidden = { opacity: 0, transform: "translateY(18px)" };
+    const shown = { opacity: 1, transform: "translateY(0px)" };
+    const gone = { opacity: 0, transform: "translateY(-14px)" };
+    track(document.getElementById(id), [[0, hidden], [inAt, hidden], [inAt + 600, shown], [outAt, shown, OUT], [outAt + 400, gone]]);
+  };
+  cap("c1", 250, 3200);
+  cap("c2", 3500, 6500);
+  cap("c3", 6800, 9600);
+  cap("c4", 9900, 12500);
+
+  /* The window: in, faint while its tabs are packed, out, then back from
+     the browser the file was opened in, now restored. */
+  const WIN = { x: 470, y: 96, w: 740, h: 528 };
+  const MINI = [{ x: 470 }, { x: 735 }, { x: 1000 }].map((m) => ({ x: m.x, y: 300, cx: m.x + 110, cy: 375 }));
+  const winCx = WIN.x + WIN.w / 2, winCy = WIN.y + WIN.h / 2;
+  const fromMini = `translate(${MINI[2].cx - winCx}px, ${MINI[2].cy - winCy}px) scale(0.3)`;
+  track(document.getElementById("win"), [
+    [0, { opacity: 0, transform: "translate(0px, 24px) scale(1)" }],
+    [100, { opacity: 0, transform: "translate(0px, 24px) scale(1)" }],
+    [800, { opacity: 1, transform: "translate(0px, 0px) scale(1)" }],
+    [4300, { opacity: 1, transform: "translate(0px, 0px) scale(1)" }],
+    [5200, { opacity: 0.16, transform: "translate(0px, 0px) scale(0.98)" }],
+    [6300, { opacity: 0.16, transform: "translate(0px, 0px) scale(0.98)" }, OUT],
+    [6800, { opacity: 0, transform: "translate(0px, 0px) scale(0.96)" }],
+    [9150, { opacity: 0, transform: fromMini }],
+    [9950, { opacity: 1, transform: "translate(0px, 0px) scale(1)" }],
+    [12700, { opacity: 1, transform: "translate(0px, 0px) scale(1)" }, OUT],
+    [13300, { opacity: 0, transform: "translate(0px, 30px) scale(0.97)" }],
+  ]);
+  track(document.getElementById("live"), [[0, { opacity: 0 }], [10900, { opacity: 0 }], [11500, { opacity: 1 }], [12700, { opacity: 1 }], [13200, { opacity: 0 }]]);
+  track(document.getElementById("tag"), [[0, { opacity: 0 }], [11200, { opacity: 0 }], [11700, { opacity: 1 }], [12700, { opacity: 1 }], [13200, { opacity: 0 }]]);
+
+  /* Tabs ------------------------------------------------------------- */
+  const COLORS = ["#fbbf24", "#fb923c", "#34d399", "#a78bfa", "#38bdf8", "#fb7185"];
+  const N = 26;
+  const STRIP_X = WIN.x + 76, STRIP_Y = WIN.y + 8;
+  const CRAM = 24.6;
+  const FAN = { cx: 840, cy: 395 };
+  const FILE = { cx: 840, cy: 360 };
+  const MOON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="#6b7aa6"><path d="M20 14.5A8 8 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>';
+
+  /* Where each tab lands after the restore. 0 and 1 are pinned, 2 to 7 are
+     the open Research group, the rest fold into two collapsed groups, which
+     is the collapsed state coming back as it was. */
+  const R0 = WIN.x + 76;
+  const restored = (i) => {
+    if (i < 2) return { x: R0 + i * 38, w: 34, pinned: true };
+    if (i < 8) return { x: R0 + 76 + 92 + (i - 2) * 55, w: 52, research: true };
+    if (i < 17) return { x: 1054 + 29 - 11, w: 22, into: "T" };
+    return { x: 1116 + 32 - 11, w: 22, into: "W" };
+  };
+
+  const host = document.getElementById("tabs");
+  for (let i = 0; i < N; i += 1) {
+    const color = COLORS[i % COLORS.length];
+    const el = document.createElement("div");
+    el.className = "tab";
+    el.innerHTML = `<span class="glow"></span><span class="card-face"><span class="band" style="background:${color}"></span><span class="cl1"></span><span class="cl2"></span></span><span class="fav" style="background:${color}"></span><span class="ttl"></span><span class="moon">${MOON}</span>`;
+    host.appendChild(el);
+
+    const sx = STRIP_X + i * CRAM, sy = STRIP_Y;
+    const spread = (i - (N - 1) / 2) / ((N - 1) / 2);
+    const fanRot = spread * 34;
+    const fanX = FAN.cx - 90 + spread * 70, fanY = FAN.cy - 120 - Math.cos(spread * 1.2) * 18;
+    const R = restored(i);
+    const lag = i * 22;
+    const back = i * 34;
+
+    const crammed = { width: px(22), height: px(30), borderRadius: "8px 8px 3px 3px" };
+    const cardSize = { width: px(180), height: px(118), borderRadius: "14px" };
+    const small = { width: px(20), height: px(20), borderRadius: "6px" };
+    const restoredSize = { width: px(R.w), height: px(30), borderRadius: "8px 8px 3px 3px" };
+    const asleep = R.research && i !== 2;
+    const endOpacity = R.into ? 0 : asleep ? 0.66 : 1;
+    const landX = R.into ? R.x : R.x, landY = R.into ? 104 : STRIP_Y;
+
+    track(el, [
+      [0, { opacity: 0, transform: tf(sx, sy + 8, 0, 0.6), ...crammed }],
+      [300 + lag, { opacity: 0, transform: tf(sx, sy + 8, 0, 0.6), ...crammed }],
+      [560 + lag, { opacity: 1, transform: tf(sx, sy, 0, 1), ...crammed }, SPRING],
+      [3300 + lag * 0.8, { opacity: 1, transform: tf(sx, sy, 0, 1), ...crammed }],
+      [4300 + lag * 0.8, { opacity: 1, transform: tf(fanX, fanY, fanRot, 1), ...cardSize }, SPRING],
+      [5000 + lag * 0.4, { opacity: 1, transform: tf(fanX, fanY, fanRot * 1.08, 1), ...cardSize }],
+      [5750 + lag * 0.3, { opacity: 0, transform: tf(FILE.cx - 90, FILE.cy - 59, 0, 0.7), ...cardSize }, OUT],
+      [9250, { opacity: 0, transform: tf(MINI[2].cx - 10, MINI[2].cy - 10, 0, 0.5), ...small }],
+      [9500 + back, { opacity: 1, transform: tf(MINI[2].cx - 10, MINI[2].cy - 10, 0, 0.8), ...small }],
+      [10350 + back, { opacity: R.into ? 0.4 : endOpacity, transform: tf(landX, landY, 0, 1), ...restoredSize }, SPRING],
+      [10700 + back, { opacity: endOpacity, transform: tf(landX, landY, 0, R.into ? 0.4 : 1), ...restoredSize }],
+      [12700, { opacity: endOpacity, transform: tf(landX, landY, 0, R.into ? 0.4 : 1), ...restoredSize }, OUT],
+      [13300, { opacity: 0, transform: tf(landX, landY + 30, 0, 1), ...restoredSize }],
+    ]);
+
+    // The card face shows only while the tab is a card in the fan.
+    track(el.querySelector(".card-face"), [[0, { opacity: 0 }], [3700 + lag * 0.8, { opacity: 0 }], [4200 + lag * 0.8, { opacity: 1 }], [5400, { opacity: 1 }], [5750, { opacity: 0 }]]);
+    track(el.querySelector(".fav"), [[0, { opacity: 1 }], [3700 + lag * 0.8, { opacity: 1 }], [4100 + lag * 0.8, { opacity: 0 }], [9500, { opacity: 0 }], [9800, { opacity: 1 }]]);
+    track(el.querySelector(".ttl"), [[0, { opacity: 0 }], [10400 + back, { opacity: 0 }], [10800 + back, { opacity: R.research ? 1 : 0 }]]);
+    track(el.querySelector(".moon"), [[0, { opacity: 0 }], [10900 + back * 0.5, { opacity: 0 }], [11300 + back * 0.5, { opacity: asleep || R.pinned ? 0.9 : 0 }]]);
+    if (i === 2) track(el.querySelector(".glow"), [[0, { opacity: 0 }], [10700, { opacity: 0 }], [11100, { opacity: 1 }]]);
+    if (R.pinned) track(el.querySelector(".ttl"), [[0, { opacity: 0 }]]);
+  }
+
+  /* Group chips, and the line under the open group. */
+  const chip = (id, x, at) => track(document.getElementById(id), [
+    [0, { opacity: 0, transform: `translate(${x}px, 0px) scale(0.6)` }],
+    [at, { opacity: 0, transform: `translate(${x}px, 0px) scale(0.6)` }],
+    [at + 400, { opacity: 1, transform: `translate(${x}px, 0px) scale(1)` }, SPRING],
+    [12700, { opacity: 1, transform: `translate(${x}px, 0px) scale(1)` }, OUT],
+    [13300, { opacity: 0, transform: `translate(${x}px, 30px) scale(1)` }],
+  ]);
+  chip("chipR", R0 + 76, 10050);
+  chip("chipT", 1054, 10500);
+  chip("chipW", 1116, 10800);
+  const ul = document.getElementById("ulR");
+  track(ul, [
+    [0, { opacity: 0, left: px(R0 + 76), width: px(0) }],
+    [10500, { opacity: 0, left: px(R0 + 76), width: px(0) }],
+    [11000, { opacity: 1, left: px(R0 + 76), width: px(92 + 6 * 55 - 3) }],
+    [12700, { opacity: 1, left: px(R0 + 76), width: px(92 + 6 * 55 - 3) }],
+    [13200, { opacity: 0, left: px(R0 + 76), width: px(92 + 6 * 55 - 3) }],
+  ]);
+
+  /* The file --------------------------------------------------------- */
+  const fileAt = (cx, cy, s = 1, r = 0) => `translate(${cx - 150}px, ${cy - 95}px) rotate(${r}deg) scale(${s})`;
+  const hover = (m) => fileAt(m.cx, 196, 0.86);
+  track(document.getElementById("file"), [
+    [0, { opacity: 0, transform: fileAt(FILE.cx, FILE.cy, 0.6) }],
+    [5250, { opacity: 0, transform: fileAt(FILE.cx, FILE.cy, 0.6) }],
+    [5950, { opacity: 1, transform: fileAt(FILE.cx, FILE.cy, 1) }, SPRING],
+    [6900, { opacity: 1, transform: fileAt(FILE.cx, FILE.cy, 1) }],
+    [7400, { opacity: 1, transform: hover(MINI[0]) }],
+    [7700, { opacity: 1, transform: hover(MINI[0]) }],
+    [8050, { opacity: 1, transform: hover(MINI[1]) }],
+    [8350, { opacity: 1, transform: hover(MINI[1]) }],
+    [8700, { opacity: 1, transform: hover(MINI[2]) }],
+    [8900, { opacity: 1, transform: hover(MINI[2]) }, OUT],
+    [9300, { opacity: 0, transform: fileAt(MINI[2].cx, MINI[2].cy, 0.3) }],
+  ]);
+
+  /* Three browsers, lit in turn as the file passes over. */
+  const ring = "0 24px 50px -20px rgb(10 12 60 / 55%), 0 0 0 0px rgb(255 255 255 / 0%)";
+  const lit = "0 30px 60px -18px rgb(10 12 60 / 60%), 0 0 0 5px rgb(255 255 255 / 55%)";
+  MINI.forEach((m, k) => {
+    const litAt = 7400 + k * 650;
+    const hidden = { opacity: 0, transform: `translate(${m.x}px, ${m.y + 30}px)`, boxShadow: ring };
+    const shown = { opacity: 1, transform: `translate(${m.x}px, ${m.y}px)`, boxShadow: ring };
+    const glow = { opacity: 1, transform: `translate(${m.x}px, ${m.y - 6}px)`, boxShadow: lit };
+    const frames = [[0, hidden], [6700 + k * 120, hidden], [7200 + k * 120, shown, SPRING], [litAt - 150, shown], [litAt + 100, glow]];
+    if (k < 2) frames.push([litAt + 500, shown], [8900, shown, OUT], [9300, { ...hidden, transform: `translate(${m.x}px, ${m.y + 20}px)` }]);
+    else frames.push([9050, glow, OUT], [9350, { ...glow, opacity: 0 }]);
+    track(document.getElementById(`m${k + 1}`), frames);
+    track(document.getElementById(`l${k + 1}`), [
+      [0, { opacity: 0, transform: `translate(${m.x}px, 12px)` }],
+      [6850 + k * 120, { opacity: 0, transform: `translate(${m.x}px, 12px)` }],
+      [7350 + k * 120, { opacity: 1, transform: `translate(${m.x}px, 0px)` }],
+      [8900, { opacity: 1, transform: `translate(${m.x}px, 0px)` }, OUT],
+      [9300, { opacity: 0, transform: `translate(${m.x}px, 8px)` }],
+    ]);
+  });
+
+  /* End card --------------------------------------------------------- */
+  const end = document.getElementById("end");
+  track(end, [[0, { opacity: 0 }], [13100, { opacity: 0 }], [13500, { opacity: 1 }], [15600, { opacity: 1 }], [16000, { opacity: 0 }]]);
+  track(end.querySelector(".mark"), [[0, { transform: "scale(0.7) rotate(-8deg)" }], [13100, { transform: "scale(0.7) rotate(-8deg)" }], [13800, { transform: "scale(1) rotate(0deg)" }, SPRING]]);
+  track(end.querySelector(".word"), [[0, { opacity: 0, transform: "translateY(16px)" }], [13350, { opacity: 0, transform: "translateY(16px)" }], [13900, { opacity: 1, transform: "translateY(0px)" }]]);
+  track(end.querySelector(".line"), [[0, { opacity: 0, transform: "translateY(14px)" }], [13600, { opacity: 0, transform: "translateY(14px)" }], [14150, { opacity: 1, transform: "translateY(0px)" }]]);
+  end.querySelectorAll(".chips span").forEach((s, k) => track(s, [[0, { opacity: 0, transform: "translateY(10px)" }], [13900 + k * 150, { opacity: 0, transform: "translateY(10px)" }], [14350 + k * 150, { opacity: 1, transform: "translateY(0px)" }]]));
+
+  /* The clock -------------------------------------------------------- */
+  const play = document.getElementById("play");
+  const scrub = document.getElementById("scrub");
+  const time = document.getElementById("time");
+  let t = 0, playing = true, last = null;
+
+  function seek(ms) {
+    t = Math.max(0, Math.min(T - 1, ms));
+    for (const a of anims) a.currentTime = t;
+    scrub.value = String(Math.round(t));
+    time.textContent = `${(t / 1000).toFixed(1)} / ${(T / 1000).toFixed(1)} s`;
+  }
+  function setPlaying(on) {
+    playing = on; last = null;
+    play.textContent = on ? "Pause" : "Play";
+    play.setAttribute("aria-label", on ? "Pause" : "Play");
+  }
+  function tick(now) {
+    if (playing) {
+      if (last !== null) seek((t + (now - last)) % T);
+      last = now;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  play.addEventListener("click", () => setPlaying(!playing));
+  document.getElementById("replay").addEventListener("click", () => { seek(0); setPlaying(true); });
+  scrub.addEventListener("input", () => { setPlaying(false); seek(Number(scrub.value)); });
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && e.target === document.body) { e.preventDefault(); setPlaying(!playing); }
+  });
+
+  window.tabspackExplainer = { seek, play: () => setPlaying(true), pause: () => setPlaying(false), duration: T };
+
+  const still = new URLSearchParams(location.search).get("t");
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.fonts.ready.then(() => {
+    if (still !== null) { setPlaying(false); seek(Number(still)); document.body.dataset.ready = "1"; return; }
+    if (calm) { setPlaying(false); seek(14800); document.getElementById("note").hidden = false; }
+    else seek(0);
+    document.body.dataset.ready = "1";
+    requestAnimationFrame(tick);
+  });
+})();
+</script>
+</body>
+</html>
