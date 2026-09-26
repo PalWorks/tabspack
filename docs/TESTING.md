@@ -1,8 +1,8 @@
 # Testing
 
-As of the end of M6: 223 unit tests, the number `npm test` reports, with 21
+As of the end of M7: 247 unit tests, the number `npm test` reports, with 21
 conformance fixtures, 16 foreign format fixtures, 38 contrast pairs, 2
-performance budgets in node and 3 more measured in a browser, and a 70 check
+performance budgets in node and 3 more measured in a browser, and an 81 check
 browser run that covers export, import, restore,
 search, snapshots, the settings pane and the theme. The contract below is what
 they are for.
@@ -109,12 +109,14 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 
 | Automated | How |
 |---|---|
-| Everything in `src/core/` | 223 unit tests against a writable fake browser that models the awkward parts of the real one |
-| The whole interface in Chromium, including import, restore, search, snapshots, options and the theme | `npm run smoke`, 70 checks against the built extension in a real Chromium |
+| Everything in `src/core/` | 247 unit tests against a writable fake browser that models the awkward parts of the real one |
+| The whole interface in Chromium, including import, restore, search, snapshots, the settings pane, the support form and the theme | `npm run smoke`, 81 checks against the built extension in a real Chromium |
 | That the Firefox package installs in Firefox | `npm run smoke:firefox`, which is how the Load Temporary Add-on button does it |
 | That the Firefox package would pass AMO's linter | `npm run lint:amo`, zero errors required |
 | NFR-001, NFR-004, NFR-005 on the built package | `npm run perf:browser` |
 | The contrast contract | `npm run a11y`, computed from the tokens |
+| The support message, and that nothing about your tabs is in it | 8 unit tests on `core/support.ts`, one of which fails if an address, a title or a count ever reaches the body |
+| Every rule of the rating ask | 8 unit tests on `core/rating.ts`, one per rule in ADR-036 plus the whole life of an ask from install to settled |
 
 | Exporting, importing and restoring in real Chrome, Edge and Firefox, including a 200 tab restore with unloading on and a restart | `npm run matrix`, which drives the installed browsers. How it gets in differs by browser and is the whole reason that script exists: see the table below |
 | A keyboard command actually being pressed | `npm run matrix -- --target=edge --keys`, which presses it with `xdotool` on a real window. Edge acts on it. Chrome and Firefox do not act on a synthetic key on the virtual display used here, so those two report the row as not run rather than as a failure |
@@ -125,6 +127,15 @@ Worth stating plainly, because the difference is where the remaining risk lives.
 | A keyboard command in Chrome and Firefox | As above: the key arrives, the command does not fire, and the same key fires the same command in Edge, so this is the rig rather than the product |
 | A tab parked by a real suspender | The suspender has to be installed and its pages exist only in a real profile. The wrapper it writes is covered by fixtures and by the browser run |
 | How any of it looks | A person still has to look at it |
+
+### Table X5: What a browser run cannot reach, and what covers it instead
+
+| Not reachable | Why | What covers it |
+|---|---|---|
+| The browser's own permission dialog | No driver can answer it. Ours is the click that summons it, and that is asserted | A person, ROADMAP Table R10 |
+| A rating ask appearing | There is no store listing to link to until something is published, so nothing is shown by design | Unit tests drive the same functions in the same order, from install to settled |
+| A `mailto:` reaching a mail client | Headless has no mail client. That the handoff is a real `mailto:` and not one glued to the extension origin **is** asserted | The audit in `.tmp/probe`, and ADR-038 |
+| How it looks | Nothing automated has an opinion | A person, and the screenshots `npm run smoke` writes |
 
 ### Table X4: How each browser is driven
 
@@ -175,6 +186,10 @@ bounds and the keyboard rows need.
 | A tab created unloaded keeps the address it was created with, 40 of them | not applicable, Chromium cannot | not applicable | pass, 40 of 40 |
 | A pack whose first tab is pinned does not lose the tabs after it | not applicable | not applicable | pass, 4 of 4, three runs: ADR-027 |
 | The browser's own Options link lands on the settings pane, which is what `options_ui.page` with a fragment rests on | pass | pass | pass |
+| The export pane offers the tab groups permission when a group is in scope | pass | pass | not run, the callout is the same component |
+| A successful export reads as a success, not a warning | pass | pass | pass |
+| The report says when groups came out with no names | pass | pass | pass |
+| The toolbar badge and tooltip report an export and a restore | pass | pass | pass |
 | An unloaded tab still shows its title | not applicable, Chromium cannot | not applicable | pass |
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |

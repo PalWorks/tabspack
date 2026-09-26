@@ -14,6 +14,7 @@ TabsPack is a browser extension with no server, no network access and no runtime
 | Popup | `src/ui/popup/` | While open, closes on focus loss | One click export, tab count, an import button that hands off to the manager page and a gear that opens settings. Never a file dialog, never a long task |
 | Manager page (extension page) | `src/ui/manager/` | Until the user closes the tab | Import, preview, selection, restore, snapshot list. All file input and output. This is where the product actually lives |
 | Settings and About | `src/ui/manager/settings-panel.ts` | While open | Two panes of the manager page, not a page of their own: a setting that belongs to a task lives with that task, and these hold what belongs to none. Written the moment it changes, no Save button, because a settings page with one invents a state where what you see is not what is in force. ADR-028 |
+| Support | `src/ui/manager/support-panel.ts` | While open | A pane of the manager page. Composes a message in `core/support.ts`, shows it in full, and hands it to the user's own mail client. Makes no network request and ships no key: ADR-035 |
 | Placeholder page | `src/ui/placeholder/` | Until the user closes the tab | Lists the addresses a restore could not open, as inert text. Opened by a restore, never by the user |
 
 The single most important placement decision: **import and export do not live in the popup**. A popup closes when the file picker takes focus, which is the most common cause of broken import in the extensions we studied. The popup is a launcher.
@@ -198,6 +199,10 @@ What each context does instead:
   is how the snapshot list follows a snapshot saved by a keyboard command, and how
   an open manager page follows a setting changed in another tab of it. The data is
   the message, and it is already the thing that had to be written.
+- The **toolbar icon** is the one surface every context can write to, so it is
+  how a background command, a popup and a manager page all report the same
+  outcome the same way: a badge tone for whether it worked and a tooltip
+  sentence for what happened. One module, `ui/shared/notify.ts`: ADR-033.
 
 The one case where a page cannot finish the job is a keyboard export of a pack too
 large to write from the background: the background opens `manager.html#export=<scope>`

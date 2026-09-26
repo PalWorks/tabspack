@@ -3,16 +3,27 @@
  * colour is never the only signal: the glyph and the wording change too.
  */
 import { clear, el, icon, ICON } from "./dom.js";
-import { formatBytes, totalRemoved, type ExportReport, type RestoreSummary } from "../../core/report.js";
+import { formatBytes, type ExportReport, type RestoreSummary } from "../../core/report.js";
 import type { Issue } from "../../core/issues.js";
 import { plural, t } from "./i18n.js";
 import { groups as groupsPhrase, removedPhrases, restoreDetails, restoreHeadline, tabs, windows } from "./wording.js";
 
 type Tone = "success" | "warn" | "error";
 
+/**
+ * An export that produced a file succeeded, and says so.
+ *
+ * This used to turn amber whenever a filter had removed anything, and "Remove
+ * duplicates" is on by default, so an ordinary successful export came up with a
+ * warning triangle beside it. A user reading that cannot tell whether their
+ * tabs were saved. A filter doing exactly what it was told is not a warning; it
+ * is detail, and it belongs in the muted line underneath: ADR-029.
+ *
+ * Warn is kept for what the user did not ask for, which on this path is nothing
+ * yet, and error for a failure, which is rendered by `renderError` instead.
+ */
 export function renderExportReport(node: HTMLElement, report: ExportReport): void {
-  const dropped = totalRemoved(report.removed);
-  const tone: Tone = dropped > 0 ? "warn" : "success";
+  const tone: Tone = "success";
   const headline = t(
     report.saved ? "reportSaved" : "reportCopied",
     tabs(report.tabs),
@@ -24,6 +35,9 @@ export function renderExportReport(node: HTMLElement, report: ExportReport): voi
     // rest of what happened rather than left for the user to notice.
     ...(report.recovered > 0 ? [plural(report.recovered, "recovered")] : []),
     ...(report.groups > 0 ? [t("groupsKept", groupsPhrase(report.groups))] : []),
+    // Said here because the user cannot see it in the file and will not find
+    // out until a restore comes back with unnamed clusters: ADR-030.
+    ...(report.unnamedGroups > 0 ? [t("groupsUnnamed", groupsPhrase(report.unnamedGroups))] : []),
     formatBytes(report.bytes),
   ]
     .filter(Boolean)

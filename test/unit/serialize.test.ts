@@ -57,10 +57,14 @@ test("omits defaults so a file stays readable", async () => {
   assert.equal("cookieStoreId" in tabOut, false);
 });
 
-test("embedded favicons are dropped unless asked for, remote ones are kept", () => {
+test("the favicon switch means what its label says: off is none, on is all", () => {
+  // It used to drop only the embedded ones and keep every remote one whatever
+  // the setting said, so clearing a box labelled "Favicon URLs" removed almost
+  // nothing: ADR-032.
   assert.equal(keepableFavicon("data:image/png;base64,AAAA", false), undefined);
   assert.equal(keepableFavicon("data:image/png;base64,AAAA", true), "data:image/png;base64,AAAA");
-  assert.equal(keepableFavicon("https://example.com/favicon.ico", false), "https://example.com/favicon.ico");
+  assert.equal(keepableFavicon("https://example.com/favicon.ico", false), undefined);
+  assert.equal(keepableFavicon("https://example.com/favicon.ico", true), "https://example.com/favicon.ico");
   assert.equal(keepableFavicon(undefined, true), undefined);
 });
 

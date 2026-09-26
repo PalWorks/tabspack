@@ -435,7 +435,7 @@ try {
 
   const restored = after.tabs.filter((tab) => tab.url.includes("/r-"));
   const unloaded = restored.filter((tab) => tab.discarded);
-  const reportedUnloaded = Number(/(\d+) left unloaded/.exec(String(restoreReport))?.[1] ?? "-1");
+  const reportedUnloaded = Number(/(\d+) left asleep/.exec(String(restoreReport))?.[1] ?? "-1");
   row(
     "the report's unloaded count is what the browser actually shows",
     reportedUnloaded === unloaded.length,

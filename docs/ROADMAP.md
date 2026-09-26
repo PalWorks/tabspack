@@ -194,7 +194,7 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-506 | None | The preview tree is fully keyboard operable, focus is visible, contrast passes, the tree and reports carry ARIA roles | done |
 | T-507 | None | TESTING Table X2 green on real Chrome 154, Edge 153 and Firefox 156, by `npm run matrix` and `npm run matrix:firefox`, which drive the installed browsers rather than a downloaded one. Four rows remain for a person: the permission prompt, a real suspender, a Firefox keyboard command, and how it all looks | done |
 | T-508 | NFR-001 to NFR-005 | All five hold on the shipped artifact | done |
-| T-509 | None | Accepted by Chrome Web Store, Edge Add-ons and AMO. Blocked on three developer accounts, which is not something an agent can hold | next |
+| T-509 | None | Accepted by Chrome Web Store, Edge Add-ons and AMO, and the three listing URLs written into `LISTINGS` in `src/core/rating.ts` and the lint allowlist, which is what turns the rating ask on. Blocked on three developer accounts, which is not something an agent can hold | next |
 | T-510 | None | A bug report cannot be filed without browser, version and reproduction detail | done |
 
 **M5 exit test.** Review packages accepted by all three stores, and the cross browser matrix fully green.
@@ -243,6 +243,32 @@ pages are real is the test; a pack whose pages resolve instantly is not.
 
 ## 5. What is left, and who has to do it
 
+### Table R12: M7, from a real user's first proper session
+
+Added 2026-09-26, from a review with the user after they ran the product on
+their own tabs in Chrome, Edge and Firefox.
+
+| Id | What | Bucket | Problem | Solution | Status |
+|---|---|---|---|---|---|
+| T-701 | A success looks like a warning | UI | Any filter removing anything made the export report amber with a warning triangle, and dedupe is on by default, so a normal successful export looked like a problem | A written file is a success. Filters are detail. ADR-029 | done |
+| T-702 | Group names lost on export | Core, UI | Without the optional permission the `browser.tabGroups` namespace does not exist, so the collector writes bare membership and the file loses every group name. The offer to grant it only ever existed on the import side | The callout on the export pane too, before the file is written, and a count of unnamed groups in the report. ADR-030 | done |
+| T-703 | The permission notice was invisible | UI | An inline row at the bottom of a card below fifty rows of tree | A callout at the top of the pane: coloured bar, glyph, sentence, action. ADR-031 | done |
+| T-704 | Export defaults, and a switch that lied | Core | Titles off made the text export unreadable. Favicons on cost 7 to 9 percent for something nothing reads. And clearing the favicon box removed only embedded icons, not the remote ones its label named | Titles on, favicons off, and off now means none. ADR-032 | done |
+| T-705 | The drop target never got out of the way | UI | A poster sized dropzone above the thing the user came to look at | The intake folds to its summary line once a pack is loaded. ADR-031 | done |
+| T-706 | An import that showed no list | UI | Reported once, not reproduced in 15 consecutive attempts on three real packs | Two causes removed: the preview is revealed before the tree measures itself, and a throw in the read reaches the screen instead of becoming an unhandled rejection. ADR-031 | done, cause not confirmed |
+| T-707 | The toolbar said almost nothing | UI | A bare count in one colour, only for an export from the popup. An import set nothing, so a restore could finish behind three windows with no sign | A badge tone and a tooltip sentence, from every surface, through one module. ADR-033 | done |
+| T-708 | "Unloaded" is the browser's word | UI | Users say suspended or asleep, not unloaded | "Asleep". Not "suspended", which already means a third party suspender's wrapper two panes away. ADR-033 | done |
+| T-709 | Firefox refuses an unsigned build | Release | `about:addons` says "appears to be corrupt", which is about signing and does not say so | `npm run pack` builds every archive including the `.xpi` and the source zip, and the two routes that work are documented. ADR-034 | done |
+| T-710 | Support and feedback | UI, Release | No way to reach us from inside the product | A Support pane. Composed in core, shown in full, handed to the user's mail client: no request, no key. ADR-035 | done |
+| T-711 | A rating ask | UI | Nothing asks, and the obvious version of asking is the thing that makes people uninstall | Earned by use, three times in a lifetime, three answers, two of which end it. ADR-036 | done |
+| T-713 | A mark that is not generic | Design | Three bars and a download arrow is the most generic possible extension icon | Four candidates at every real size in both themes, `npm run icons:compare`. Awaiting a choice | for a person |
+| T-714 | Who made it | UI | Nothing on any surface says who is behind it | One quiet line at the foot of About, under the privacy paragraph. ADR-037 | done |
+
+**M7 exit test.** The user's own three exports import with every group named
+once the permission is granted, a successful export reads as a success on every
+surface, and the toolbar reports the outcome of an export and a restore started
+from any surface. Verified in real Chrome 154, Edge 153 and Firefox 156.
+
 ### Table R10: The work an agent cannot finish
 
 Most of this table was emptied on 2026-09-25 by `npm run matrix`, which drives
@@ -255,6 +281,7 @@ left is what a machine genuinely cannot do.
 | T-507 | Check a recovered suspended tab against the suspender that made it | The suspender has to be installed, and its pages exist only in a real profile |
 | T-507 | Press a keyboard command in Firefox | The key arrives and the command does not fire on a virtual display. The same key fires the same command in Chrome and Edge, so the product is not what is in doubt |
 | T-507 | Look at it | Nothing automated has an opinion about how it looks |
+| T-713 | Choose the mark | Four candidates are drawn and rendered at every size in both themes. Which one is a brand decision, and an agent should not make it |
 | T-509 | Submit to three stores | Three developer accounts, and the fee for one of them |
 
 Everything up to those lines is done, and `docs/store/` holds the listing text and
@@ -273,6 +300,7 @@ piece of work.
 | M3 Selection and foreign formats | T-301 to T-310 | 163 unit tests, eight foreign fixtures and eight malformed siblings, a 40 check smoke run that imports a OneTab export by shape alone and searches the preview in a real browser |
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
 | M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 190 unit tests and a 59 check browser run at the time. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
+| M7 A real user's session | T-511, T-701 to T-714 | 247 unit tests and an 81 check browser run. A success that reads as a success, the tab groups permission offered where it is actually lost, a callout that can be seen, titles on and favicons off, an intake that folds away, a toolbar that reports from every surface, packaging for all three stores, a support form that sends no request, and a rating ask that stops by itself |
 | M6 Recovery | T-601 to T-609 | 223 unit tests and a 70 check browser run. A suspender's wrapper read back to the page it stands for, on export and on import, from four named families and by shape for the rest, with every recovery counted. Restores create every tab unloaded by default, flushed per batch so a large restore never holds more than a batch loaded at once |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte

@@ -9,9 +9,9 @@ test("defaults are returned when nothing is stored", () => {
 });
 
 test("a stored value of the wrong type falls back to the default", () => {
-  const merged = mergeSettings({ dedupe: "yes" as unknown as boolean, badgeMs: -5 });
+  const merged = mergeSettings({ dedupe: "yes" as unknown as boolean, restoreBatchSize: -5 });
   assert.equal(merged.dedupe, DEFAULT_SETTINGS.dedupe);
-  assert.equal(merged.badgeMs, DEFAULT_SETTINGS.badgeMs);
+  assert.equal(merged.restoreBatchSize, DEFAULT_SETTINGS.restoreBatchSize);
 });
 
 test("an unrecognised enum value falls back rather than reaching the pipeline", () => {

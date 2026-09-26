@@ -25,6 +25,8 @@ import { plural as pluralUnit, t } from "../shared/i18n.js";
 import { fidelityLine, tabs as tabsPhrase, windows as windowsPhrase, groups as groupsPhrase } from "../shared/wording.js";
 import { renderIssues, renderNote, renderRestoreReport, clearReport, renderError } from "../shared/report-view.js";
 import { PreviewTree, tabId, type TreeStrings } from "./preview-tree.js";
+import { initGroupsCallout } from "../shared/groups-callout.js";
+import { initNotifier } from "../shared/notify.js";
 
 interface Loaded {
   session: Session;
@@ -38,11 +40,19 @@ interface Loaded {
 export interface ImportPanel {
   /** Shows a session that did not come from a file, such as a snapshot. */
   showSession(session: Session, source: SourceInfo, label: string): Promise<void>;
+  /** Repaints the restore controls from settings changed somewhere else. */
+  paint(latest: Settings): void;
 }
 
-export function initImportPanel(adapter: BrowserAdapter, settings: Settings): ImportPanel {
+export function initImportPanel(
+  adapter: BrowserAdapter,
+  settings: Settings,
+  rating: { used(action: "export" | "restore"): void },
+): ImportPanel {
   const ui = {
     dropzone: must<HTMLDivElement>("#dropzone"),
+    intake: must<HTMLElement>("#intake"),
+    intakeToggle: must<HTMLButtonElement>("#intake-toggle"),
     picker: must<HTMLInputElement>("#file"),
     choose: must<HTMLButtonElement>("#choose-file"),
     fileMeta: must<HTMLParagraphElement>("#file-meta"),
@@ -60,9 +70,6 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     placeholder: must<HTMLInputElement>("#opt-placeholder"),
     threshold: must<HTMLInputElement>("#opt-threshold"),
     restore: must<HTMLButtonElement>("#restore"),
-    groupsPermission: must<HTMLDivElement>("#groups-permission"),
-    groupsPermissionText: must<HTMLParagraphElement>("#groups-permission-text"),
-    allowGroups: must<HTMLButtonElement>("#allow-groups"),
     report: must<HTMLDivElement>("#restore-report"),
     restoreIssues: must<HTMLDivElement>("#restore-issues"),
   };
@@ -78,14 +85,39 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
   let loaded: Loaded | null = null;
   /** Guards against a second file being dropped while the first is still being read. */
   let intake = 0;
+  const notify = initNotifier(adapter);
   const tree = new PreviewTree(ui.tree, { onSelectionChange: () => paintSelection() });
 
-  ui.target.value = settings.restoreTarget;
-  ui.skipDuplicates.checked = settings.skipOpenDuplicates;
-  ui.unload.checked = settings.unloadRestored;
-  ui.placeholder.checked = settings.openPlaceholder;
-  ui.threshold.value = String(settings.discardThreshold);
-  ui.threshold.disabled = settings.unloadRestored;
+  /*
+   * The same offer the export pane makes, for the other half of the same
+   * problem: without the permission a restore recreates the clusters but not
+   * their names or colours. Granting it repaints the preview, because the tree
+   * shows what will actually happen: ADR-030.
+   */
+  const groupsCallout = initGroupsCallout(must<HTMLDivElement>("#groups-permission"), adapter, {
+    intent: "restore",
+    onGranted: () => {
+      if (loaded) void gateGroupPermission(loaded.session);
+    },
+  });
+
+  paintPolicy(settings);
+
+  /**
+   * Folds the drop target away once there is a pack to look at, and back when
+   * the user wants another file. The button is the only way back, so it is the
+   * only control the folded card shows.
+   */
+  function collapseIntake(collapsed: boolean): void {
+    ui.intake.dataset.collapsed = collapsed ? "true" : "false";
+    ui.intakeToggle.hidden = !collapsed;
+    ui.intakeToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  }
+
+  ui.intakeToggle.addEventListener("click", () => {
+    collapseIntake(false);
+    ui.choose.focus();
+  });
 
   ui.choose.addEventListener("click", () => ui.picker.click());
   ui.picker.addEventListener("change", () => {
@@ -94,7 +126,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     // whose value has not changed fires no event, and a person who fixed their
     // file and picked it again would get nothing.
     ui.picker.value = "";
-    if (file) void accept(file);
+    if (file) void intake_(file);
   });
 
   for (const type of ["dragenter", "dragover"]) {
@@ -110,7 +142,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     event.preventDefault();
     delete ui.dropzone.dataset.active;
     const file = (event as DragEvent).dataTransfer?.files?.[0];
-    if (file) void accept(file);
+    if (file) void intake_(file);
   });
 
   ui.selectAll.addEventListener("click", () => tree.setAll(true));
@@ -154,27 +186,6 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
   ui.restore.addEventListener("click", () => void run());
 
   /**
-   * The permission is requested by a click on this button rather than during the
-   * restore, for two reasons. A browser only grants an optional permission inside
-   * a user gesture, and a prompt that arrives with a visible explanation beside it
-   * is a prompt a person can answer: PLAN.md Table P8 and docs/DESIGN.md section 4.
-   */
-  ui.allowGroups.addEventListener("click", () => {
-    void adapter
-      .requestPermissions(["tabGroups"])
-      .then((granted) => {
-        if (granted) {
-          ui.groupsPermission.hidden = true;
-          return;
-        }
-        ui.groupsPermissionText.textContent = t("groupsPermissionRefused");
-      })
-      .catch(() => {
-        ui.groupsPermission.hidden = true;
-      });
-  });
-
-  /**
    * The same preview, the same restore, for something that was never a file. A
    * snapshot opened from its own panel lands here rather than getting a second
    * restore path of its own.
@@ -199,8 +210,11 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     ui.fidelity.textContent = fidelityLine(source);
     ui.fidelity.dataset.fidelity = source.fidelity;
 
-    tree.load(session, { blocked: marks.blocked, strings });
+    // Revealed before the tree is filled, for the same reason as a file: the
+    // tree measures its own viewport and cannot measure a hidden one.
     ui.preview.hidden = false;
+    tree.load(session, { blocked: marks.blocked, strings });
+    collapseIntake(true);
     await gateGroupPermission(session);
     paintSelection();
   }
@@ -230,6 +244,22 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     return { blocked, duplicates };
   }
 
+  /**
+   * Every way a file arrives goes through here, so that a failure anywhere in
+   * the read reaches the screen. It used to be an unhandled rejection: the file
+   * line said the pack had been read and the preview simply never appeared,
+   * which is exactly what a user reported: ADR-031.
+   */
+  async function intake_(file: File): Promise<void> {
+    try {
+      await accept(file);
+    } catch (cause) {
+      renderError(ui.issues, cause instanceof Error ? cause.message : t("fileUnreadable"));
+      ui.preview.hidden = true;
+      collapseIntake(false);
+    }
+  }
+
   async function accept(file: File): Promise<void> {
     const token = (intake += 1);
     clearReport(ui.report);
@@ -246,6 +276,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       // than the memory of the tab it was dropped on.
       ui.fileMeta.textContent = `${file.name} · ${formatBytes(file.size)}`;
       renderIssues(ui.issues, [tooLargeIssue(file.size)], { headline: t("packNotImportable") });
+      collapseIntake(false);
       return;
     }
 
@@ -256,6 +287,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       if (token !== intake) return;
       ui.fileMeta.textContent = file.name;
       renderError(ui.issues, cause instanceof Error ? cause.message : t("fileUnreadable"));
+      collapseIntake(false);
       return;
     }
 
@@ -267,6 +299,7 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       renderIssues(ui.issues, result.issues, {
         headline: t(result.source === null ? "fileUnrecognised" : "packNotImportable"),
       });
+      collapseIntake(false);
       return;
     }
 
@@ -325,10 +358,18 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
       });
     }
 
-    tree.load(result.session, { blocked, strings });
+    /*
+     * Shown before the tree is filled, not after. The tree only puts the rows
+     * inside its viewport into the document, and it cannot measure a viewport
+     * that is still `display: none`: it falls back to a guess, which is a guess
+     * about the one thing the user is looking at. Revealing first means the
+     * first paint is measured against the real box: ADR-031.
+     */
     ui.preview.hidden = false;
+    tree.load(result.session, { blocked, strings });
     await gateGroupPermission(loaded.session);
     paintSelection();
+    collapseIntake(true);
   }
 
   function restorable(): number {
@@ -357,18 +398,14 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     ui.restore.disabled = count === 0;
   }
 
-  /** Shown only when the pack has groups and the browser has not granted them. */
+  /**
+   * Shown only when the pack has groups and the browser has not granted them.
+   * The callout itself is `shared/groups-callout.ts`, because the export side
+   * needs exactly the same offer for a different reason: ADR-030.
+   */
   async function gateGroupPermission(session: Session): Promise<void> {
     const groups = session.windows.reduce((sum, win) => sum + win.groups.length, 0);
-    if (groups === 0) {
-      ui.groupsPermission.hidden = true;
-      return;
-    }
-    const granted = await adapter.hasPermissions(["tabGroups"]).catch(() => false);
-    ui.groupsPermission.hidden = granted;
-    if (!granted) {
-      ui.groupsPermissionText.textContent = pluralUnit(groups, "groupsPermission");
-    }
+    await groupsCallout.update(groups);
   }
 
   async function run(): Promise<void> {
@@ -378,6 +415,12 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     ui.restore.disabled = true;
     ui.restore.setAttribute("aria-busy", "true");
     clearReport(ui.report);
+    /*
+     * A restore of two hundred tabs takes long enough that the user goes back
+     * to what they were doing, and the manager page ends up behind everything.
+     * The toolbar is the one surface they can still see: ADR-033.
+     */
+    notify.working("import");
 
     try {
       const report = await restoreSession(adapter, loaded.session, {
@@ -397,8 +440,12 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
         },
       });
       show(report);
+      if (report.ok && report.restored > 0) rating.used("restore");
+      if (report.ok) notify.done("import", report.restored, t("badgeRestored", tabsPhrase(report.restored)));
+      else notify.failed("import", t("badgeImportFailed"));
     } catch (cause) {
       renderError(ui.report, cause instanceof Error ? cause.message : String(cause));
+      notify.failed("import", t("badgeImportFailed"));
     } finally {
       ui.restore.removeAttribute("aria-busy");
       ui.restore.textContent = label;
@@ -431,7 +478,22 @@ export function initImportPanel(adapter: BrowserAdapter, settings: Settings): Im
     }
   }
 
-  return { showSession };
+  /**
+   * The restore controls, from whatever settings are current. These controls
+   * write settings, so they also have to follow a setting changed somewhere
+   * else: without this, Reset in Settings left stale values on screen that the
+   * next restore would then have used.
+   */
+  function paintPolicy(latest: Settings): void {
+    ui.target.value = latest.restoreTarget;
+    ui.skipDuplicates.checked = latest.skipOpenDuplicates;
+    ui.unload.checked = latest.unloadRestored;
+    ui.placeholder.checked = latest.openPlaceholder;
+    ui.threshold.value = String(latest.discardThreshold);
+    ui.threshold.disabled = latest.unloadRestored;
+  }
+
+  return { showSession, paint: paintPolicy };
 }
 
 

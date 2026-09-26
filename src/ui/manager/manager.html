@@ -56,6 +56,12 @@
             </svg>
             <span data-i18n="taskSettings">Settings</span>
           </button>
+          <button id="tab-support" class="tab" type="button" role="tab" data-tab="support" aria-selected="false" aria-controls="panel-support">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z" />
+            </svg>
+            <span data-i18n="taskSupport">Support</span>
+          </button>
           <button id="tab-about" class="tab" type="button" role="tab" data-tab="about" aria-selected="false" aria-controls="panel-about">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
@@ -66,6 +72,9 @@
 
         <div class="panes">
           <div id="panel-export" role="tabpanel" aria-labelledby="tab-export" class="panel">
+            <div id="export-groups-callout" hidden></div>
+            <div id="export-rating" hidden></div>
+
             <section class="card" aria-labelledby="export-legend">
               <h2 class="legend" id="export-legend" data-i18n="taskExport">Export</h2>
 
@@ -151,14 +160,32 @@
           </div>
 
           <div id="panel-import" role="tabpanel" aria-labelledby="tab-import" class="panel" hidden>
-            <section class="card" aria-labelledby="import-legend">
-              <h2 class="legend" id="import-legend" data-i18n="taskImport">Import</h2>
+            <div id="groups-permission" hidden></div>
+            <div id="import-rating" hidden></div>
 
-              <div id="dropzone" class="dropzone">
-                <p class="dropzone-lead" data-i18n="dropLead">Drop a pack here</p>
-                <button id="choose-file" class="btn btn-secondary" type="button" data-i18n="chooseFile">Choose a file</button>
-                <p class="hint" data-i18n="dropHint">A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.</p>
-                <input id="file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
+            <section id="intake" class="card" aria-labelledby="import-legend">
+              <div class="intake-head">
+                <h2 class="legend" id="import-legend" data-i18n="taskImport">Import</h2>
+                <button
+                  id="intake-toggle"
+                  class="btn btn-secondary intake-toggle"
+                  type="button"
+                  hidden
+                  aria-expanded="true"
+                  aria-controls="intake-body"
+                  data-i18n="chooseAnother"
+                >
+                  Choose another file
+                </button>
+              </div>
+
+              <div id="intake-body">
+                <div id="dropzone" class="dropzone">
+                  <p class="dropzone-lead" data-i18n="dropLead">Drop a pack here</p>
+                  <button id="choose-file" class="btn btn-secondary" type="button" data-i18n="chooseFile">Choose a file</button>
+                  <p class="hint" data-i18n="dropHint">A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.</p>
+                  <input id="file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
+                </div>
               </div>
 
               <p id="file-meta" class="summary" data-i18n="noFileYet">No file chosen yet.</p>
@@ -186,11 +213,6 @@
 
               <div id="tree" class="tree" data-i18n-attr="aria-label:treeLabel"></div>
 
-              <div id="groups-permission" class="notice" hidden>
-                <p id="groups-permission-text" class="notice-text"></p>
-                <button id="allow-groups" class="btn btn-secondary" type="button" data-i18n="allowGroups">Allow tab groups</button>
-              </div>
-
               <div class="control-grid restore-grid">
                 <label class="control-label" for="restore-target" data-i18n="restoreIntoLabel">Restore into</label>
                 <div class="row">
@@ -204,14 +226,14 @@
                 <div class="check-row">
                   <label class="check"><input type="checkbox" id="opt-skip-open" /> <span data-i18n="policySkipOpenShort">Skip tabs already open</span></label>
                   <label class="check"><input type="checkbox" id="opt-placeholder" /> <span data-i18n="policyPlaceholderShort">List what cannot be opened</span></label>
-                  <label class="check"><input type="checkbox" id="opt-unload" /> <span data-i18n="policyUnloadShort">Open tabs unloaded</span></label>
-                  <span id="unload-hint" class="hint" data-i18n="policyUnloadHint">An unloaded tab uses no memory until you click it. The tab you land on in each window loads.</span>
+                  <label class="check"><input type="checkbox" id="opt-unload" /> <span data-i18n="policyUnloadShort">Open tabs asleep</span></label>
+                  <span class="hint" data-i18n="policyUnloadHint">A sleeping tab uses no memory until you click it. The tab you land on in each window loads.</span>
                   <span class="inline-field">
-                    <label for="opt-threshold" data-i18n="unloadAfter">Leave unloaded after</label>
+                    <label for="opt-threshold" data-i18n="unloadAfter">Put to sleep after</label>
                     <input id="opt-threshold" class="number" type="number" min="0" max="10000" step="1" />
                     <span data-i18n="unitTabs">tabs</span>
                   </span>
-                  <span class="hint" data-i18n="optionsUnloadHint">Used only when the box above is clear: tabs past this many open unloaded.</span>
+                  <span class="hint" data-i18n="optionsUnloadHint">Used only when the box above is clear: tabs past this many open asleep.</span>
                 </div>
               </div>
 
@@ -306,6 +328,59 @@
             </section>
           </div>
 
+          <div id="panel-support" role="tabpanel" aria-labelledby="tab-support" class="panel" hidden>
+            <section class="card" aria-labelledby="support-legend">
+              <h2 class="legend" id="support-legend" data-i18n="supportLegend">Get in touch</h2>
+              <p class="hint" data-i18n="supportLead">Tell us what broke or what would help. A real person reads these.</p>
+
+              <div class="control-grid">
+                <span class="control-label" id="support-topic-label" data-i18n="supportTopicLabel">About</span>
+                <div id="support-topic" class="segmented scope" role="radiogroup" aria-labelledby="support-topic-label">
+                  <button type="button" role="radio" data-value="broken" aria-checked="true" data-i18n="supportTopicBroken">Problem</button>
+                  <button type="button" role="radio" data-value="idea" aria-checked="false" data-i18n="supportTopicIdea">Idea</button>
+                  <button type="button" role="radio" data-value="question" aria-checked="false" data-i18n="supportTopicQuestion">Question</button>
+                  <button type="button" role="radio" data-value="other" aria-checked="false" data-i18n="supportTopicOther">Other</button>
+                </div>
+
+                <label class="control-label" for="support-message" data-i18n="supportMessageLabel">Message</label>
+                <div>
+                  <textarea
+                    id="support-message"
+                    class="exclude support-message"
+                    rows="6"
+                    spellcheck="true"
+                    data-i18n-attr="placeholder:supportMessagePlaceholder"
+                  ></textarea>
+                  <span class="hint" data-i18n="supportMessageHint">What you did, what you expected, and what happened instead.</span>
+                </div>
+
+                <label class="control-label" for="support-reply" data-i18n="supportReplyLabel">Your email</label>
+                <div>
+                  <input id="support-reply" class="search support-reply" type="email" autocomplete="email" spellcheck="false" />
+                  <span id="support-reply-hint" class="hint" data-i18n="supportReplyHint">Optional. Without it we cannot reply.</span>
+                </div>
+              </div>
+
+              <details class="support-context" open>
+                <summary class="support-context-summary">
+                  <label class="check">
+                    <input type="checkbox" id="support-include" checked />
+                    <span data-i18n="supportIncludeContext">Include which browser I am using</span>
+                  </label>
+                </summary>
+                <pre id="support-diagnostics" class="support-diagnostics"></pre>
+              </details>
+
+              <div class="actions">
+                <button id="support-send" class="btn btn-primary action" type="button" disabled data-i18n="supportSend">Send</button>
+                <button id="support-copy" class="btn btn-secondary" type="button" data-i18n="supportCopy">Copy instead</button>
+                <span class="hint" data-i18n="supportSendHint">Opens your email app with this message ready to send.</span>
+              </div>
+
+              <div id="support-report" class="report" role="status" aria-live="polite"></div>
+            </section>
+          </div>
+
           <div id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="panel" hidden>
             <section class="card" aria-labelledby="about-legend">
               <h2 class="legend" id="about-legend" data-i18n="taskAbout">About</h2>
@@ -318,6 +393,11 @@
               <ul id="shortcuts" class="shortcut-list"></ul>
               <p class="hint" data-i18n="shortcutsHint">Change these on your browser's own extension shortcuts page.</p>
             </section>
+
+            <p class="maker">
+              <span data-i18n="madeBy">Built and maintained by</span>
+              <a id="maker-link" class="maker-link" target="_blank" rel="noopener noreferrer" data-i18n="makerName">palworks.ai</a>
+            </p>
           </div>
         </div>
       </div>

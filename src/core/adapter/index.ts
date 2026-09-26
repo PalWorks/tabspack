@@ -4,6 +4,7 @@
  * name: see `capabilities()`.
  */
 import type {
+  BadgeTone,
   BrowserAdapter,
   Capabilities,
   CreateTabRequest,
@@ -21,7 +22,16 @@ import type {
 } from "./types.js";
 import { browser } from "./webext.js";
 
-const BADGE_COLOR = "#2563eb";
+/*
+ * Badge colours are browser chrome, not page CSS, so they are literals rather
+ * than tokens. Chosen from the same palette as `theme.css` and checked against
+ * white badge text: ADR-033.
+ */
+const BADGE_COLOURS: Record<BadgeTone, string> = {
+  working: "#2563eb",
+  success: "#15803d",
+  failure: "#b91c1c",
+};
 let badgeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -283,11 +293,13 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
-  async setBadge(text: string, durationMs?: number): Promise<void> {
+  async setBadge(text: string, durationMs?: number, tone: BadgeTone = "working"): Promise<void> {
     const action = browser.action;
     if (!action) return;
     try {
-      await action.setBadgeBackgroundColor({ color: BADGE_COLOR });
+      await action.setBadgeBackgroundColor({ color: BADGE_COLOURS[tone] });
+      // Not every engine has this, and a missing text colour is not a failure.
+      await action.setBadgeTextColor?.({ color: "#ffffff" }).catch(() => undefined);
       await action.setBadgeText({ text });
     } catch {
       return;
@@ -298,6 +310,22 @@ export const realAdapter: BrowserAdapter = {
         action.setBadgeText({ text: "" }).catch(() => undefined);
         badgeTimer = null;
       }, durationMs);
+    }
+  },
+
+  /**
+   * The tooltip on the toolbar icon. It is the only place a full sentence fits
+   * on the toolbar, so it carries what happened while the badge carries that
+   * something did. Cleared back to the extension name by passing an empty
+   * string: ADR-033.
+   */
+  async setActionTitle(title: string): Promise<void> {
+    const action = browser.action;
+    if (!action?.setTitle) return;
+    try {
+      await action.setTitle({ title: title === "" ? realAdapter.getMessage("extName") : title });
+    } catch {
+      return;
     }
   },
 
@@ -347,6 +375,16 @@ export const realAdapter: BrowserAdapter = {
 
   async openExtensionPage(path: string): Promise<void> {
     const url = browser.runtime.getURL(path);
+    await browser.tabs.create({ url });
+  },
+
+  /**
+   * An address that is not ours, opened as it was given. `mailto:` hands off to
+   * the operating system's mail client and may open no tab at all, which is
+   * success rather than failure, so a refusal is reported by throwing and the
+   * caller decides what to say: ADR-038.
+   */
+  async openExternal(url: string): Promise<void> {
     await browser.tabs.create({ url });
   },
 

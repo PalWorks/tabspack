@@ -32,11 +32,15 @@ import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
 import { initSnapshotPanel } from "./snapshot-panel.js";
 import { initSettingsPanel } from "./settings-panel.js";
+import { initSupportPanel } from "./support-panel.js";
+import { initRatingAsk } from "./rating-panel.js";
+import { initGroupsCallout } from "../shared/groups-callout.js";
 import { readSnapshotSession, type SnapshotMeta } from "../../core/snapshots.js";
 import { TABSPACK_SOURCE } from "../../core/import.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
 import { copyPayload, savePayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
+import { initNotifier } from "../shared/notify.js";
 
 const adapter = realAdapter;
 
@@ -72,6 +76,10 @@ const FORMAT_NOTES: Record<ExportFormat, string> = {
 let settings: Settings;
 let available = 0;
 let settingsPanel: { paint(latest: Settings): void } | null = null;
+let groupsCallout: { update(groups: number): Promise<void> } | null = null;
+let rating: { used(action: "export" | "restore"): void } | null = null;
+let importPanelRef: { paint(latest: Settings): void } | null = null;
+const notify = initNotifier(adapter);
 /** Repaints the scope control when a setting changes somewhere else. */
 let scope: (value: string) => void = () => undefined;
 
@@ -91,13 +99,36 @@ async function start(): Promise<void> {
       import: must<HTMLDivElement>("#panel-import"),
       snapshots: must<HTMLDivElement>("#panel-snapshots"),
       settings: must<HTMLDivElement>("#panel-settings"),
+      support: must<HTMLDivElement>("#panel-support"),
       about: must<HTMLDivElement>("#panel-about"),
     },
     paneFromHash(),
     rememberPane,
   );
-  const importPanel = initImportPanel(adapter, settings);
+  /*
+   * Created before the import panel, which reports its own finished restores
+   * into it: ADR-036. Two hosts, one per pane that can finish an action.
+   */
+  rating = initRatingAsk(
+    [must<HTMLDivElement>("#export-rating"), must<HTMLDivElement>("#import-rating")],
+    adapter,
+  );
+  const importPanel = initImportPanel(adapter, settings, rating);
+  importPanelRef = importPanel;
   settingsPanel = initSettingsPanel(adapter, settings);
+  initSupportPanel(adapter, settings);
+
+  /*
+   * Asked for here, before the export, because this is where it is lost.
+   * Without the permission the `browser.tabGroups` namespace does not exist, so
+   * the collector never reads a title or a colour and the file carries bare
+   * membership. The tabs come back in the right clusters with no names, and
+   * until now nothing said why: ADR-030.
+   */
+  groupsCallout = initGroupsCallout(must<HTMLDivElement>("#export-groups-callout"), adapter, {
+    intent: "export",
+    onGranted: () => void refresh(),
+  });
 
   initSnapshotPanel(adapter, settings, {
     async preview(meta: SnapshotMeta): Promise<void> {
@@ -170,7 +201,7 @@ async function start(): Promise<void> {
 }
 
 /** The five panes, and the only names the address is allowed to carry. */
-const PANES = ["export", "import", "snapshots", "settings", "about"] as const;
+const PANES = ["export", "import", "snapshots", "settings", "support", "about"] as const;
 
 /** Which pane an address asks for. Anything unknown means the first one. */
 function paneFromHash(): string {
@@ -245,6 +276,10 @@ function watchSettings(): void {
       applyTheme(settings.theme);
       paintSettings();
       settingsPanel?.paint(settings);
+      // The restore controls write settings too, so they have to follow one
+      // changed elsewhere. Without this, Reset in Settings left the import
+      // pane showing values the next restore would not have used.
+      importPanelRef?.paint(settings);
       scope(settings.scope);
       if (rescan) await refresh();
     })();
@@ -307,6 +342,8 @@ async function refresh(): Promise<void> {
     ui.exportButton.textContent =
       counts.tabs === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(counts.tabs));
     setEnabled(counts.tabs > 0);
+    // The scope's own groups, which is what the permission would add names to.
+    await groupsCallout?.update(counts.groups);
     if (counts.tabs === 0) {
       renderNote(ui.report, t(totalRemoved(removed) > 0 ? "filtersEmptiedScope" : "nothingInScope"));
     }
@@ -326,6 +363,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
   button.textContent = t("working");
   button.setAttribute("aria-busy", "true");
   clearReport(ui.report);
+  notify.working("export");
 
   try {
     const payload = await buildExport(adapter, settings);
@@ -333,22 +371,32 @@ async function run(mode: "save" | "copy"): Promise<void> {
     const outcome = mode === "save" ? await savePayload(adapter, payload) : await copyPayload(adapter, payload);
     if (outcome.error) {
       renderError(ui.report, outcome.error);
+      notify.failed("export", t("badgeExportFailed"));
       return;
     }
-    renderExportReport(
-      ui.report,
-      buildExportReport({
-        session: payload.session,
-        removed: payload.removed,
-        recovered: payload.recovered,
-        format: payload.format,
-        bytes: payload.bytes,
-        filename: payload.filename,
-        saved: outcome.saved,
-      }),
+    const report = buildExportReport({
+      session: payload.session,
+      removed: payload.removed,
+      recovered: payload.recovered,
+      format: payload.format,
+      bytes: payload.bytes,
+      filename: payload.filename,
+      saved: outcome.saved,
+    });
+    renderExportReport(ui.report, report);
+    rating?.used("export");
+    // The manager page is often behind other windows, so the toolbar has to
+    // carry the outcome too: ADR-033.
+    notify.done(
+      "export",
+      report.tabs,
+      outcome.saved
+        ? t("badgeExported", tabsPhrase(report.tabs), report.filename)
+        : t("badgeCopied", tabsPhrase(report.tabs)),
     );
   } catch (error) {
     renderError(ui.report, describe(error));
+    notify.failed("export", t("badgeExportFailed"));
   } finally {
     button.removeAttribute("aria-busy");
     button.textContent = label;

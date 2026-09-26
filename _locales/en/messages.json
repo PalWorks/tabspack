@@ -176,10 +176,10 @@
     }
   },
   "policyUnloadShort": {
-    "message": "Open tabs unloaded"
+    "message": "Open tabs asleep"
   },
   "policyUnloadHint": {
-    "message": "An unloaded tab uses no memory until you click it. The tab you land on in each window loads."
+    "message": "A sleeping tab uses no memory until you click it. The tab you land on in each window loads."
   },
   "optionsRecoverLabel": {
     "message": "Suspended tabs"
@@ -495,27 +495,8 @@
   "cannotBeOpenedFlag": {
     "message": "cannot be opened"
   },
-  "unit_groupsPermission_one": {
-    "message": "This pack has $count$ tab group. Restoring it as a group needs one permission, which you can allow now or refuse and still restore the tabs.",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
-  "unit_groupsPermission_other": {
-    "message": "This pack has $count$ tab groups. Restoring them as groups needs one permission, which you can allow now or refuse and still restore the tabs.",
-    "placeholders": {
-      "count": {
-        "content": "$1"
-      }
-    }
-  },
   "allowGroups": {
     "message": "Allow tab groups"
-  },
-  "groupsPermissionRefused": {
-    "message": "Tab groups were not allowed, so the tabs in this pack will be restored side by side in the right order."
   },
   "restoreIntoLabel": {
     "message": "Restore into"
@@ -533,7 +514,7 @@
     "message": "Skip tabs already open"
   },
   "unloadAfter": {
-    "message": "Leave unloaded after"
+    "message": "Put to sleep after"
   },
   "restoreButton": {
     "message": "Restore"
@@ -658,7 +639,7 @@
     }
   },
   "unit_restore_unloaded_one": {
-    "message": "$count$ left unloaded",
+    "message": "$count$ left asleep",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -666,7 +647,7 @@
     }
   },
   "unit_restore_unloaded_other": {
-    "message": "$count$ left unloaded",
+    "message": "$count$ left asleep",
     "placeholders": {
       "count": {
         "content": "$1"
@@ -854,7 +835,7 @@
     "message": "The clipboard was refused. Select the addresses and copy them."
   },
   "optionsUnloadHint": {
-    "message": "Used only when the box above is clear: tabs past this many open unloaded."
+    "message": "Used only when the box above is clear: tabs past this many open asleep."
   },
   "optionsBatchLabel": {
     "message": "Open in batches of"
@@ -947,5 +928,196 @@
   "optionsResetHint": {
     "message": "Your snapshots and your files are not touched.",
     "description": "Reassurance beside the reset button."
+  },
+  "groupsNeededExport": {
+    "message": "Tab group names will not be saved",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "groupsNeededExportWhy": {
+    "message": "Your browser only shares group names and colours with an extension you allow. Without it the file keeps which tabs belong together, but not what the group was called."
+  },
+  "groupsNeededRestore": {
+    "message": "Tab group names will not be restored",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "groupsNeededRestoreWhy": {
+    "message": "Your browser only lets an extension name and colour a group if you allow it. Without it the tabs still come back together, in the right order."
+  },
+  "groupsRefusedTitle": {
+    "message": "Tab groups not allowed"
+  },
+  "groupsRefusedExport": {
+    "message": "The file will keep which tabs belong together, but not the group names or colours. You can allow it later from your browser's extension settings."
+  },
+  "groupsRefusedRestore": {
+    "message": "Your tabs will be restored side by side in the right order, without the group names or colours."
+  },
+  "groupsUnnamed": {
+    "message": "$count$ without names",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "chooseAnother": {
+    "message": "Choose another file"
+  },
+  "badgeExporting": {
+    "message": "TabsPack is exporting your tabs"
+  },
+  "badgeImporting": {
+    "message": "TabsPack is restoring your tabs"
+  },
+  "badgeExported": {
+    "message": "Exported $tabs$ to $file$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1",
+        "example": "42 tabs"
+      },
+      "file": {
+        "content": "$2",
+        "example": "tabspack-20260926-0915.tabspack.json"
+      }
+    }
+  },
+  "badgeCopied": {
+    "message": "Copied $tabs$ to the clipboard",
+    "placeholders": {
+      "tabs": {
+        "content": "$1",
+        "example": "42 tabs"
+      }
+    }
+  },
+  "badgeRestored": {
+    "message": "Restored $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1",
+        "example": "42 tabs"
+      }
+    }
+  },
+  "badgeExportFailed": {
+    "message": "Export failed. Open TabsPack to see why."
+  },
+  "badgeImportFailed": {
+    "message": "Restore failed. Open TabsPack to see why."
+  },
+  "taskSupport": {
+    "message": "Support"
+  },
+  "supportLegend": {
+    "message": "Get in touch"
+  },
+  "supportLead": {
+    "message": "Tell us what broke or what would help. A real person reads these."
+  },
+  "supportTopicLabel": {
+    "message": "About"
+  },
+  "supportTopicBroken": {
+    "message": "Problem"
+  },
+  "supportTopicIdea": {
+    "message": "Idea"
+  },
+  "supportTopicQuestion": {
+    "message": "Question"
+  },
+  "supportTopicOther": {
+    "message": "Other"
+  },
+  "supportMessageLabel": {
+    "message": "Message"
+  },
+  "supportMessagePlaceholder": {
+    "message": "What happened?"
+  },
+  "supportMessageHint": {
+    "message": "What you did, what you expected, and what happened instead."
+  },
+  "supportReplyLabel": {
+    "message": "Your email"
+  },
+  "supportReplyHint": {
+    "message": "Optional. Without it we cannot reply."
+  },
+  "supportReplyBad": {
+    "message": "That does not look like an email address."
+  },
+  "supportIncludeContext": {
+    "message": "Include which browser I am using"
+  },
+  "supportSend": {
+    "message": "Send"
+  },
+  "supportCopy": {
+    "message": "Copy instead"
+  },
+  "supportSendHint": {
+    "message": "Opens your email app with this message ready to send."
+  },
+  "supportHandedOff": {
+    "message": "Your email app is open with the message ready to send to $to$.",
+    "placeholders": {
+      "to": {
+        "content": "$1",
+        "example": "support@palworks.ai"
+      }
+    }
+  },
+  "supportNoMailApp": {
+    "message": "No email app opened, so the message is on your clipboard instead. Paste it into any email."
+  },
+  "supportTooLong": {
+    "message": "That message is too long to hand to an email app, so it is on your clipboard instead."
+  },
+  "supportCopied": {
+    "message": "Copied. Paste it into an email to $to$.",
+    "placeholders": {
+      "to": {
+        "content": "$1",
+        "example": "support@palworks.ai"
+      }
+    }
+  },
+  "supportFailed": {
+    "message": "That did not go through. Copy the message and email it instead."
+  },
+  "ratingTitle": {
+    "message": "Is TabsPack working out for you?"
+  },
+  "ratingText": {
+    "message": "A rating helps other people find it. It takes a minute and we read every one."
+  },
+  "ratingRate": {
+    "message": "Rate TabsPack"
+  },
+  "ratingLater": {
+    "message": "Not now"
+  },
+  "ratingNever": {
+    "message": "Don't ask again"
+  },
+  "madeBy": {
+    "message": "Built and maintained by"
+  },
+  "makerName": {
+    "message": "palworks.ai",
+    "description": "A company name. Not translated."
   }
 }

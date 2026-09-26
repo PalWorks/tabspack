@@ -61,6 +61,9 @@ export interface WebExtApi {
   action?: {
     setBadgeText(details: { text: string }): Promise<void>;
     setBadgeBackgroundColor(details: { color: string }): Promise<void>;
+    /** Chromium 110 and Gecko 120 onward. Absent is not a failure. */
+    setBadgeTextColor?(details: { color: string }): Promise<void>;
+    setTitle?(details: { title: string }): Promise<void>;
   };
   commands?: {
     getAll(): Promise<unknown[]>;

@@ -7,6 +7,9 @@
  */
 
 /** A tab as the browser reports it, narrowed to the fields TabsPack reads. */
+/** What a badge is telling the user, which decides its colour. */
+export type BadgeTone = "working" | "success" | "failure";
+
 export interface RawTab {
   id?: number;
   index: number;
@@ -198,7 +201,16 @@ export interface BrowserAdapter {
   storageBytesInUse(): Promise<number | null>;
   /** Fires when another page or the background changes stored data. */
   onStorageChanged(handler: (keys: string[]) => void): void;
-  setBadge(text: string, durationMs?: number): Promise<void>;
+  /**
+   * The toolbar badge. `tone` colours it, because four characters cannot say
+   * whether something worked: ADR-033.
+   */
+  setBadge(text: string, durationMs?: number, tone?: BadgeTone): Promise<void>;
+  /**
+   * The toolbar tooltip, which is where the sentence goes. The badge says that
+   * something happened, this says what.
+   */
+  setActionTitle(title: string): Promise<void>;
   extensionUrl(path: string): string;
   /** A translated string. Synchronous, because the browser's own API is. */
   getMessage(key: string, subs?: string[]): string;
@@ -206,6 +218,14 @@ export interface BrowserAdapter {
   listCommands(): Promise<{ name: string; shortcut: string; description: string }[]>;
   /** Opens the extension's own options page, wherever the browser puts it. */
   openOptions(): Promise<void>;
+  /** A page of this extension, by its path inside the package. */
   openExtensionPage(path: string): Promise<void>;
+  /**
+   * An address that is not ours: a store listing, a `mailto:`. Separate from
+   * `openExtensionPage` because that one resolves its argument against the
+   * extension's own origin, so handing it an absolute URL produces
+   * `chrome-extension://<id>/https://...` and opens nothing: ADR-038.
+   */
+  openExternal(url: string): Promise<void>;
   copyText(text: string): Promise<void>;
 }

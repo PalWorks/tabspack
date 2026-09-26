@@ -47,11 +47,35 @@ test("the URL list and flat JSON formats name themselves differently", async () 
   const urls = await buildExport(adapter(), { ...DEFAULT_SETTINGS, format: "urls" }, { now: WHEN });
   assert.match(urls.filename, /\.txt$/);
   assert.equal(urls.mime, "text/plain;charset=utf-8");
-  assert.equal(urls.text.split("\n").filter(Boolean).length, 39);
+  // Titles ship on, ADR-032, so each tab is a title line and an address line.
+  assert.equal(urls.text.split("\n").filter(Boolean).length, 78);
+
+  const bare = await buildExport(
+    adapter(),
+    { ...DEFAULT_SETTINGS, format: "urls", textIncludeTitles: false },
+    { now: WHEN },
+  );
+  assert.equal(bare.text.split("\n").filter(Boolean).length, 39, "one line per tab with titles off");
 
   const flat = await buildExport(adapter(), { ...DEFAULT_SETTINGS, format: "flatjson" }, { now: WHEN });
   assert.match(flat.filename, /\.json$/);
   assert.equal((JSON.parse(flat.text) as unknown[]).length, 39);
+});
+
+/*
+ * The two defaults a user asked about on 2026-09-26, pinned so a later change
+ * to either one is deliberate rather than accidental: ADR-032.
+ */
+test("a text export carries titles, and a pack carries no favicons, by default", async () => {
+  assert.equal(DEFAULT_SETTINGS.textIncludeTitles, true);
+  assert.equal(DEFAULT_SETTINGS.keepFavicons, false);
+
+  const pack = await buildExport(adapter(), DEFAULT_SETTINGS, { now: WHEN });
+  assert.equal(pack.text.includes("favIconUrl"), false, "nothing reads them, so nothing writes them");
+
+  const kept = await buildExport(adapter(), { ...DEFAULT_SETTINGS, keepFavicons: true }, { now: WHEN });
+  assert.ok(kept.text.includes("favIconUrl"), "the switch still works for anyone who wants them");
+  assert.ok(kept.bytes > pack.bytes, "and they cost what they cost");
 });
 
 test("a scope change changes what is collected", async () => {

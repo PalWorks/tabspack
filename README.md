@@ -90,7 +90,7 @@ One source tree, two manifests, no server, no network, one runtime dependency.
 ```
 popup            launcher: counts, one click export, import hands off to the manager
 manager page     everything else, on one rail: export, import and preview and
-                 restore, snapshots, settings, about. All file work
+                 restore, snapshots, settings, support, about. All file work
 service worker   keyboard commands, badge, and writing a file when asked by one
 placeholder page addresses a restore could not open, as inert text
 ```
@@ -126,7 +126,9 @@ npm run verify         # typecheck, lint, schema check, tests, budgets, build
 | `npm run schema:check` | Fails if the generated schema no longer matches the types |
 | `npm run perf` | The performance budgets in `test/tools/bench.ts` |
 | `npm run smoke` | Loads the build into a real Chromium and drives both surfaces. Local only |
-| `npm run fixtures`, `npm run icons` | Regenerate fixtures and placeholder icons |
+| `npm run fixtures`, `npm run assets` | Regenerate fixtures and the icon and store artwork |
+| `npm run pack` | Every store archive into `dist/artifacts/`: Chrome, Edge, the Firefox `.xpi` and the source zip AMO asks for |
+| `npm run icons:compare` | Renders every candidate in `assets/candidates/` at 16, 32, 48 and 128 in both themes. A mark is chosen at 16 px in a toolbar, not at 128 on a slide |
 
 Then load it unpacked:
 
@@ -168,8 +170,8 @@ manifest.firefox.json   Gecko manifest
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
 
 ```bash
-npm run verify        # typecheck, lint, schema, 223 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 70 checks against the built extension in a real Chromium
+npm run verify        # typecheck, lint, schema, 247 tests, contrast, budgets, both builds, AMO's linter
+npm run smoke         # 81 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
 npm run matrix:firefox -- --headed --grant-groups

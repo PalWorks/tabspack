@@ -16,6 +16,7 @@
  *   - `windows.create` refuses bounds and a state in the same call
  */
 import type {
+  BadgeTone,
   BrowserAdapter,
   Capabilities,
   CreateTabRequest,
@@ -68,7 +69,9 @@ export interface FakeState {
 export interface FakeAdapter extends BrowserAdapter {
   downloads: DownloadRequest[];
   copied: string[];
-  badges: { text: string; durationMs?: number }[];
+  badges: { text: string; durationMs?: number; tone?: BadgeTone }[];
+  /** Every tooltip the surfaces set, in order. */
+  actionTitles: string[];
   opened: string[];
   /** Every mutating call, in order, so a test can assert the sequence. */
   calls: { method: string; detail?: unknown }[];
@@ -144,6 +147,7 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     downloads: [],
     copied: [],
     badges: [],
+    actionTitles: [],
     opened: [],
     calls: [],
     storageListeners: [],
@@ -424,8 +428,11 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       if (state.storageBytesInUse === null) return null;
       return new TextEncoder().encode(JSON.stringify(storage)).length;
     },
-    async setBadge(text: string, durationMs?: number) {
-      adapter.badges.push({ text, durationMs });
+    async setBadge(text: string, durationMs?: number, tone?: BadgeTone) {
+      adapter.badges.push({ text, durationMs, tone });
+    },
+    async setActionTitle(title: string) {
+      adapter.actionTitles.push(title);
     },
     extensionUrl(path: string) {
       return `chrome-extension://fake/${path}`;
@@ -437,7 +444,11 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       return [];
     },
     async openOptions() {
-      adapter.opened.push("options.html");
+      // Settings are a pane of the manager page now, not a page: ADR-028.
+      adapter.opened.push("manager.html#settings");
+    },
+    async openExternal(url: string) {
+      adapter.opened.push(url);
     },
     async openExtensionPage(path: string) {
       adapter.opened.push(path);

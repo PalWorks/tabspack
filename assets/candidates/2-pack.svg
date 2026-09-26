@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack">
+  <!--
+    2. The pack.
+
+    A box whose lid is a tab strip: both halves of the name in one shape. The
+    latch that made the first draft a briefcase is gone, so what is left is a
+    lid, a seam and a body. Violet rather than blue, because a toolbar is a row
+    of blue squares and the old mark vanished into it.
+  -->
+  <defs>
+    <linearGradient id="p-face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7c5cff" />
+      <stop offset="1" stop-color="#5b34e8" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#p-face)" />
+  <g fill="#ffffff">
+    <path opacity='0.45' d="M24.0 48 V38 A6 6 0 0 1 30.0 32 H40.0 A6 6 0 0 1 46.0 38 V48 Z" />
+    <path d="M53.0 48 V34 A6 6 0 0 1 59.0 28 H69.0 A6 6 0 0 1 75.0 34 V48 Z" />
+    <path opacity='0.45' d="M82.0 48 V38 A6 6 0 0 1 88.0 32 H98.0 A6 6 0 0 1 104.0 38 V48 Z" />
+    <rect x="18" y="48" width="92" height="18" rx="8" />
+    <path d="M22 72h84v22a12 12 0 0 1-12 12H34a12 12 0 0 1-12-12V72z" opacity="0.82" />
+  </g>
+</svg>

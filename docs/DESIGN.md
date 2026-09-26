@@ -101,6 +101,11 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 └────────────────────────────────────────────┘
 ```
 
+The intake card is drawn folded, which is how it looks once a pack is loaded:
+the drop target is the whole card until there is something to drop, and a
+summary line with one way back afterwards. The callout above it is the shape
+every pane uses for something to act on before acting.
+
 Decisions behind that layout:
 
 - **Export and import sit in the same row.** They are the two reasons the popup is opened, so both are one click from the browser toolbar. Export takes the width, because it is the action that happens here; import is sized to its word, because it is a handoff. A popup cannot host a file picker at all, ADR-009, so import opens the manager page already on the import task with the file button focused. What the popup must never do is hide import behind an icon and let a first time user conclude the product only exports.
@@ -167,11 +172,11 @@ Rules for this page:
 
 ```
   [ Export | Import ]
-  ┌─ Import ──────────────────────────────────────────────────────────┐
-  │  ┌─────────────────────────────────────────────────────────────┐  │
-  │  │            Drop a pack here      [ Choose a file ]          │  │
-  │  │       A .tabspack.json file. Nothing is opened until        │  │
-  │  └─────────────────────────────────────────────────────────────┘  │
+  ▌⚠ Tab group names will not be restored     [ Allow tab groups ]    │
+  │  Your browser only lets an extension name and colour a group if   │
+  │  you allow it. Without it the tabs still come back together.      │
+  └───────────────────────────────────────────────────────────────────┘
+  ┌─ Import ───────────────────────────────── [ Choose another file ] ┐
   │  pack.tabspack.json · 2 windows · 6 tabs · 1 group · 1.4 KB       │
   │  TabsPack file: everything in it can be restored.                 │
   │  ⚠ 2 things to know about this file            (folded away)      │
@@ -186,10 +191,10 @@ Rules for this page:
   │  │     ☑ Grouped A           example.com/grouped-a             │  │
   │  │   ☑ Settings   chrome://settings/        [cannot be opened]  │  │
   │  └─────────────────────────────────────────────────────────────┘  │
-  │  This pack has 1 tab group ...            [ Allow tab groups ]    │
   │  Restore into [ New windows ▾ ]                                   │
-  │  Policy  ☑ Skip tabs already open   ☑ Open tabs unloaded          │
-  │          Leave unloaded after [20] tabs         (disabled above)  │
+  │  Policy  ☑ Skip tabs already open  ☑ List what cannot be opened   │
+  │          ☑ Open tabs asleep                                       │
+  │          Put to sleep after [20] tabs           (disabled above)  │
   │  [ Restore 5 tabs ]   Nothing opens until you press this.          │
   │  ✓ Restored 5 tabs · 2 windows · 1 group · 1 cannot be opened      │
   │  ⚠ 3 notes about this restore                  (folded away)      │
@@ -246,6 +251,23 @@ Decisions behind that layout:
 - Icons are inline SVG with `aria-hidden="true"` when decorative, and a text label otherwise. No icon carries meaning alone.
 - The interface is legible and usable at 200 percent browser zoom, which the popup's fixed 360 px width must tolerate by wrapping rather than clipping.
 
+## 6b. The callout, and the toolbar
+
+Two things that speak outside a card.
+
+**A callout** is a banner at the top of a pane, above the cards, for something
+the user should act on before they act. Tone is carried by its left bar, its
+glyph and its words, never by the background alone. It is never a modal: a
+dialog in front of a permission the browser is about to ask about itself is one
+layer too many. Two tones: `warn` for something that will cost them if ignored,
+and `quiet` for a favour, which is the rating ask. ADR-031 and ADR-036.
+
+**The toolbar** is the only surface every context can write to, and it has
+exactly two slots. The badge is four characters and a colour: blue `…` working,
+green and a count for done, red `!` for failed. The tooltip is the sentence.
+Colour is never the only signal, because the count, the `!` and the words
+change too. ADR-033.
+
 ## 7. Settings and About
 
 Settings holds what belongs to no task: suspended tab recovery, restore speed,
@@ -267,6 +289,11 @@ version, the privacy line and the shortcuts.
 - **The theme is three choices, System first.** It writes one attribute on the
   root element, which the tokens already answer to: no new colour is defined for
   a theme switch, ever.
+- **Support is a pane, not a mailto link in the footer.** Pick the topic, say
+  what happened, optionally leave an address, and read the five diagnostic lines
+  before they go anywhere. They are shown whether or not they are switched on,
+  greyed when off, because a checkbox about what you are sharing is only a real
+  choice if you can see what it means. ADR-035.
 - **Plain words.** A setting is read by someone who wants to change it and leave,
   so the label says what it does and the hint says why you would want it. Short
   sentences, no jargon, and never an explanation longer than the thing it

@@ -55,9 +55,36 @@ There are no host permissions, so the extension cannot read or modify the conten
 
 TabsPack collects no data from anyone, of any age.
 
+## The support form
+
+TabsPack has a Support pane. It is the one place where anything you write is
+meant to reach us, so it is worth being exact about how.
+
+The form composes a message from what you type and hands it to **your own email
+app**. TabsPack does not send it, and makes no network request to do it: the
+message goes out from your mail client, under your control, after you have seen
+it one more time. If no mail app opens, the message is copied to your clipboard
+instead and the page says so.
+
+What travels is what is on the screen and nothing else. If you leave the "include
+which browser I am using" box ticked, five lines go with it, and they are shown
+to you in full before you send: the TabsPack version, your browser and operating
+system, whether the tab groups permission is granted, and two settings. Untick
+it and they are not included.
+
+**No address, title or count of your tabs is ever in a support message.** That is
+enforced by a test, not by a promise.
+
 ## Third parties
 
-There are none. No service provider, no processor, no sub processor, no analytics vendor. The extension contains no third party script, font or remote resource.
+There are none. No service provider, no processor, no sub processor, no analytics
+vendor. The extension contains no third party script, font or remote resource.
+
+Two addresses appear in the interface as links you can choose to click: the
+maker's site, `palworks.ai`, at the foot of About, and, once TabsPack is
+published, its listing on your browser's store. Clicking one navigates your
+browser there, exactly as any other link would. Nothing is loaded from either by
+any TabsPack page.
 
 ## Changes to this policy
 

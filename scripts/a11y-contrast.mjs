@@ -36,6 +36,10 @@ const PAIRS = [
   ["--border-strong", "--bg", 3, "a control's own border on the page"],
   ["--border-strong", "--surface", 3, "a control's own border on a recessed area"],
   ["--border-strong", "--surface-raised", 3, "a control's own border on a card"],
+  ["--text", "--warn-soft", 4.5, "the body of a callout that needs attention"],
+  ["--text-muted", "--warn-soft", 4.5, "the second line of that callout"],
+  ["--warn", "--warn-soft", 3, "the callout's own glyph"],
+  ["--warn-edge", "--bg", 3, "the callout's border against the page"],
 ];
 
 const THEMES = {

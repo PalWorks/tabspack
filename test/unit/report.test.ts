@@ -46,6 +46,45 @@ test("a report counts what was kept and what was dropped", () => {
   assert.equal(totalRemoved(report.removed), 3);
 });
 
+/*
+ * Without the `tabGroups` permission the collector never reads a title or a
+ * colour, so the file carries bare membership and a restore produces unnamed
+ * clusters. The export report is the only place a user can learn that before
+ * it happens: ADR-030.
+ */
+test("a group with no name and no colour is counted, so the export can say so", () => {
+  const bare: Session = {
+    ...session,
+    windows: [
+      {
+        ...(session.windows[0] as (typeof session.windows)[number]),
+        groups: [{ key: "g1" }, { key: "g2" }, { key: "g3", title: "Named" }],
+      },
+    ],
+  };
+  const report = buildExportReport({
+    session: bare,
+    removed: { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 },
+    format: "tabspack",
+    bytes: 100,
+    filename: "x.tabspack.json",
+    saved: true,
+  });
+  assert.equal(report.unnamedGroups, 2, "the two bare groups are counted, the named one is not");
+});
+
+test("a pack whose groups all have names reports none missing", () => {
+  const report = buildExportReport({
+    session,
+    removed: { scheme: 0, pinned: 0, excluded: 0, duplicate: 0 },
+    format: "tabspack",
+    bytes: 100,
+    filename: "x.tabspack.json",
+    saved: true,
+  });
+  assert.equal(report.unnamedGroups, 0);
+});
+
 test("every filter that dropped something is named", () => {
   // The order is the order the interface prints them in, most surprising first.
   assert.deepEqual(removedParts({ scheme: 1, pinned: 2, excluded: 3, duplicate: 4 }), [

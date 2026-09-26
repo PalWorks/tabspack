@@ -117,12 +117,17 @@ function serializeTab(tab: SessionTab, options: SerializeOptions): TabsPackTab {
 }
 
 /**
- * Embedded icons are megabytes across a few hundred tabs, so they are dropped
- * unless the user asks for them. Remote icon URLs cost nothing and are kept.
+ * Off means no favicon in the file, on means every favicon including the
+ * embedded ones.
+ *
+ * This used to drop only `data:` icons and keep every remote one whatever the
+ * setting said, so a checkbox labelled "Favicon URLs" removed almost nothing
+ * when it was cleared. The label is the promise, and the promise is now kept:
+ * ADR-032. Embedded icons are still the expensive case, megabytes across a few
+ * hundred tabs, which is why the default is off.
  */
 export function keepableFavicon(url: string | undefined, keep: boolean): string | undefined {
-  if (!url) return undefined;
-  if (url.startsWith("data:")) return keep ? url : undefined;
+  if (!url || !keep) return undefined;
   return url;
 }
 

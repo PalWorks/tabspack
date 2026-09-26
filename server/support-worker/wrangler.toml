@@ -1,0 +1,6 @@
+name = "tabspack-support"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+# The key is a secret, never a variable here:
+#   npx wrangler secret put RESEND_API_KEY

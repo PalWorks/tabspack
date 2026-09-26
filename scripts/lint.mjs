@@ -58,7 +58,20 @@ async function ruleNoHtmlInjection() {
   }
 }
 
-const NETWORK_ALLOWLIST = ["http://www.w3.org/2000/svg"];
+/*
+ * The rule forbids remote *resources*: anything the extension would load, which
+ * is what makes "no network request of any kind" true. A page the user clicks
+ * through to is a navigation, not a resource, and these are the only ones.
+ *
+ * The store review pages are not here yet, because `src/core/rating.ts` has no
+ * listing to link to until something is published: ADR-036. Adding one means
+ * adding it here too, which is the reminder that it is a real address.
+ */
+const NETWORK_ALLOWLIST = [
+  "http://www.w3.org/2000/svg",
+  // Who made it, linked once at the foot of About: ADR-037.
+  "https://palworks.ai",
+];
 
 async function ruleNoNetwork() {
   const banned = /\b(fetch|XMLHttpRequest|EventSource|WebSocket|importScripts)\s*\(/g;

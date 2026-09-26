@@ -476,3 +476,182 @@ Scope, format, titles, favicons, private windows, dedupe, web pages only, skip p
 **Consequence.** Fifteen duplicate controls gone, one settings module instead of a page, 19 message keys removed and 7 added. The cost is discoverability: someone who opens Settings looking for their export defaults finds none, so the pane opens with one line saying where they are. That line is cheaper than fifteen widgets and more honest than two.
 
 A smoke check now asserts the property directly rather than trusting the diff: no control id on the settings pane appears on the export or import panes.
+
+---
+
+## ADR-029: A success is reported as a success
+
+Date 2026-09-26. Status accepted. Scopes T-701.
+
+**Context.** A user sent a screenshot of a finished export, annotated: "Is this success or failure or warning? The colour coding and icons are misleading." They were right. `renderExportReport` set the tone to `warn` whenever any filter had removed anything, and **Remove duplicates is on by default**, so an ordinary export that had worked perfectly came up amber with a warning triangle beside it.
+
+**Decision.** An export that produced a file or filled the clipboard is a success. Filters removing what they were told to remove is detail, and detail goes in the muted line underneath, where it already was. Warn is kept for something the user did not ask for, and error for a failure, which `renderError` already handles.
+
+**Consequence.** One line of code, and the first thing a user sees after the product's main action now means what it looks like. A smoke check asserts the tone, because the count in the report was never the part that was wrong.
+
+---
+
+## ADR-030: The tab groups permission is asked for where it is lost, not only where it is used
+
+Date 2026-09-26. Status accepted. Supersedes ADR-019. Scopes T-702, T-703.
+
+**Context.** A user exported from Edge and from Chrome, restored, and the groups came back with the right tabs in them and no names. Their file says why:
+
+```json
+"groups": [{ "id": "g1" }]
+```
+
+No title, no colour. `capabilities().tabGroups` is `typeof browser.tabGroups?.query === "function"`, and **without the optional permission that namespace does not exist at all**, so the collector never queries a group and writes bare membership. Membership survives because it is read from `tab.groupId`, which needs no permission. So the export loses the names, silently, and the only place the permission was ever offered was the import side, after a pack with groups had been loaded. A user who never imports never sees the offer, and their exports are quietly lossy for as long as they use the product.
+
+ADR-019 put the request behind a button in the preview, which was right about the mechanism and wrong about the place.
+
+**Decision.** One component, `shared/groups-callout.ts`, used by both panes:
+
+- **Export** shows it when the current scope contains a group and the permission is missing. That is before the file is written, which is the only moment it can still help.
+- **Import** shows it when the loaded pack contains a group, as before.
+- The export report counts groups that have no name and no colour and says so, so a file that is already lossy is not silent about it.
+- A refusal is an answer: the callout says what will happen instead and stops asking.
+
+The same click still opens the browser's own dialog, because there is no API that shows it without one. A user asked whether a native prompt could be used instead; this is that prompt, and our button is the only thing that can summon it.
+
+**Consequence.** The thing that was invisible is now impossible to miss, and the case where it is already too late is reported rather than discovered weeks later. Three unit tests cover the count; a smoke check asserts the callout is above the cards rather than below them.
+
+---
+
+## ADR-031: A callout goes above the work, and the preview is revealed before it is measured
+
+Date 2026-09-26. Status accepted. Scopes T-703, T-705, T-706.
+
+**Context.** Three complaints about the import screen, from one session with a real user:
+
+1. The tab groups notice was "very in-line and not attractive enough to trigger an action". It was a row at the bottom of the preview card, below a tree of fifty rows.
+2. The drop target stayed poster sized after a file had loaded, pushing the thing the user came for down the page.
+3. Once, an import read the file and showed no list at all. Repeating the import worked.
+
+**Decision.**
+
+- A **callout** component: a banner at the top of a pane, above the cards, with a coloured bar, a glyph, a sentence and the action. Tone carried by bar, glyph and words, never by background alone. It is not a modal: a dialog asking for a permission the browser is about to ask for again is one layer too many.
+- The **intake card folds** to its summary line once a pack is loaded, with one button back. Folded, not removed, because the file line has to stay attached to the card that explains where the file came from.
+- For the third, the cause was not found. Two things that could produce it were fixed instead, and both are right regardless. The preview is **revealed before the tree loads**, because the tree only renders the rows inside its viewport and cannot measure a viewport that is `display: none`; it fell back to a guess. And **every failure in the read now reaches the screen**: it was an unhandled rejection, which is exactly the reported symptom, a file line saying the pack had been read and no preview underneath.
+
+**Consequence.** Measured after the change: revealing first makes the first paint render 24 rows against the real 420px box rather than about 12 against a guess. Fifteen consecutive imports of three real packs in a real Edge all showed their list, and the smoke run now imports twice in a row and asserts both. The original report is not reproduced and is not claimed to be fixed, only that two ways it could happen are gone.
+
+---
+
+## ADR-032: Titles on, favicons off, and a switch that means what it says
+
+Date 2026-09-26. Status accepted. Amends ADR-011. Scopes T-704.
+
+**Context.** A user asked for titles on by default and questioned whether favicons should be. Looking properly at both turned up a third thing.
+
+**Titles.** `textIncludeTitles` was off, so the URL list export was a column of bare addresses. The one reason to export as text is to read it.
+
+**Favicons.** `keepFavicons` was on. Measured on the user's own two files: favicon URLs are **7 to 9 percent** of the bytes. Nothing in TabsPack reads them. The preview shows a group dot, not an icon; no browser lets an extension set a favicon on a restored tab; the browser fetches the real one when the page loads. They are also third party URLs recorded in a file a user may hand to somebody else.
+
+**And the thing found on the way.** `keepableFavicon` dropped only `data:` icons when the setting was off and kept every remote one regardless. A checkbox labelled "Favicon URLs" removed almost nothing when cleared. The label was not true.
+
+**Decision.** `textIncludeTitles` defaults to on. `keepFavicons` defaults to off, and now means what it says: off is none, on is all of them including the embedded ones. The switch stays, because the format is public and another tool may want them.
+
+**Consequence.** A text export is readable, a pack is 7 to 9 percent smaller, and a control does what its label promises. Two tests pin the defaults so a later change is deliberate, and one covers the switch in both directions.
+
+---
+
+## ADR-033: The toolbar says what happened, from whichever surface did it
+
+Date 2026-09-26. Status accepted. Scopes T-707.
+
+**Context.** The badge was a bare count in one colour, set only by an export started from the popup. An import set nothing at all, so a restore of two hundred tabs could finish with the manager page behind three other windows and no sign anywhere that it was done. A user asked for "better import succeeded / export succeeded / failed notifications from our icon in the address bar".
+
+**Options.** The `notifications` API puts a system toast on screen, which needs another permission, another store justification, and is the thing users mute first. Or use the two signals the toolbar already has.
+
+**Decision.** Two signals, doing different jobs. The **badge** is four characters and a colour: blue `…` while working, green with the count when it worked, red `!` when it did not. The **tooltip** is a sentence, which is the only place on the toolbar one fits: "Exported 42 tabs to tabspack-20260926-0915.tabspack.json". Every surface goes through `shared/notify.ts` so the popup, the manager page and the keyboard commands all say the same thing the same way. Colour is never the only signal: the count, the `!` and the sentence all change too.
+
+**Consequence.** `setBadge` takes a tone and `setActionTitle` is new on the adapter. The unused `badgeMs` setting, which had no control anywhere, is gone. Smoke checks read the real badge colour and the real tooltip out of a real browser after a real export.
+
+---
+
+## ADR-034: An unsigned Firefox build cannot be installed, and the error does not say so
+
+Date 2026-09-26. Status accepted. Scopes T-709.
+
+**Context.** A user tried to install the Firefox build through `about:addons` and got **"This add-on could not be installed because it appears to be corrupt"**. The file was fine. Release Firefox refuses any extension Mozilla has not signed, and says nothing about signing, so the message sends you looking for a broken build.
+
+**Decision.** Nothing in the product can change this, so the fix is packaging and words. `npm run pack` writes every artefact to `dist/artifacts/`: the Chrome zip, the Edge zip, the `.xpi`, and the source archive AMO asks for, built from `git ls-files` so an ignored file cannot leak into a public archive. `docs/store/submission.md` names the two routes that actually work, `about:debugging` for a temporary install and Developer Edition with `xpinstall.signatures.required` off for a permanent one, and says that release Firefox will take the `.xpi` only once AMO has signed it.
+
+**Consequence.** AMO's own linter reports zero errors on the generated `.xpi`.
+
+---
+
+## ADR-035: A support form that sends no request and ships no key
+
+Date 2026-09-26. Status accepted. Scopes T-710.
+
+**Context.** A support form was asked for, with a Resend account and two addresses. Two things stand in the way, and only one of them is a matter of taste.
+
+**The key cannot ship.** An API key inside a published extension is a public key. Anyone can unzip the package and read it, and then send mail as `@palworks.ai` until the domain's sending reputation is gone. No obfuscation helps: the code has to read it at runtime, so a person can too.
+
+**The claim would stop being true.** "No network request of any kind" is in `PRIVACY.md`, in all three store listings, and in `scripts/lint.mjs`, which fails the build on any `fetch` in `src/`. That rule caught the first draft of this feature, which is what a rule is for.
+
+**Options.** Ship the key, which is not an option. Or POST to a relay that keeps the key server side, which needs hosting and costs the claim. Or hand the composed message to the user's own mail client.
+
+**Decision.** The form is in the extension, the message is composed in `core/support.ts`, and it is handed to the user's mail client with `mailto:`. The extension makes no request, the claim stays true as written, and the user sees the message one more time before it goes. `server/support-worker/` holds the relay, deployable, deliberately **not** wired in: switching to it means editing the lint rule, the privacy policy, both store answers and writing a record that supersedes this one, which is the right amount of friction for a change of that kind.
+
+Three rules hold the form itself:
+
+- **What is sent is what is on screen.** Nothing is added on the way out.
+- **Nothing about your tabs.** Not an address, not a title, not a count. A test asserts it.
+- **The diagnostics are visible whether or not they are switched on**, greyed when off, because "include which browser I am using" is only a real choice if you can read what it means.
+
+**Consequence.** A message too long for a `mailto:` is refused rather than truncated, and copied to the clipboard instead, because half a bug report is worse than none. Eight unit tests cover the composer.
+
+---
+
+## ADR-036: A rating is asked for at most three times, ever, and only after real use
+
+Date 2026-09-26. Status accepted. Scopes T-711.
+
+**Context.** A periodic rating nudge was asked for, "until they have rated us". The literal version of that is the pattern that makes people uninstall things, and no browser tells an extension whether a review was left, so "until they have rated" is not knowable.
+
+**Decision.** Five rules, in `core/rating.ts` because a rule in code is a rule:
+
+1. **Earned, not timed.** The counter is finished exports and restores, not days installed. Someone who never used it has nothing to say, and asking them produces the one star that says so.
+2. **Never during the work.** It appears after an action finishes, at the top of the pane the user is already on, never in the popup.
+3. **Three answers, two of which end it.** Rate, not now, don't ask again.
+4. **At most three asks in a lifetime**, at 8, 40 and 150 uses, with a fortnight and then two months between them. After that it stops by itself.
+5. **A click through is treated as done.** Pretending to know whether a review was left would mean asking someone who has already written one.
+
+An ask with nowhere to go is worse than no ask. The first version of this built the Chrome link out of the runtime extension id, which looks right and is wrong: an unpacked build has a runtime id too, so a development install produced a confident link to a Web Store page that did not exist. The audit at the end of the phase caught it only because the check that was supposed to prove it passed for the wrong reason. The listings are now written down in one place and are **empty until a store has accepted a submission**, so today nothing is shown at all, which is correct: nothing is published to rate. Filling them in belongs to T-509.
+
+**Consequence.** Seven unit tests, one per rule, plus one that asserts there is no link yet. When a listing is added it also has to be added to the lint rule's allowlist, which is the reminder that it is a real address: the rule forbids remote **resources**, and a page the user clicks through to is a navigation, not a resource.
+
+---
+
+## ADR-037: Who made it, once, at the foot of About
+
+Date 2026-09-26. Status accepted. Scopes T-714.
+
+**Context.** A line about palworks.ai was proposed, with the question of whether it was a bad idea.
+
+**Decision.** It is a good idea, in one place and in a quiet voice. A named maker is a trust signal, store reviewers prefer a real publisher to an anonymous one, and anyone who wants to know who has their data deserves an answer on the page rather than in a listing.
+
+Two constraints make it safe. It goes at the **foot of About**, under the privacy paragraph, so nothing about it reads as a service being introduced. And it is a **link the user clicks**, never anything a page loads: the address is set in script, it is in the lint allowlist with that reason, and no page fetches anything from it. The licence still says "TabsPack contributors", because attribution and copyright are different things.
+
+---
+
+## ADR-038: An address that is not ours is opened as it was given
+
+Date 2026-09-26. Status accepted. Scopes T-710, T-711.
+
+**Context.** The adapter had one way to open a tab, `openExtensionPage(path)`, and it resolves its argument against the extension's own origin:
+
+```ts
+const url = browser.runtime.getURL(path);
+```
+
+Both new features needed to open something that is not ours: a `mailto:` for the support handoff, and a store page for the rating. Handed to that method, `mailto:support@palworks.ai?...` becomes `chrome-extension://<id>/mailto:support@palworks.ai?...`, which opens an empty tab and nothing else. Neither feature would have worked, and neither unit test could see it, because the fake adapter records whatever string it is handed.
+
+Found by reading the adapter while auditing the phase, not by a test. Written down because the name was the trap: `openExtensionPage` sounds like "open a page", and it means "open a page of ours".
+
+**Decision.** `openExternal(url)` opens an address exactly as given. `openExtensionPage(path)` keeps its meaning and its name. Three callers use the first, two use the second, and the difference is now visible at every call site.
+
+**Consequence.** The browser audit opens the support form for real and asserts that what lands is a `mailto:` rather than an extension URL with one glued to it. A `mailto:` may open no tab at all, because the operating system takes it, so a refusal is reported by throwing and the page offers Copy instead.

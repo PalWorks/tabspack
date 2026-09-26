@@ -20,6 +20,13 @@ export interface ExportReport {
   removed: FilterCounts;
   /** Tabs whose real address was recovered from a suspender. ADR-023. */
   recovered: number;
+  /**
+   * Groups the file carries with no name and no colour, which is what happens
+   * without the `tabGroups` permission: the namespace does not exist, so the
+   * collector never reads one. Counted so the report can say it rather than let
+   * the user find out at restore time: ADR-030.
+   */
+  unnamedGroups: number;
   /** True when the file was written, false when it was only copied. */
   saved: boolean;
 }
@@ -41,6 +48,10 @@ export function buildExportReport(input: {
   recovered?: number;
 }): ExportReport {
   const counts = countSession(input.session);
+  const unnamedGroups = input.session.windows.reduce(
+    (sum, win) => sum + win.groups.filter((group) => (group.title ?? "") === "" && !group.color).length,
+    0,
+  );
   return {
     ok: true,
     format: input.format,
@@ -51,6 +62,7 @@ export function buildExportReport(input: {
     filename: input.filename,
     removed: input.removed,
     recovered: input.recovered ?? 0,
+    unnamedGroups,
     saved: input.saved,
   };
 }

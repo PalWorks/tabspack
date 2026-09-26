@@ -19,6 +19,9 @@ import { renderSuccess } from "../shared/report-view.js";
 import { initSegmented } from "../shared/segmented.js";
 import { applyTheme } from "../shared/theme.js";
 
+/** Who made it. A link, never a request: nothing on any page loads from here. */
+const MAKER_URL = "https://palworks.ai";
+
 export interface SettingsPanel {
   /** Repaints when a setting changes somewhere else, through `storage.onChanged`. */
   paint(latest: Settings): void;
@@ -34,6 +37,7 @@ export function initSettingsPanel(adapter: BrowserAdapter, settings: Settings): 
     report: must<HTMLSpanElement>("#settings-report"),
     shortcuts: must<HTMLUListElement>("#shortcuts"),
     version: must<HTMLSpanElement>("#version"),
+    maker: must<HTMLAnchorElement>("#maker-link"),
   };
 
   let current = settings;
@@ -93,6 +97,12 @@ export function initSettingsPanel(adapter: BrowserAdapter, settings: Settings): 
   async function fillAbout(): Promise<void> {
     const platform = await adapter.platform().catch(() => null);
     ui.version.textContent = t("optionsVersion", platform?.extensionVersion ?? "");
+    /*
+     * Set here rather than in the markup so the address is in one place and the
+     * lint rule about remote resources still has something to check. It is a
+     * link the user clicks, never anything this page loads: ADR-037.
+     */
+    ui.maker.href = MAKER_URL;
 
     // The browser owns these keys, and the user may have changed them, so they
     // are read from it rather than restated here.

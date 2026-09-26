@@ -254,7 +254,32 @@ try {
   await popup.waitForSelector("#report .headline");
   const report = await popup.textContent("#report");
   check("the report states the outcome", /Saved \d+ tabs?/.test(report ?? ""), report ?? "");
+  check(
+    "a successful export is reported as a success, not a warning",
+    (await popup.getAttribute("#report", "data-tone")) === "success",
+    (await popup.getAttribute("#report", "data-tone")) ?? "",
+  );
   await popup.screenshot({ path: path.join(shots, "popup-after-export.png") });
+
+  /*
+   * The toolbar, which is the only surface a user sees when the page that did
+   * the work is behind another window: ADR-033.
+   */
+  const toolbar = await worker.evaluate(async () => ({
+    text: await chrome.action.getBadgeText({}),
+    colour: await chrome.action.getBadgeBackgroundColor({}),
+    title: await chrome.action.getTitle({}),
+  }));
+  check(
+    "the toolbar badge carries the count in the success colour",
+    /^\d+$/.test(toolbar.text) && JSON.stringify(toolbar.colour) === JSON.stringify([21, 128, 61, 255]),
+    `${toolbar.text} ${JSON.stringify(toolbar.colour)}`,
+  );
+  check(
+    "the toolbar tooltip says what happened, with the file name",
+    /^Exported \d+ tabs? to .+\.tabspack\.json$/.test(toolbar.title),
+    toolbar.title,
+  );
 
   /**
    * The popup's two ways out. Import cannot happen in a popup at all, so the
@@ -378,6 +403,29 @@ try {
     })),
   );
   check("the preview tree renders the pack", rows.length >= 6, `${rows.length} rows`);
+
+  /*
+   * Twice in a row, because a user reported an import that read the file and
+   * then showed no list, and had to be repeated to work. The preview is now
+   * revealed before the tree measures itself, and a throw anywhere in the read
+   * reaches the screen instead of becoming an unhandled rejection: ADR-031.
+   */
+  check(
+    "the intake folds away once there is a pack to look at",
+    (await manager.getAttribute("#intake", "data-collapsed")) === "true",
+  );
+  await manager.setInputFiles("#file", packPath);
+  await manager.waitForSelector("#preview:not([hidden])", { timeout: 10_000 });
+  const secondRows = await manager.$$eval(".tree-row", (nodes) => nodes.length);
+  check("a second import of the same file shows its list too", secondRows >= 6, `${secondRows} rows`);
+  await manager.click("#intake-toggle");
+  check(
+    "choose another file brings the drop target back",
+    (await manager.getAttribute("#intake", "data-collapsed")) === "false" &&
+      (await manager.isVisible("#dropzone")),
+  );
+  await manager.setInputFiles("#file", packPath);
+  await manager.waitForSelector("#preview:not([hidden])", { timeout: 10_000 });
   check(
     "an address no extension can open is flagged rather than hidden",
     rows.some((row) => row.text.includes("cannot be opened")),
@@ -409,10 +457,27 @@ try {
     (await manager.textContent("#selection-count")) ?? "",
   );
 
+  /*
+   * The callout is built in script now and shared with the export pane, so the
+   * button is found inside it rather than by an id of its own: ADR-030.
+   */
   let groupsAllowed = false;
   if (await manager.isVisible("#groups-permission")) {
+    check(
+      "the tab groups callout sits at the top of the pane, before the cards",
+      await manager.evaluate(() => {
+        const callout = document.querySelector("#groups-permission");
+        const firstCard = document.querySelector("#panel-import .card");
+        return Boolean(
+          callout &&
+            firstCard &&
+            callout.classList.contains("callout") &&
+            callout.compareDocumentPosition(firstCard) & Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+      }),
+    );
     manager.on("dialog", (dialog) => dialog.accept().catch(() => undefined));
-    await manager.click("#allow-groups");
+    await manager.click("#groups-permission button");
     await manager.waitForTimeout(800);
     groupsAllowed = !(await manager.isVisible("#groups-permission"));
   } else {

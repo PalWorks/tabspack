@@ -590,3 +590,202 @@
   border-radius: 4px;
   background: var(--surface);
 }
+
+/* Callout: something the user should act on before they act ---------------- */
+
+/*
+ * A banner at the top of a pane, above the cards, because it explains something
+ * about the action the pane is for and has to be read before that action, not
+ * after it. Inline at the bottom of a card is where the tab groups prompt used
+ * to live, and nobody saw it: ADR-030.
+ *
+ * Tone is carried by the bar, the glyph and the words, never by the background
+ * alone. The button inside it is the one that opens the browser's own dialog,
+ * which is the only way a permission can be asked for: an extension cannot put
+ * that dialog on screen without a click of its own.
+ */
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--warn-edge);
+  border-left-width: 3px;
+  border-radius: var(--radius-card);
+  background: var(--warn-soft);
+}
+
+.callout-icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warn);
+}
+
+.callout-body {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.callout-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.callout-text {
+  margin: 2px 0 0;
+  font-size: var(--text-dense);
+  color: var(--text-muted);
+}
+
+.callout-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.callout-actions .btn-primary {
+  width: auto;
+  height: 36px;
+  font-size: var(--text-dense);
+}
+
+@media (max-width: 640px) {
+  .callout {
+    flex-wrap: wrap;
+  }
+
+  .callout-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* The intake card, which folds away once a pack is loaded ------------------ */
+
+/*
+ * A drop target the size of a poster is right when there is nothing to drop it
+ * on, and wrong the moment there is: after a file loads, the thing the user
+ * came for is the preview underneath. So the intake folds to its summary line
+ * and offers one button to change file: ADR-031.
+ *
+ * Folded rather than removed, because the file line stays on screen and has to
+ * stay attached to the card that explains where it came from.
+ */
+.intake-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.intake-toggle {
+  height: 28px;
+  font-size: var(--text-caption);
+}
+
+#intake-body {
+  display: block;
+}
+
+#intake[data-collapsed="true"] #intake-body {
+  display: none;
+}
+
+/* Support -------------------------------------------------------------- */
+.support-message {
+  max-width: 100%;
+  font-family: var(--font);
+  font-size: var(--text-dense);
+}
+
+.support-reply {
+  flex: 0 1 320px;
+  min-width: 0;
+  max-width: 320px;
+  border-radius: var(--radius-control);
+}
+
+.support-context {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+}
+
+.support-context-summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.support-context-summary::marker,
+.support-context-summary::-webkit-details-marker {
+  display: none;
+}
+
+/*
+ * Shown whether or not it is switched on, greyed when it is not: a checkbox
+ * that says "include which browser I am using" is only a real choice if you
+ * can read what that means. ADR-035.
+ */
+.support-diagnostics {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.support-diagnostics[data-off="true"] {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.hint[data-tone="warn"] {
+  color: var(--warn);
+}
+
+/*
+ * The quiet callout: the same shape, none of the alarm. Used by the rating
+ * ask, which is a favour rather than a problem, so it borrows the page's own
+ * surface instead of the warning amber: ADR-036.
+ */
+.callout[data-tone="quiet"] {
+  border-color: var(--border);
+  border-left-color: var(--accent);
+  background: var(--surface);
+}
+
+.callout[data-tone="quiet"] .callout-icon {
+  color: var(--accent);
+}
+
+/*
+ * Who made it, at the foot of About and nowhere else. Quiet on purpose: the
+ * page above it has just promised that nothing leaves the device, and a
+ * company name in a louder voice reads like a service being introduced.
+ * ADR-037.
+ */
+.maker {
+  margin: 0;
+  padding-top: var(--space-2);
+  text-align: center;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.maker-link {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.maker-link:hover {
+  color: var(--accent);
+}

@@ -15,6 +15,7 @@ import { countsLine, tabs as tabsPhrase } from "../shared/wording.js";
 import { clearReport, renderError, renderExportReport, renderNote } from "../shared/report-view.js";
 import { savePayload, copyPayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
+import { initNotifier } from "../shared/notify.js";
 
 const adapter = realAdapter;
 
@@ -31,6 +32,7 @@ const ui = {
 
 let settings: Settings;
 let available = 0;
+const notify = initNotifier(adapter);
 /** Repaints the scope control when a setting changes somewhere else. */
 let selectScope: (value: string) => void = () => undefined;
 
@@ -112,12 +114,14 @@ async function run(mode: "save" | "copy"): Promise<void> {
   button.textContent = t("working");
   button.setAttribute("aria-busy", "true");
   clearReport(ui.report);
+  notify.working("export");
 
   try {
     const payload = await buildExport(adapter, settings);
     const outcome = mode === "save" ? await savePayload(adapter, payload) : await copyPayload(adapter, payload);
     if (outcome.error) {
       renderError(ui.report, outcome.error);
+      notify.failed("export", t("badgeExportFailed"));
       return;
     }
     const report = buildExportReport({
@@ -130,9 +134,16 @@ async function run(mode: "save" | "copy"): Promise<void> {
       saved: outcome.saved,
     });
     renderExportReport(ui.report, report);
-    await adapter.setBadge(badgeText(report.tabs), settings.badgeMs);
+    notify.done(
+      "export",
+      report.tabs,
+      outcome.saved
+        ? t("badgeExported", tabsPhrase(report.tabs), report.filename)
+        : t("badgeCopied", tabsPhrase(report.tabs)),
+    );
   } catch (error) {
     renderError(ui.report, describe(error));
+    notify.failed("export", t("badgeExportFailed"));
   } finally {
     button.removeAttribute("aria-busy");
     button.textContent = label;
@@ -144,11 +155,6 @@ async function run(mode: "save" | "copy"): Promise<void> {
 function setEnabled(enabled: boolean): void {
   ui.exportButton.disabled = !enabled;
   ui.copyButton.disabled = !enabled;
-}
-
-function badgeText(count: number): string {
-  if (count <= 0) return "";
-  return count < 100 ? String(count) : "99+";
 }
 
 function describe(error: unknown): string {

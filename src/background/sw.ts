@@ -17,18 +17,23 @@ events.onInstalled((reason) => {
 });
 
 /**
- * A keyboard command is the one place the worker does real work. The badge is
- * the only surface it has, so the count goes there and the detail goes to the
- * log, where a user who opens the worker can read it.
+ * A keyboard command is the one place the worker does real work, and there is
+ * no page open to report into, so the toolbar is the whole interface: a colour
+ * and a count on the badge, and the sentence in the tooltip. The detail still
+ * goes to the log for anyone who opens the worker: ADR-033.
  */
 events.onCommand((command) => {
   void (async () => {
+    // Bounded, so a worker killed mid command cannot leave a badge behind.
+    await realAdapter.setBadge("…", 120_000, "working").catch(() => undefined);
     try {
       const outcome = await runCommand(realAdapter, command);
-      await realAdapter.setBadge(badgeFor(outcome.tabs), 2000);
+      await realAdapter.setBadge(badgeFor(outcome.tabs), 4000, "success");
+      await realAdapter.setActionTitle(outcome.detail);
       console.info(`[TabsPack] ${command}: ${outcome.detail}`);
     } catch (error) {
-      await realAdapter.setBadge("!", 3000);
+      await realAdapter.setBadge("!", 6000, "failure");
+      await realAdapter.setActionTitle(realAdapter.getMessage("badgeExportFailed"));
       console.error(`[TabsPack] ${command} failed:`, error);
     }
   })();

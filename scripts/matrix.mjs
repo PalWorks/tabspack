@@ -457,7 +457,7 @@ row(
   unloaded.length >= restoredTabs.length - 2,
   `${unloaded.length} of ${restoredTabs.length} unloaded`,
 );
-const reportedUnloaded = Number(/(\d+) left unloaded/.exec(restoreReport)?.[1] ?? "-1");
+const reportedUnloaded = Number(/(\d+) left asleep/.exec(restoreReport)?.[1] ?? "-1");
 row(
   "the report's unloaded count is what the browser actually shows",
   reportedUnloaded === unloaded.length,

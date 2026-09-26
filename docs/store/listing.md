@@ -52,6 +52,10 @@ project's own build check enforces rather than promises. Nothing that could
 identify you or sign you in ever goes into a file: a pack holds addresses,
 titles and structure, never cookies, tokens or form data.
 
+There is a support form, and it works the same way: it composes the message,
+shows it to you in full, and hands it to your own email app. TabsPack does not
+send it, and nothing about your tabs is in it.
+
 **An open format**
 
 The file is JSON a person can read and edit, and its specification and JSON

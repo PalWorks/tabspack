@@ -15,9 +15,19 @@ export interface Settings {
   scope: Scope;
   /** Default export format. */
   format: ExportFormat;
-  /** Write titles into the plain text export. ADR-011. */
+  /**
+   * Write titles into the plain text export. On by default: a URL list with no
+   * titles is a list of strings nobody can read, and the one reason to export
+   * as text is to read it. ADR-011 and ADR-032.
+   */
   textIncludeTitles: boolean;
-  /** Keep favicon URLs in the file. `data:` icons are stripped either way unless this is on. */
+  /**
+   * Keep favicon URLs in the file. Off by default, because nothing reads them:
+   * the preview does not show icons, no browser lets an extension set one on a
+   * restored tab, and the browser fetches the real icon when the page loads.
+   * Measured at 7 to 9 percent of a real file for no effect. Kept as a switch
+   * because the format is public and another tool may want them. ADR-032.
+   */
   keepFavicons: boolean;
   /** Include private windows. Also requires the browser level incognito grant. */
   includeIncognito: boolean;
@@ -28,8 +38,6 @@ export interface Settings {
   excludeList: string;
   sort: SortMode;
   sortDesc: boolean;
-  /** Milliseconds the toolbar badge shows a count. */
-  badgeMs: number;
   /**
    * Recover the real address of a tab a suspender has parked on one of its own
    * pages, on export and on import. ADR-023.
@@ -63,8 +71,8 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   scope: "all_windows",
   format: "tabspack",
-  textIncludeTitles: false,
-  keepFavicons: true,
+  textIncludeTitles: true,
+  keepFavicons: false,
   includeIncognito: false,
   dedupe: true,
   webPagesOnly: false,
@@ -72,7 +80,6 @@ export const DEFAULT_SETTINGS: Settings = {
   excludeList: "",
   sort: "natural",
   sortDesc: false,
-  badgeMs: 1500,
   recoverSuspended: true,
 
   restoreTarget: "new_windows",
@@ -92,7 +99,6 @@ export const DEFAULT_SETTINGS: Settings = {
  * user never chose, and a restore delay of an hour is a typo, not an intention.
  */
 const NUMERIC_LIMITS: Record<string, { min: number; max: number }> = {
-  badgeMs: { min: 0, max: 60_000 },
   discardThreshold: { min: 0, max: 10_000 },
   restoreBatchSize: { min: 1, max: 100 },
   restoreDelayMs: { min: 0, max: 5_000 },
