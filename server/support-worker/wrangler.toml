@@ -1,10 +1,19 @@
+# Deploy with `npm run relay:deploy`, not with `wrangler deploy`.
+#
+# The two placeholders below are account scoped identifiers. They are not
+# credentials and Cloudflare treats them as safe to commit, but this is a
+# public repository and there is no reason to publish which account anything
+# lives on. They are filled in at deploy time from `.env` in this directory,
+# which is not committed, into a generated config that is deleted afterwards.
+# `scripts/lint.mjs` fails the build if a real id ever appears in this file.
+
 name = "tabspack-support"
 main = "worker.js"
 compatibility_date = "2026-09-01"
 
-# Five accounts are reachable from one login, and picking the wrong one deploys
-# into somebody else's. Pinned here so it cannot be picked at all.
-account_id = "96ec2a311affbd387b884673c0e84eb8"
+# Five accounts are reachable from one login, and deploying into the wrong one
+# would land on somebody else's. Pinned rather than picked.
+account_id = "__CLOUDFLARE_ACCOUNT_ID__"
 
 # The origin the extension asks permission for. `scripts/lint.mjs` checks that
 # this, `RELAY_ORIGIN` in `src/core/relay.ts` and `optional_host_permissions` in
@@ -33,7 +42,7 @@ simple = { limit = 5, period = 60 }
 # scheme, and writing into it blind would corrupt somebody else's accounting.
 [[kv_namespaces]]
 binding = "COUNTERS"
-id = "6a3c4ea4d0a84953a22084ffa22ece6a"
+id = "__COUNTERS_KV_ID__"
 
 [observability]
 enabled = true

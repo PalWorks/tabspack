@@ -270,6 +270,30 @@ async function ruleManifests() {
  * somewhere the extension is not allowed to reach is a support form that
  * silently never works, and nothing else in the build would notice.
  */
+/**
+ * The committed worker config must carry no account scoped identifier. They
+ * are not credentials and Cloudflare says they are safe to commit; this
+ * repository is public and there is still no reason to publish which account
+ * anything runs on. They live in an uncommitted `.env` and are rendered in at
+ * deploy time by `scripts/deploy-relay.mjs`, and the only way that stays true
+ * is if something fails the build when it does not.
+ */
+async function ruleNoDeployIds() {
+  const file = "server/support-worker/wrangler.toml";
+  const toml = await readFile(path.join(root, file), "utf8");
+  for (const match of toml.matchAll(/\b[0-9a-f]{32}\b/g)) {
+    fail(
+      file,
+      lineOf(toml, match.index),
+      "no-deploy-ids",
+      `an account scoped id is committed here: move it to .env and use a __PLACEHOLDER__`,
+    );
+  }
+  for (const key of ["__CLOUDFLARE_ACCOUNT_ID__", "__COUNTERS_KV_ID__"]) {
+    if (!toml.includes(key)) fail(file, 1, "no-deploy-ids", `${key} is missing, so nothing will be filled in`);
+  }
+}
+
 async function ruleRelayOrigin() {
   const file = "server/support-worker/wrangler.toml";
   if (!RELAY_ORIGIN) {
@@ -291,6 +315,7 @@ await ruleNoUnexplainedAny();
 await ruleI18n();
 await ruleManifests();
 await ruleRelayOrigin();
+await ruleNoDeployIds();
 
 if (failures.length === 0) {
   console.log("lint: clean");

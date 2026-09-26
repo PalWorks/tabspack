@@ -43,3 +43,7 @@ test/fixtures/synthetic/
 # Wrangler's local dev state. `wrangler dev` writes a miniflare database and a
 # cache of Cloudflare's own request metadata here; none of it belongs in git.
 .wrangler/
+
+# The relay's deploy identifiers, and the config generated from them.
+server/support-worker/.env
+server/support-worker/wrangler.generated.toml

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#1d4ed8;--brand-2:#3b82f6">
+  <!--
+    7. The same idea at toolbar density.
+
+    One window and one arrow, both twice the weight of number 6. This is the
+    file a manifest would point at for 16 and 32 while 6 covers 48 and 128:
+    a manifest names a file per size, so a mark is allowed to shed detail as
+    it shrinks instead of turning into a smear.
+  -->
+  <defs>
+    <linearGradient id="s7-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#s7-bg)" />
+  <g class="fg" fill="#ffffff">
+    <rect opacity="0.5" x="46" y="18" width="66" height="50" rx="10" />
+    <rect x="16" y="38" width="74" height="72" rx="11" />
+    <rect x="16" y="38" width="74" height="17" rx="8" fill="var(--brand)" opacity="0.3" />
+    <path d="M55 60a26 26 0 1 1-19 44l9-9a14 14 0 1 0 10-24h-7v12L25 67l23-18v11z" fill="var(--brand)" />
+  </g>
+</svg>

@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
-| Date | 2026-09-24 |
+| Version | 1.2 |
+| Date | 2026-09-26 |
 | Scope and requirement ids | [../PLAN.md](../PLAN.md) |
 | Decisions behind these choices | [DECISIONS.md](DECISIONS.md) |
 | Procedures for doing the work | [PLAYBOOK.md](PLAYBOOK.md) |
@@ -13,13 +13,45 @@
 
 No calendar dates anywhere. A solo build with agent assistance has no measured velocity yet, and inventing dates would make this document dishonest by the second week. Phases ship in order, and each has an exit test that must pass before the next begins.
 
-Status values: `next` the immediate work, `todo` agreed and queued, `doing` in progress, `done` acceptance criteria demonstrably met, `parked` deliberately not now, `declined` decided against with a record.
-
 ## 1. Master backlog
 
-Every task and backlog item in one table. Read the phase detail sections below for constraints and acceptance criteria.
+Every task and backlog item, in one place and in order. Read the phase detail
+sections below for constraints and acceptance criteria.
 
-### Table R1: Master backlog
+The split is by state, not by importance: **Table R1 is what is left**, and
+Table R1b is everything already closed, kept because a roadmap that deletes its
+history stops being able to answer "why is it like this". Both are sorted by
+id, so a task is in the same relative position in either one.
+
+### Table R1: Open work
+
+15 rows. Status values: `next` the immediate work, `todo` agreed
+and queued, `doing` in progress, `for a person` blocked on a human rather than
+on effort, `parked` deliberately not now.
+
+| Id | Task | Phase | Bucket | Problem | Recommended solution | Status |
+|---|---|---|---|---|---|---|
+| T-507 | Full cross browser matrix | M5 | Quality | Engine differences surface at the worst possible moment, in review | Automated in `npm run matrix` and green on Edge 25/25, Chrome 25/25, Firefox 26/26. Four rows are left that only a person can do, listed in Table R10 | for a person |
+| T-509 | Store submissions | M5 | Release | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions | next |
+| T-713 | A mark that is not generic | M7 | Design | Three bars and a download arrow is the most generic possible extension icon | Five candidates at five sizes, tile and glyph, in a toolbar, in both themes: `npm run icons:compare`. Awaiting a choice | for a person |
+| B-101 | Scheduled automatic snapshots | v1.1 | Durability | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker | todo |
+| B-102 | Crash and last session recovery | v1.1 | Durability | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page | todo |
+| B-103 | Snapshot diff and pruning | v1.1 | Durability | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones | todo |
+| B-201 | Cross snapshot duplicate detection | v2 | Hygiene | The same fifty tabs live in twelve snapshots and the user cannot tell | Report URLs common to multiple snapshots and offer consolidation | todo |
+| B-202 | Tab age and staleness report | v2 | Hygiene | Users keep hundreds of tabs because they cannot see which ones died months ago | Report on `lastAccessed` from the pack, with a bulk action | todo |
+| B-301 | Workspaces | v3 | Workspaces | Power users run several projects at once and want to switch, not merge | Named sets of windows, one active at a time, switching by close and restore | todo |
+| B-401 | Pack rendered as a readable page | v4 | Sharing | Sending a colleague a JSON file is not sharing, it is homework | Render a pack as a self contained readable HTML page with the JSON embedded, so it opens for anyone and still imports | todo |
+| B-501 | Validating CLI | v5 | Ecosystem | A specification nobody can validate against without installing a browser extension will not be adopted | Small node CLI to validate, convert and diff packs, published from the same types | todo |
+| B-502 | Published parser package | v5 | Ecosystem | Third parties will reimplement the parser badly, or not at all | Publish the reference reader and writer as a package with the JSON Schema | todo |
+| B-503 | Specification site and adoption outreach | v5 | Ecosystem | A format is a standard only when a second implementation exists | A spec page with sample files, and direct offers of an adapter to competing tools | todo |
+| B-602 | Safari support | Parked | Release | Safari users cannot migrate at all | Needs Xcode packaging and a paid Apple developer account. Revisit after v1 traction | parked |
+| B-603 | Encrypted and signed packs | Parked | Format | A pack shared over an untrusted channel could be tampered with | Contradicts the human readable principle and adds key management. Only if a concrete user need appears | parked |
+
+### Table R1b: Closed
+
+80 rows. `done` means the acceptance criteria were demonstrably
+met; `declined` means decided against, with a record in
+[DECISIONS.md](DECISIONS.md).
 
 | Id | Task | Phase | Bucket | Problem | Recommended solution | Status |
 |---|---|---|---|---|---|---|
@@ -71,24 +103,39 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | T-504 | Final icons and store assets | M5 | Release | Three stores each demand specific icon sizes, screenshots and promo tiles | One asset set generated to the strictest of the three requirements | done |
 | T-505 | Store listings and permission justifications | M5 | Release | Chrome requires a per permission justification and a privacy policy, and an improvised answer invites rejection | Listings written from PLAN Table P8 and `PRIVACY.md`, identical across stores | done |
 | T-506 | Accessibility pass | M5 | Quality | A preview tree of thousands of rows is unusable by keyboard or screen reader unless designed for it | Keyboard navigation, visible focus, contrast check, ARIA on the tree and the reports | done |
-| T-507 | Full cross browser matrix | M5 | Quality | Engine differences surface at the worst possible moment, in review | Complete the matrix in TESTING Table X2 and record the result in the release pull request | doing |
 | T-508 | Performance verification | M5 | Quality | NFR-001 to NFR-005 must hold on the shipped build, not on a dev build | Measured run of all five against the shipped artifact | done |
-| T-509 | Store submissions | M5 | Release | Three review queues with different rules and different turnaround | Submit to Chrome Web Store, Edge Add-ons and AMO, with a Gecko source archive and build instructions | next |
 | T-510 | Issue and pull request templates | M5 | Release | An import bug reported without its file is usually unfixable | Bug template demanding browser, version, expected, actual and a sanitised file. Security issues routed to `SECURITY.md` | done |
-| B-101 | Scheduled automatic snapshots | v1.1 | Durability | A user who forgets to save loses the session, which is the failure the product exists to prevent | Interval based snapshot with a rolling limit, off by default, using alarms rather than a timer in a terminated worker | todo |
-| B-102 | Crash and last session recovery | v1.1 | Durability | The moment of greatest need is right after a crash, when nothing was exported | Opt in use of the `sessions` API plus the most recent automatic snapshot, surfaced on the manager page | todo |
-| B-103 | Snapshot diff and pruning | v1.1 | Durability | Fifty near identical automatic snapshots are noise, not safety | Show what changed between consecutive snapshots and prune the unchanged ones | todo |
-| B-201 | Cross snapshot duplicate detection | v2 | Hygiene | The same fifty tabs live in twelve snapshots and the user cannot tell | Report URLs common to multiple snapshots and offer consolidation | todo |
-| B-202 | Tab age and staleness report | v2 | Hygiene | Users keep hundreds of tabs because they cannot see which ones died months ago | Report on `lastAccessed` from the pack, with a bulk action | todo |
-| B-301 | Workspaces | v3 | Workspaces | Power users run several projects at once and want to switch, not merge | Named sets of windows, one active at a time, switching by close and restore | todo |
-| B-401 | Pack rendered as a readable page | v4 | Sharing | Sending a colleague a JSON file is not sharing, it is homework | Render a pack as a self contained readable HTML page with the JSON embedded, so it opens for anyone and still imports | todo |
-| B-501 | Validating CLI | v5 | Ecosystem | A specification nobody can validate against without installing a browser extension will not be adopted | Small node CLI to validate, convert and diff packs, published from the same types | todo |
-| B-502 | Published parser package | v5 | Ecosystem | Third parties will reimplement the parser badly, or not at all | Publish the reference reader and writer as a package with the JSON Schema | todo |
-| B-503 | Specification site and adoption outreach | v5 | Ecosystem | A format is a standard only when a second implementation exists | A spec page with sample files, and direct offers of an adapter to competing tools | todo |
+| T-511 | One page, not two | M7 | UI | A settings page of its own held a second widget for fifteen settings that already existed on Export and Import and wrote the same stored values. A user asked why there were two pages | One document, a rail of five: Export, Import, Snapshots, then Settings and About. Each setting lives once, with the task that uses it. ADR-028 | done |
+| T-601 | `src/core/unsuspend.ts` | M6 | Core | A suspended tab reads as an extension page, so it is unopenable, dedupes against nothing and sorts under the suspender | Four rules read from the suspenders' own source, then a generic rule by shape. ADR-023 | done |
+| T-602 | Two call sites | M6 | Core | A new export and a file already on disk are both wrong in the same way | Recovery before the filters on export, and at the import boundary for every format | done |
+| T-603 | Counting and copy | M6 | UI | A rewritten address must never be silent | The export report and the file line both name the count | done |
+| T-604 | The setting | M6 | UI | A rule that judges a shape needs an off switch | `recoverSuspended`, on by default, in Settings | done |
+| T-605 | Preview | M6 | UI | The preview has to show what will open | The tree shows the recovered address, proven in the browser run | done |
+| T-606 | Tests | M6 | Test | A rewrite of a user's session cannot be trusted to a reading of the code | 30 cases: every family, both legacy forms, the raw `uri=`, double wrapping, and twelve negatives | done |
+| T-607 | Fixture | M6 | Test | The conformance corpus had no suspended pack | `test/fixtures/valid/suspended.tabspack.json`, five tabs, three of them recovered | done |
+| T-608 | Browser proof | M6 | Test | Recovery has to survive the real thing | The smoke pack carries a suspended tab, and the restored window holds the page it stood for | done |
+| T-609 | Unloaded restores | M6 | Core, UI | 50 to 200 pages loading at once is the moment the browser stops answering | `unloadRestored` on by default, flushed per batch with one batch of lag. ADR-024 | done |
+| T-610 | The cross browser matrix, automated | M6 | Test | Table X2 was a list of things nobody had done, and the one row about unloading hid two defects | `scripts/matrix.mjs` and `scripts/matrix-firefox.mjs` drive real Chrome, Edge and Firefox. 26 rows on the Chromium family, 25 on Firefox | done |
+| T-611 | What the matrix found | M6 | Core | A tab unloaded before its address commits loses it, and Chromium changes the id when it unloads | Wait for the address, follow the new id, recount the report from the browser. ADR-025 | done |
+| T-612 | What the matrix still missed | M6 | Core, Test | `pendingUrl` was accepted as proof that a navigation had committed, which it disproves. On a real 50 tab session 47 of 48 tabs came back blank; every matrix row pointed at a refused local port, where the difference cannot show | Only a committed `url` counts, and a tab that has not committed is left loaded rather than unloaded. A slow server row in the matrix, and `commitReads` in the fake browser. ADR-026 | done |
+| T-613 | The same defect on the other engine | M6 | Core, Test | Firefox refuses to create a pinned tab unloaded, and the capability probe read that one refusal as a verdict about the browser, so one pinned tab downgraded every tab after it. Those tabs then reported `about:blank` while navigating, which the new guard counted as a committed address | A pinned tab never asks to be created unloaded, and `about:blank` counts only for a tab that asked for it. Two matrix rows at 40 and 200 tabs, and a `gecko` mode in the fake browser. ADR-027 | done |
+| T-701 | A success looks like a warning | M7 | UI | Any filter removing anything made the export report amber with a warning triangle, and dedupe is on by default, so a normal successful export looked like a problem | A written file is a success. Filters are detail. ADR-029 | done |
+| T-702 | Group names lost on export | M7 | Core, UI | Without the optional permission the `browser.tabGroups` namespace does not exist, so the collector writes bare membership and the file loses every group name. The offer to grant it only ever existed on the import side | The callout on the export pane too, before the file is written, and a count of unnamed groups in the report. ADR-030 | done |
+| T-703 | The permission notice was invisible | M7 | UI | An inline row at the bottom of a card below fifty rows of tree | A callout at the top of the pane: coloured bar, glyph, sentence, action. ADR-031 | done |
+| T-704 | Export defaults, and a switch that lied | M7 | Core | Titles off made the text export unreadable. Favicons on cost 7 to 9 percent for something nothing reads. And clearing the favicon box removed only embedded icons, not the remote ones its label named | Titles on, favicons off, and off now means none. ADR-032 | done |
+| T-705 | The drop target never got out of the way | M7 | UI | A poster sized dropzone above the thing the user came to look at | The intake folds to its summary line once a pack is loaded. ADR-031 | done |
+| T-706 | An import that showed no list | M7 | UI | Reported once, not reproduced in 15 consecutive attempts on three real packs | Two causes removed: the preview is revealed before the tree measures itself, and a throw in the read reaches the screen instead of becoming an unhandled rejection. ADR-031 | done, cause not confirmed |
+| T-707 | The toolbar said almost nothing | M7 | UI | A bare count in one colour, only for an export from the popup. An import set nothing, so a restore could finish behind three windows with no sign | A badge tone and a tooltip sentence, from every surface, through one module. ADR-033 | done |
+| T-708 | "Unloaded" is the browser's word | M7 | UI | Users say suspended or asleep, not unloaded | "Asleep". Not "suspended", which already means a third party suspender's wrapper two panes away. ADR-033 | done |
+| T-709 | Firefox refuses an unsigned build | M7 | Release | `about:addons` says "appears to be corrupt", which is about signing and does not say so | `npm run pack` builds every archive including the `.xpi` and the source zip, and the two routes that work are documented. ADR-034 | done |
+| T-710 | Support and feedback | M7 | UI, Release | No way to reach us from inside the product | A Support pane. Composed in core, shown in full, handed to the user's mail client: no request, no key. ADR-035 | done |
+| T-711 | A rating ask | M7 | UI | Nothing asks, and the obvious version of asking is the thing that makes people uninstall | Earned by use, three times in a lifetime, three answers, two of which end it. ADR-036 | done |
+| T-714 | Who made it | M7 | UI | Nothing on any surface says who is behind it | One quiet line at the foot of About, under the privacy paragraph. ADR-037 | done |
+| T-715 | Send without a mail client | M7 | UI, Release | The Support pane's only route assumed a configured mail client, and a large share of people have none: pressing Send opened nothing | The relay in `server/support-worker/` holds the key; the extension asks for its host at the moment Send is pressed and falls back to the mail client on every failure. ADR-039 | done |
+| T-716 | A public site | M7 | Release, Design | Nowhere to link a store listing to, and the privacy policy and terms had no stable public address | Ten pages on GitHub Pages, rendered from one layout by `scripts/gen-site.mjs` and committed, with two checkers and no third party requests. ADR-040 | done |
 | B-601 | New tab page override | Parked | UI | Competitors replace the new tab page to drive engagement | Declined for v1 per ADR-013. Revisit only if users ask, and always as an explicit opt in | declined |
-| B-602 | Safari support | Parked | Release | Safari users cannot migrate at all | Needs Xcode packaging and a paid Apple developer account. Revisit after v1 traction | parked |
-| B-603 | Encrypted and signed packs | Parked | Format | A pack shared over an untrusted channel could be tampered with | Contradicts the human readable principle and adds key management. Only if a concrete user need appears | parked |
 | B-604 | Cloud sync and accounts | Parked | Format | Users ask for sync because every competitor sells it | Declined by design. The file is the sync mechanism, and no account is a differentiator, not a gap | declined |
+
 
 ## 2. Release themes
 
@@ -104,6 +151,11 @@ Every task and backlog item in one table. Read the phase detail sections below f
 | v5 | Ecosystem | CLI, parser package, adoption of the format | B-501 to B-503 |
 
 ## 3. Phase detail
+
+Phases are in order. **Table numbers are stable identifiers, not an order**: they
+are cited from DECISIONS.md, TESTING.md and the changelog, so a table keeps its
+number for life and a new one takes the next free number rather than pushing
+everyone else along.
 
 ### Table R3: M0 Foundation
 
@@ -232,6 +284,22 @@ extension pages no browser will let any extension open. Measured in Chrome 154
 and Edge 153, not in a fake browser and not against a local port. Any pack whose
 pages are real is the test; a pack whose pages resolve instantly is not.
 
+### Table R13: M8 Reachable and public
+
+Added 2026-09-26. Two things the product needed before it could be submitted to
+a store: a support channel that works for people with no mail client, and a
+public address for the listing, the privacy policy and the terms.
+
+| Id | Requirements | Constraints | Acceptance criteria | Status |
+|---|---|---|---|---|
+| T-715 | Send a support message from inside the extension | No key may ship in the package. No host permission at install. Every failure must fall back, never dead end | The relay is deployed, the extension reaches it from a real browser, the message arrives with a body identical to what was on screen, and declining the permission still gets the message out | done |
+| T-716 | A public site with the legal pages at stable addresses | No third party requests, on a site whose product claims it makes none. Every link relative, so the site can move | Ten pages live on GitHub Pages, every link and image resolving, structured data parsing, no horizontal overflow at 320 px, and zero requests to any other origin measured on the deployed site | done |
+
+**M8 exit test.** A support message written in the shipped extension arrives in
+the inbox, and the same message goes to the mail client when the permission is
+declined. Every page of the site returns 200 and loads nothing from anywhere
+else. Both verified against production on 2026-09-26.
+
 ## 4. Sequencing rules
 
 1. No phase starts while the previous exit test is red.
@@ -290,7 +358,7 @@ Everything up to those lines is done, and `docs/store/` holds the listing text a
 every answer each store asks for, so the submissions are a sitting rather than a
 piece of work.
 
-## 5. Done
+## 6. Done
 
 ### Table R9: Completed
 
@@ -303,6 +371,7 @@ piece of work.
 | M4 Snapshots | T-401 to T-405 | 185 unit tests, and a 50 check smoke run that saves a snapshot in a real Chromium, reads both storage keys back, previews it, and deletes it with the body |
 | M5 Ship, except the submissions | T-501 to T-506, T-508, T-510 | 190 unit tests and a 59 check browser run at the time. An options page driving every setting, a theme switch, 200 translated strings with three lint rules behind them, a generated icon and tile set, a contrast check over 38 token pairs in `npm run verify`, AMO's own linter reporting zero errors on the Firefox package, that package installing in a real Firefox, and NFR-001, NFR-004 and NFR-005 measured on the built package |
 | M7 A real user's session | T-511, T-701 to T-714 | 247 unit tests and an 81 check browser run. A success that reads as a success, the tab groups permission offered where it is actually lost, a callout that can be seen, titles on and favicons off, an intake that folds away, a toolbar that reports from every surface, packaging for all three stores, a support form that sends no request, and a rating ask that stops by itself |
+| M8 Reachable and public | T-715, T-716 | 260 unit tests and a 97 check browser run, with the matrix green on all three browsers: Edge 25/25, Chrome 25/25, Firefox 26/26. A support relay deployed at `tabspack-support.palworks.ai` and proven end to end from the shipped extension in a real browser, with the host asked for at the point of use and a fallback for every way it can fail. A ten page site on GitHub Pages, rendered from one layout and committed, loading nothing from any other server |
 | M6 Recovery | T-601 to T-609 | 223 unit tests and a 70 check browser run. A suspender's wrapper read back to the page it stands for, on export and on import, from four named families and by shape for the rest, with every recovery counted. Restores create every tab unloaded by default, flushed per batch so a large restore never holds more than a batch loaded at once |
 
 M1 exit test result: a 3 window, 40 tab, 3 group, 2 pinned fixture exports byte

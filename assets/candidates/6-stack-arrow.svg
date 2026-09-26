@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="TabsPack" style="--brand:#1d4ed8;--brand-2:#3b82f6">
+  <!--
+    6. Your concept, redrawn as a vector and without anybody's trademarks.
+
+    Two browser windows and a restore arrow. Flat rather than photoreal, two
+    windows rather than four, and the arrow is the heaviest shape on the tile
+    so that something survives at 16 px. No Chrome, Firefox, Edge or Opera
+    marks: those are other companies' trademarks and no store will carry an
+    icon that uses them.
+  -->
+  <defs>
+    <linearGradient id="s6-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="var(--brand-2)" /><stop offset="1" stop-color="var(--brand)" />
+    </linearGradient>
+  </defs>
+  <rect class="bg" width="128" height="128" rx="28" fill="url(#s6-bg)" />
+  <g class="fg" fill="#ffffff">
+    <!-- The window behind. -->
+    <path opacity="0.5" d="M52 22h50a9 9 0 0 1 9 9v42a9 9 0 0 1-9 9H52a9 9 0 0 1-9-9V31a9 9 0 0 1 9-9zm-9 18h68" />
+    <rect opacity="0.5" x="43" y="22" width="68" height="60" rx="9" />
+    <!-- The window in front, with a title bar so it reads as a window. -->
+    <rect x="17" y="42" width="72" height="64" rx="10" />
+    <rect x="17" y="42" width="72" height="15" rx="7" fill="var(--brand)" opacity="0.28" />
+    <!-- The restore arrow, the heaviest shape here on purpose. -->
+    <path d="M53 62a24 24 0 1 1-17 41l8-8a13 13 0 1 0 9-22h-6v10L28 68l19-15v9z" fill="var(--brand)" />
+  </g>
+</svg>

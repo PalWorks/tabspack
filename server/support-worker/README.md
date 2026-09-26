@@ -40,13 +40,21 @@ a hostname that is free: make one request to it before you deploy.
 ## Redeploying
 
 ```
-cd server/support-worker
-npx wrangler deploy
+npm run relay:deploy          # from the repository root
+npm run relay:check           # the same thing, --dry-run
 ```
 
-The account is pinned in `wrangler.toml`, so there is no account to pick and no
-wrong one to pick. The secret and the KV namespace already exist and survive a
-deploy.
+**Not `wrangler deploy` directly.** The committed `wrangler.toml` has
+placeholders where the Cloudflare account id and the KV namespace id would be.
+Neither is a credential and Cloudflare treats both as safe to commit, but this
+repository is public and there is no reason to publish which account anything
+runs on. They live in `server/support-worker/.env`, which is not committed;
+`scripts/deploy-relay.mjs` renders them in, deploys, and deletes the rendered
+file whether or not the deploy worked. `scripts/lint.mjs` fails the build if a
+real id ever appears in the committed config.
+
+Copy `.env.example` to `.env` on a fresh checkout. The secret and the KV
+namespace already exist on the account and survive every deploy.
 
 ### Rotating the key
 
