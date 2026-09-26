@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 0.2 |
-| Date | 2026-09-24 |
-| Status | In implementation. M0 to M2 built and verified |
+| Version | 0.3 |
+| Date | 2026-09-26 |
+| Status | M0 to M8 built and verified. Version 1.0.0 packaged, not yet submitted to any store |
 | Supersedes | `docs/history/TabPack_BRD_PRD_v0.9.md` (BRD and PRD v0.9, 2026-07-14) |
 | Normative format spec | [docs/SPEC.md](docs/SPEC.md) |
 | Sequencing and exit tests | [docs/ROADMAP.md](docs/ROADMAP.md) |

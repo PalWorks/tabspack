@@ -6,7 +6,18 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ## [Unreleased]
 
-Nothing yet.
+### Documentation
+
+- **A full sweep of every document, and it found two things that were not true.** `llms-full.txt` and the site's home page both said store listings were "in review". Nothing has been submitted to any store, so a public page was making a false claim about the product's status; both now say 1.0.0 is built and not yet submitted. And `SECURITY.md` carried two rows that contradicted each other, one saying there is no runtime message listener and one describing how the message handlers check the sender. There are no message handlers, which is verifiable by grep, so the second row is gone.
+- Counts corrected where they had aged: 247 to 275 unit tests, thirty-nine to forty-four decision records in three places, five to nine lint rules, eighteen to nineteen FAQ questions, and the id reference count in ADR-042 now says when it was measured rather than restating a number that only goes up.
+- `README.md`: the status line said M0 to M5 when M0 to M8 are done, and the roadmap table still called M3 "next". Both fixed, along with the schema's canonical URL, tab age, and the files missing from the project tree.
+- `docs/ARCHITECTURE.md`: nine modules were missing from the map, including most of what M7 and M8 added. It is now complete, checked by listing `src/` against it.
+- `PLAN.md` status said "M0 to M2 built". `docs/PLAYBOOK.md` release procedure gained the matrix flags, the manual checks, the archive audit and the step that turns the rating ask on. `AGENTS.md` rule 3 said "no network access" without naming the one file that may, which would mislead any agent reading it.
+- `PRIVACY.md` to version 1.2, and the matching site page: one row for the last-used time of a tab. Not a new transmission and not a new collection, since the value was always in an export. It is named because the product now shows it to you.
+- `docs/DOMAIN.md` gains "last accessed" as a term and an eighth rule, that unknown is not a value. `docs/SPEC.md` says a reader must not read an absent `lastAccessed` as an old one. `docs/LIMITATIONS.md` records the browser limit and the honest gap in how tab age is tested.
+- `docs/CONTEXT_MAP.md` gains the site, the relay, `store_listing.md` and `docs/proposals/`, plus a fourth layer: outward facing documents, where a claim is a promise rather than a note.
+- The site gains a tab age feature card and a nineteenth FAQ question.
+
 
 ## [1.0.0] - 2026-09-26
 

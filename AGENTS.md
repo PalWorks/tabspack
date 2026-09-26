@@ -17,7 +17,7 @@ These fail review without discussion.
 
 1. **No `browser.*` or `chrome.*` outside `src/core/adapter/`.** Everything else goes through the adapter. Enforced by lint.
 2. **No browser sniffing.** Probe for the API in `capabilities.ts`. Never branch on a browser name or user agent string.
-3. **No network access.** No `fetch`, no `XMLHttpRequest`, no remote script, font, stylesheet or image, no analytics, no remote logging. NFR-006 tests this against the built bundle.
+3. **No network access, with exactly one exception you may not widen.** No `fetch`, no `XMLHttpRequest`, no `EventSource`, no `WebSocket`, no `importScripts`, no remote script, font, stylesheet or image, no analytics, no remote logging. The single exception is `fetch` in `src/core/relay.ts`, which carries a support message the user wrote and pressed Send on, to one fixed address, behind the browser's own permission prompt. Every other transport is banned even in that file. Lint enforces all of it. Adding a second request, a second address or a second file that can make one is an ADR, not an edit. ADR-039.
 4. **No new permission** without an ADR and an update to PLAN.md Table P8. Never add a host permission.
 5. **Nothing that could authenticate a user** goes into an export: no cookies, tokens, headers, form values or storage contents.
 6. **No new runtime dependency.** `webextension-polyfill` is the only one. Development dependencies need a line in the pull request explaining why.
@@ -45,7 +45,7 @@ Do not add features that are not in [PLAN.md](PLAN.md) section 7. The out of sco
 ## 5. Verification, and what you may claim
 
 1. `npm run verify` must pass. It runs typecheck, the project lint rules, the schema check, the tests, the contrast contract, the performance budgets, both builds and AMO's own linter.
-2. Browser behaviour is not proven by a unit test. If your change touches the adapter, the restore engine, a permission or the UI, run `npm run smoke` and `npm run smoke:firefox`, then load the extension unpacked in Chromium **and** Firefox and exercise the path before you claim it works. The table in [docs/TESTING.md](docs/TESTING.md) says which parts no automated run here can reach; those are the parts that need your hands.
+2. Browser behaviour is not proven by a unit test. If your change touches the adapter, the restore engine, a permission or the UI, run `npm run smoke` and `npm run smoke:firefox`, then load the extension unpacked in Chromium **and** Firefox and exercise the path before you claim it works. [docs/MANUAL-CHECKS.md](docs/MANUAL-CHECKS.md) says which parts no automated run here can reach, and those are the parts that need a person's hands rather than yours. Do not mark a task done because everything automatable passed.
 3. Report what you actually ran. If you did not load a browser, say so. If a test fails, show the output. Never describe an untested path as verified.
 4. Label anything you inferred rather than verified as inference, including claims about browser API behaviour you did not exercise.
 
@@ -65,6 +65,10 @@ A change that alters behaviour updates the docs in the same commit:
 | Task finished | The status column in `docs/ROADMAP.md` Table R1, and its Done section |
 | New requirement | `PLAN.md` with a new FR or NFR id |
 | A new user facing string | `_locales/en/messages.json`. Nothing in `src/ui/` spells an English sentence, and three lint rules enforce it |
+| A user visible feature, or a claim about one | `README.md`, `store_listing.md`, and the site under `scripts/site/` followed by `npm run site`. These say things to people who cannot read the code, so a stale claim in them is a false statement rather than an out of date note |
+| Anything the extension reads, stores or sends | `PRIVACY.md`, with its version and date at the top, and the matching page under `scripts/site/pages/` |
+| A new attack surface, or one that was closed | `SECURITY.md` |
+| A check only a person can do | `docs/MANUAL-CHECKS.md`, and the row in `docs/TESTING.md` Table X2 that says why |
 
 ## 7. Commits and pull requests
 

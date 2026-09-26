@@ -139,7 +139,7 @@ That URL resolves: the site publishes the same bytes as the repository, and the 
 | `discarded` | boolean | No | A hint that the tab was unloaded, and a hint to restore it unloaded |
 | `openerIndex` | integer or null | No | `index` of the opener tab within the same window, for tab tree reconstruction. Null or absent means no opener |
 | `cookieStoreId` | string or null | No | Gecko container identity. Ignored on Chromium |
-| `lastAccessed` | string | No | ISO 8601, advisory, useful for sorting in the preview |
+| `lastAccessed` | string | No | ISO 8601, advisory. The reference implementation reports tab age from it, in bands. **Absence means unknown, never old**: a reader must not treat a missing `lastAccessed` as an old one, because not every browser supplies the value and most foreign formats carry none. ADR-044 |
 | `notes` | string | No | Free text carried through untouched |
 | `tags` | array of string | No | User labels carried through untouched |
 

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Version 1.1, dated 2026-09-26. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
+**Version 1.2, dated 2026-09-26. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
 
 This document is both the plain answer and the policy the browser stores require.
 
@@ -22,6 +22,7 @@ To do its job, TabsPack reads the tabs you are viewing:
 | Tab position, pinned, active, muted and discarded state | To restore your session as it was | Same |
 | Window position, size and state | To restore your layout | Same |
 | Tab group title, colour and collapsed state | To restore your groups | Same |
+| When you last looked at a tab, if your browser supplies it | To restore the same detail, and to tell you which tabs you have not opened in months so you can decide what to keep | Same. It is read on your machine and reported on your screen, and it is never sent anywhere |
 | Favicon URL, optional and off by default for embedded icons | Shown in the preview | Same. Imported favicon URLs are never fetched |
 | Your settings and snapshots | To remember your preferences and saved sessions | Your browser's local extension storage, on this machine only |
 
@@ -113,7 +114,7 @@ any TabsPack page.
 
 ## Changes to this policy
 
-If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduces or widens any network transmission requires a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) and is stated plainly in the store listing rather than buried here. Version 1.1 of this policy is such a change: see ADR-039, which explains why the support form gained a direct Send and what was given up for it.
+If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduces or widens any network transmission requires a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) and is stated plainly in the store listing rather than buried here. Version 1.1 of this policy was such a change: see ADR-039, which explains why the support form gained a direct Send and what was given up for it. Version 1.2 adds a row to the table above, for the last-used time of a tab. It is not a new transmission and not a new collection: the value was always in an export, and 1.2 names it because the product now shows it to you.
 
 ## Contact
 

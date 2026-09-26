@@ -20,7 +20,9 @@ after a crash or after a tab suspender extension is removed.
 - Price: free. No paid tier, no account, no advertising, no data collection.
 - Licence: MIT. Full source published.
 - Browsers: Chrome, Edge, Firefox. One source tree builds all three.
-- File format: `.tabspack.json`, plain JSON against a published JSON Schema.
+- File format: `.tabspack.json`, plain JSON against a published JSON Schema
+  whose canonical address resolves:
+  https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json
 - Privacy: requests no host permission at install, so it cannot reach any
   address on the internet. Tabs are never transmitted. The only network request
   it can make is a support message the user writes and presses Send on, which
@@ -57,15 +59,20 @@ CSV. The interface states what each lossy format discards before it is chosen.
   listed on a page after restore, rather than being dropped.
 - Private and incognito windows are excluded unless the user enables it in both
   the browser and the extension.
+- It reports how old the open tabs are, in bands, from the last-used time the
+  browser supplies, and can leave tabs untouched for a month, three months, six
+  months or a year out of the export. The filter is off by default. A pinned tab
+  is never treated as old, and a tab with no last-used time is counted in a band
+  of its own and never dropped: absence of a date is not evidence of age.
 
 ## Pages
 
 - [Home](https://palworks.github.io/tabspack/): what it does, how it works, the privacy position, formats.
 - [Pricing](https://palworks.github.io/tabspack/pricing/): free, and why.
-- [FAQ](https://palworks.github.io/tabspack/faq/): eighteen questions answered in full.
+- [FAQ](https://palworks.github.io/tabspack/faq/): nineteen questions answered in full.
 - [About us](https://palworks.github.io/tabspack/about/): who builds it and what it refuses to do.
 - [Contact us](https://palworks.github.io/tabspack/contact/): support@palworks.ai, the in-extension form, GitHub issues.
-- [Privacy policy](https://palworks.github.io/tabspack/privacy/): version 1.1.
+- [Privacy policy](https://palworks.github.io/tabspack/privacy/): version 1.2.
 - [Terms of use](https://palworks.github.io/tabspack/terms/)
 - [Security](https://palworks.github.io/tabspack/security/): disclosure process and the design decisions behind the attack surface.
 - [Cookie notice](https://palworks.github.io/tabspack/cookies/): there are none.
@@ -74,5 +81,5 @@ CSV. The interface states what each lossy format discards before it is chosen.
 ## Optional
 
 - [Format specification](https://github.com/PalWorks/tabspack/blob/main/docs/SPEC.md)
-- [JSON Schema](https://github.com/PalWorks/tabspack/blob/main/schema/tabspack.v1.schema.json)
+- [JSON Schema](https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json), served at the address it declares as its own `$id`
 - [Decision records](https://github.com/PalWorks/tabspack/blob/main/docs/DECISIONS.md)

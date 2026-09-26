@@ -38,7 +38,9 @@ src/
       index.ts            the real adapter, plus the lifecycle and command events
     capabilities.ts       capability table and user notices, pure
     collect.ts            browser state to Session
-    filters.ts            scheme, pinned, exclude, dedupe, sort, reindex
+    filters.ts            scheme, pinned, stale, exclude, dedupe, sort, reindex
+    staleness.ts          how old the tabs are, in bands. Unknown is its own
+                          band and is never called old: ADR-044
     serialize.ts          Session to TabsPackFile, deterministic output
     exporters.ts          the two one way formats, URL list and flat JSON
     export.ts             collect, filter, render: the pipeline both surfaces use
@@ -52,7 +54,11 @@ src/
     deserialize.ts        TabsPackFile to Session, unknown field retention
     import.ts             parse, migrate, validate, read: the one import entry point
     urls.ts               which addresses an extension may open, and why not
+    rating.ts             when to ask for a rating, and when to stop: ADR-036
     restore.ts            Session to browser state, throttle and discard policy
+    relay.ts              the only file permitted to make a request: ADR-039
+    support.ts            composes the support message, and carries no tab data
+    unsuspend.ts          a suspender's wrapper read back to the real page: ADR-023
     adapters/             foreign format readers, one file per source
       types.ts            the adapter contract and the envelope builder
       detect.ts           the registry, in order from specific to general
@@ -75,13 +81,23 @@ src/
       theme.ts            light, dark or the system's choice, as one attribute
       report-view.ts      renders a report and an issue list into a live region
       save.ts             Blob plus downloads API, anchor fallback, clipboard
-    popup/                launcher: counts, scope, one primary action
+      notify.ts           the toolbar badge and tooltip, from any surface: ADR-033
+      groups-callout.ts   the tabGroups permission offer, where it is lost: ADR-030
+    popup/
+      popup.ts            launcher: counts, scope, one primary action
+      popup.css
     manager/
       manager.ts          the shell and the export task
       import-panel.ts     file intake, validation display, restore controls
       preview-tree.ts     the virtualised windows, groups and tabs tree
       snapshot-panel.ts   save, list, rename, tag, export and delete snapshots
-    placeholder/          the page listing addresses that cannot be opened
+      settings-panel.ts   the Settings and About panes: ADR-028
+      support-panel.ts    compose, send through the relay, fall back: ADR-039
+      rating-panel.ts     the ask, built once per pane, never a modal: ADR-036
+      manager.css         the manager's own styles, on top of shared/base.css
+    placeholder/
+      placeholder.ts      renders the addresses a restore could not open
+      placeholder.css
   types/
     tabspack.ts           the format types, the source of the JSON Schema
     session.ts            the in memory model
@@ -92,8 +108,13 @@ assets/
   icon.png                the mark, 512 px, rendered down by scripts/gen-assets.mjs
   icons/, store/          generated, never hand edited
 schema/
-  tabspack.v1.schema.json generated, never hand edited
-scripts/                  build, lint, schema, test, fixtures, icons, perf, smoke
+  tabspack.v1.schema.json generated, never hand edited, and published by
+                          gen-site.mjs at the address its own $id names
+scripts/                  build, lint, schema, test, fixtures, icons, perf, smoke,
+                          the site renderer and the relay deploy
+  site/                   the site's source: one layout, one file per page
+website/                  the rendered site, committed, served by GitHub Pages
+server/support-worker/    the Cloudflare Worker that carries a support message
 test/
   tools/                  fake browser, scenarios, fixture generator, bench,
                           the round trip harness
@@ -127,7 +148,8 @@ Export:
 UI intent (scope, filters)
   -> core/collect.ts        adapter/windows.getAll(populate), adapter/groups.query
   -> core/unsuspend.ts      a suspender's wrapper -> the page it stands for
-  -> core/filters.ts        dedupe, scheme, skip pinned, exclude, sort
+  -> core/staleness.ts      how old the scope is, measured before any filter
+  -> core/filters.ts        scheme, pinned, stale, exclude, dedupe, sort
   -> core/serialize.ts      Session -> TabsPackFile, strip data favicons
   -> adapter/downloads.ts   write tabspack-YYYYMMDD-HHmm.tabspack.json
   -> core/report.ts         counts shown in UI, badge flashed by sw

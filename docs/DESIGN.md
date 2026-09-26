@@ -149,8 +149,11 @@ The address follows the pane, so a reload comes back where you were and a pane c
   │  Include    ☐ Titles in text export   ☑ Favicon URLs              │
   │             ☐ Private windows                                     │
   │  Filters    ☑ Remove duplicates  ☐ Web pages only  ☐ Skip pinned  │
+  │             ☐ Skip tabs not opened in [ 3 months ▾ ]              │
+  │             Order [ As they are ▾ ]  ☐ Reverse                    │
   │                                                                   │
   │  [ Export 37 tabs ]  [ Copy ]                        1 window      │
+  │  Last opened: 12 today · 9 this week · 16 over 3 months ago       │
   └───────────────────────────────────────────────────────────────────┘
   ┌─ Output ──────────────────────────────────────────────────────────┐
   │  37 tabs · 12.4 KB                                                │
@@ -167,6 +170,8 @@ Rules for this page:
 - The output panel is the honesty mechanism: the user sees the exact bytes before trusting them. It is read only and monospace, and it never truncates without saying so.
 - A checkbox that cannot apply, for example private windows without the browser level permission, is disabled with a one line reason beside it, not hidden.
 - The task tabs carry only what has shipped. Disabled UI advertising an unbuilt feature is worse than its absence.
+- **The age line appears only when it has something to say.** It is silent when every tab is recent and when the browser gave no dates at all, because a line that is always there is a line nobody reads. It sits above the report and is not a live region: the report announces what just happened, this describes what is there, and announcing it on every filter change would be noise. ADR-044.
+- **The exemptions are stated where they apply.** Turning the age filter on reveals one sentence saying that pinned tabs and tabs with no date are always kept. It is hidden while the filter is off, because a rule about a feature nobody is using is clutter.
 
 ### The import task
 

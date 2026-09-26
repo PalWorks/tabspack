@@ -50,11 +50,13 @@ reference for the sake of a letter. The prefix then records where the row came
 from, which is worth knowing: it says this started as an idea rather than as
 planned work.
 
-The prefixes stay because they are load bearing. The ids appear 413 times
-across 70 files: in code comments next to the line that implements them, in
-test names, in ADRs, and in ten commit subjects that can never be rewritten.
-Renumbering would buy a shorter id and cost every one of those references,
-with git history left pointing at numbers that no longer exist. ADR-042.
+The prefixes stay because they are load bearing. Measured on 2026-09-26, the
+ids appear **472 times across 83 files**: in code comments next to the line
+that implements them, in test names, in ADRs, in the pull request template, and
+in fourteen commit subjects that can never be rewritten on a published branch.
+Renumbering would buy a shorter id and cost every one of those references, with
+git history left pointing at numbers that no longer exist. The count only ever
+goes up, which is the argument rather than the number. ADR-042.
 
 ### Table R1: Open work
 

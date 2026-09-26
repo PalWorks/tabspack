@@ -2,12 +2,14 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-M5%20built%2C%20not%20yet%20submitted-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-1.0.0%20packaged%2C%20not%20yet%20submitted-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: export and import both work; nothing is published yet.** Milestones M0 to M5 are built, so the extension builds for Chromium and Gecko, exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, and reads the export files of other tab tools. It saves named snapshots locally, has keyboard commands, settings, a light and dark theme and a translation layer. What is left is the part an agent cannot do: the manual cross browser matrix, and submitting to three stores that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md) for what is built and what is next. Features below marked *planned* are agreed targets, not shipped software.
+> **Project status: 1.0.0 is built, packaged and verified. Nothing is published yet.** Milestones M0 to M8 are done. The extension exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, reads the export files of seven other tab tools, restores 200 tabs without taking the browser down, saves named snapshots, and has keyboard commands, settings, a theme and a translation layer. The cross browser matrix is green on Chrome, Edge and Firefox, there is a public site with the legal pages, and a support form that reaches us without a mail client.
+>
+> What is left is what a machine cannot do: [four manual checks](docs/MANUAL-CHECKS.md), and three store submissions that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Contents
 
@@ -40,7 +42,8 @@ Working today:
 
 - **Export** the current window, all windows or the selected tabs, to `.tabspack.json`, a plain URL list or the clipboard.
 - **Captured faithfully:** window position and state, tab order, pinned tabs, the active tab, muted and unloaded tabs, opener relationships, and tab groups with title, colour and collapsed state.
-- **Filters** for duplicates, non web pages, pinned tabs, a wildcard exclude list and sorting, with every dropped tab named in the report.
+- **Filters** for duplicates, non web pages, pinned tabs, tab age, a wildcard exclude list and sorting, with every dropped tab named in the report.
+- **See which tabs died months ago.** The export pane groups your open tabs by when you last looked at them, and can leave out anything untouched for a month, three months, six months or a year. It never guesses: a pinned tab is never called old, and a tab the browser gives no date for is counted separately and never dropped.
 **Website:** <https://palworks.github.io/tabspack/> &nbsp;·&nbsp; **Privacy:** <https://palworks.github.io/tabspack/privacy/>
 
 - **Your tabs never leave your machine.** No account, no sync, no telemetry, and no host permission at install, so out of the box TabsPack cannot reach any address. The one request it can make is a support message you write and press Send on, which the browser asks your permission for; `npm run lint` enforces that there is exactly one place in the source that can make it.
@@ -85,6 +88,12 @@ A `.tabspack.json` file is UTF-8 JSON that a person can read and hand edit. Only
 
 Two rules make it durable: a reader ignores fields it does not understand, and preserves them when it rewrites the file. The full normative description is in [docs/SPEC.md](docs/SPEC.md). It is MIT licensed and third party implementations are encouraged.
 
+The JSON Schema has a canonical address, and it resolves:
+
+<https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json>
+
+The site serves the same bytes as `schema/` in this repository, and the build fails if the two disagree or if the schema's `$id` stops matching the path it is published at.
+
 ## Architecture
 
 One source tree, two manifests, no server, no network, one runtime dependency.
@@ -123,7 +132,7 @@ npm run verify         # typecheck, lint, schema check, tests, budgets, build
 |---|---|
 | `npm run build` | Builds both targets. `--watch` for development |
 | `npm run typecheck` | `tsc --noEmit`, strict |
-| `npm run lint` | The project rules: adapter boundary, no `innerHTML`, no network, no unexplained `any`, exact manifest permissions |
+| `npm run lint` | The project rules: adapter boundary, no `innerHTML`, no network outside one file, no unexplained `any`, exact manifest permissions, no deploy ids in a committed config, and the schema's `$id` matching the address the site publishes it at |
 | `npm test` | Unit suite plus schema conformance over the fixture corpus |
 | `npm run schema:check` | Fails if the generated schema no longer matches the types |
 | `npm run perf` | The performance budgets in `test/tools/bench.ts` |
@@ -154,14 +163,21 @@ docs/
   PLAYBOOK.md           how to build, add an adapter, change the format, release
   TESTING.md            test layers, fixtures, cross browser matrix
   CONTEXT_MAP.md        which file answers which question
+  MANUAL-CHECKS.md      the four checks a machine cannot do, and how to do them
   store/                the listing text and every answer a store asks for
+  proposals/            explored but not yet agreed work
   history/              superseded documents, kept for provenance
+store_listing.md        the store dashboard fields, SEO, GEO and AEO tuned
 src/                    core, adapter, ui, background: see ARCHITECTURE.md
 _locales/en/            every string the interface shows
 assets/                 the mark, the generated icons and the store tiles
 scripts/                build, lint, schema, tests, fixtures, assets, contrast,
                         budgets, and the real browser runs
-schema/                 tabspack.v1.schema.json, generated from the types
+schema/                 tabspack.v1.schema.json, generated from the types, and
+                        published at the address it declares as its own $id
+website/                the public site, rendered by scripts/gen-site.mjs and
+                        committed, so what is served is what is in the repository
+server/support-worker/  the Cloudflare Worker that carries a support message
 test/                   unit suite, fake browser, fixtures and the bench
 manifest.chrome.json    Chromium manifest
 manifest.firefox.json   Gecko manifest
@@ -172,7 +188,7 @@ manifest.firefox.json   Gecko manifest
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
 
 ```bash
-npm run verify        # typecheck, lint, schema, 247 tests, contrast, budgets, both builds, AMO's linter
+npm run verify        # typecheck, lint, schema, site, 275 tests, contrast, budgets, both builds, AMO's linter
 npm run smoke         # 107 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
@@ -182,7 +198,9 @@ npm run smoke:firefox # installs the Firefox package in a real Firefox
 npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
 ```
 
-[docs/TESTING.md](docs/TESTING.md) also says plainly what these runs **cannot** reach, which is where the remaining risk is: the interface in Firefox and Edge, a keyboard shortcut actually being pressed, a permission prompt being granted, and a restore with unloading on at scale.
+Matrix totals, run headed on a virtual display with a window manager on 2026-09-26: **Chrome 27 of 27, Edge 27 of 27, Firefox 26 of 28 with 2 skipped, nothing failed.** The configuration is part of that result; the same tree headless and without the flags reports three failures that are all the rig rather than the product, and [docs/TESTING.md](docs/TESTING.md) says so beside the number.
+
+Four things no run reaches, because they need a person: answering the browser's own permission prompt, a real suspender's parked page, a keystroke Firefox actually acts on, and whether it looks any good. They are written up with the keys to press in [docs/MANUAL-CHECKS.md](docs/MANUAL-CHECKS.md).
 
 ## Roadmap
 
@@ -191,9 +209,12 @@ npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
 | M0 | Skeleton, build, both manifests, capability probe, CI | Done |
 | M1 | Export, serialization, file naming, schema frozen | Done |
 | M2 | Import, validation, preview, restore engine, import report | Done |
-| M3 | Search in the preview, filters, foreign format adapters | Next |
-| M4 | Local snapshots, hotkeys, badge | Planned |
-| M5 | Options, theme, i18n, store submissions | Planned |
+| M3 | Search in the preview, filters, foreign format adapters | Done |
+| M4 | Local snapshots, hotkeys, badge | Done |
+| M5 | Options, theme, i18n, packaging | Done, except the store submissions |
+| M6 | Suspended tab recovery, and a restore that survives 200 tabs | Done |
+| M7 | Everything a real user's first session found | Done |
+| M8 | A support relay, and a public site with the legal pages | Done |
 
 Release themes beyond v1, and the exit test for each milestone, are in [docs/ROADMAP.md](docs/ROADMAP.md).
 

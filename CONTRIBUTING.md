@@ -24,12 +24,12 @@ Read [AGENTS.md](AGENTS.md) as well. It applies to human contributors too; only 
 ## Checklist
 
 ```bash
-npm run verify        # typecheck, lint, schema, tests, contrast, budgets, both builds, AMO's linter
+npm run verify        # typecheck, lint, schema, site, tests, contrast, budgets, both builds, AMO's linter
 npm run smoke         # the built extension driven in a real Chromium
 npm run smoke:firefox # the built package installed in a real Firefox
 ```
 
-Then, if your change touches the adapter layer, the restore engine, a permission or any UI: load `dist/chrome` in Chrome or Edge and `dist/firefox` in Firefox, and exercise the path by hand. Unit tests do not prove a permission prompt or a tab strip, and [docs/TESTING.md](docs/TESTING.md) lists exactly what the automated runs cannot reach.
+Then, if your change touches the adapter layer, the restore engine, a permission or any UI: load `dist/chrome` in Chrome or Edge and `dist/firefox` in Firefox, and exercise the path by hand. Unit tests do not prove a permission prompt or a tab strip, and [docs/MANUAL-CHECKS.md](docs/MANUAL-CHECKS.md) lists exactly what the automated runs cannot reach, with the keys to press.
 
 ## Code style
 
@@ -59,7 +59,7 @@ A reviewer checks, in this order: does it match an agreed task, does it respect 
 
 ## Translations
 
-The i18n scaffold arrives at M5. Locale contributions are welcome after that, as `_locales/<code>/messages.json` against the English source. Do not machine translate a permission justification or a privacy statement.
+The i18n scaffold landed in M5, so locale contributions are welcome now, as `_locales/<code>/messages.json` against the English source. Every string the interface shows is already in `_locales/en/messages.json` and a lint rule fails the build on a key with no entry, so a new locale is a file rather than a hunt. Do not machine translate a permission justification or a privacy statement.
 
 ## Reporting bugs
 

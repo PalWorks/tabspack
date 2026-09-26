@@ -22,6 +22,7 @@ Read this before "fixing" anything listed here. Every entry is either a browser 
 | Extensions cannot open `chrome://`, `edge://`, `about:` other than blank, `view-source:`, `javascript:` or `data:` URLs | Those tabs cannot be recreated | Kept in the file, listed on a placeholder page, counted in the import report. SPEC section 8 |
 | `file://` URLs need a browser level file access grant | Local file tabs may fail to open | Capability probe, and the same placeholder treatment when refused |
 | Tab groups need Chromium 89 or Gecko 139 | Older browsers restore tabs ungrouped | Group metadata is retained in the file, so a later restore on a capable browser is lossless. One notice, not one per tab |
+| `tabs.lastAccessed` is not guaranteed. Older browsers do not supply it, and no foreign import format except Tab Session Manager carries one | Tab age is unknown for those tabs, and unknown is not a small case: a pack imported from OneTab or a bookmark file has no dates at all | Unknown is a band of its own in the age report, counted and shown. It is never called old and no filter drops it, because absence of evidence is not evidence of age. ADR-044 |
 | Chromium cannot create an already discarded tab | Restoring a large pack briefly creates loaded tabs | Create inactive, then discard immediately beyond the threshold |
 | A tab group cannot span windows | Group structure is per window by definition | The format declares groups inside their window |
 | `tabs.create` cannot assign a group | Grouping is always a second pass | Restore step 6 in ARCHITECTURE.md section 6 |
@@ -79,6 +80,7 @@ Read this before "fixing" anything listed here. Every entry is either a browser 
 
 | Debt | Introduced | Paid when |
 |---|---|---|
-| No formatter is enforced, only the five project rules in `scripts/lint.mjs` | T-004, ADR-014 | Before outside contributions arrive |
+| No formatter is enforced, only the nine project rules in `scripts/lint.mjs` | T-004, ADR-014 | Before outside contributions arrive |
 | The placeholder icon is a generated mark, not designed artwork | T-007 | T-504 |
 | Foreign format fixtures are reconstructions from documented shapes, not genuine exports, which `test/fixtures/foreign/README.md` forbids | M3, T-303 to T-308 | When a genuine export of each tool can be obtained |
+| The rendered tab age sentence is proved in two halves rather than end to end: the counts by unit test, the wording by asking the browser to substitute into the phrase. No test profile can hold a tab from three months ago | B-202 | If a way to seed `lastAccessed` in a test profile appears. Until then the whole case is [MANUAL-CHECKS.md](MANUAL-CHECKS.md) territory |

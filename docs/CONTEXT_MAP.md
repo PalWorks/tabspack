@@ -23,6 +23,10 @@ Where knowledge lives, so nothing is inferred twice. Read the file that owns a q
 | What data leaves the machine | [../PRIVACY.md](../PRIVACY.md) | Short answer: nothing |
 | Where does a user facing string live | `_locales/en/messages.json`. Nothing in `src/ui/` spells an English sentence: ADR-022 |
 | What goes to the stores, and what do I answer a reviewer | [store/listing.md](store/listing.md) and [store/submission.md](store/submission.md) | An improvised justification. PLAN.md Table P8 is the source |
+| What exactly do I paste into each dashboard field | [../store_listing.md](../store_listing.md), the name, summary, description, permission justifications, privacy answers and artwork, in dashboard order | Writing it again in the dashboard |
+| Where does the public site come from | `scripts/site/`, one layout and one file per page, rendered into `website/` by `scripts/gen-site.mjs` and committed | Editing `website/` by hand. It is output, and `npm run site:check` fails if it drifts |
+| What carries a support message, and what does it hold | [../server/support-worker/README.md](../server/support-worker/README.md) | The extension, which holds no key and makes one request to one address |
+| What has been explored but not agreed | [proposals/](proposals/) | The roadmap, which carries only agreed work |
 | How do I report a vulnerability | [../SECURITY.md](../SECURITY.md) | |
 | What changed and when | [../CHANGELOG.md](../CHANGELOG.md) | |
 | What did the original 2026-07 product document say | [history/TabPack_BRD_PRD_v0.9.md](history/TabPack_BRD_PRD_v0.9.md) | It is superseded. Read it for history, never for current scope |
@@ -44,3 +48,5 @@ Orientation: `README.md`, `PLAN.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN.md`, `
 Execution: `AGENTS.md`, `docs/PLAYBOOK.md`, `docs/ROADMAP.md`, `docs/TESTING.md`.
 
 Memory: `docs/DECISIONS.md`, `docs/LIMITATIONS.md`, `CHANGELOG.md`, `docs/history/`.
+
+Outward facing: `store_listing.md`, `scripts/site/` and the `website/` it renders, `PRIVACY.md`, `SECURITY.md`. These four say things to people who cannot read the code, so a claim in one of them is a promise. When a fact changes, they change in the same commit as the code that changed it.

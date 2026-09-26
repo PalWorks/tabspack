@@ -54,6 +54,23 @@ change them; the extension reads back whatever the browser accepted.
   groups and the optional `tabGroups` permission has been granted.
 - Favicon addresses, optionally, off by default. Imported favicon addresses are
   never fetched.
+- The time a tab was last used, where the browser supplies it.
+
+## Tab age
+
+TabsPack reports how old the tabs in scope are, in bands, from the last-used
+time the browser supplies, and offers one filter that leaves out tabs untouched
+for a month, three months, six months or a year. The filter is off by default.
+
+Two rules govern it and both are deliberate. A pinned tab is never treated as
+old, however long ago it was last clicked, because pinning is the user saying
+they want it. A tab the browser gives no last-used time for is counted in a band
+of its own, shown rather than hidden, and never dropped by the filter: an absent
+date is unknown, not old, and no foreign import format except Tab Session
+Manager carries one at all.
+
+Age is measured before any filter runs, so enabling the filter does not remove
+the old tabs from the report that justified enabling it.
 
 ## What is deliberately not preserved
 
@@ -165,9 +182,11 @@ because tabs never leave the user's machine and there is no account system.
 
 ## Distribution
 
-Store listings for the Chrome Web Store, Microsoft Edge Add-ons and
-addons.mozilla.org are in review as of 26 September 2026. Until they are live,
-builds are available from https://github.com/PalWorks/tabspack/releases.
+Version 1.0.0 is built, packaged and verified. **It has not been submitted to
+any store yet**, as of 26 September 2026, so there is no Chrome Web Store,
+Microsoft Edge Add-ons or addons.mozilla.org listing to link to. Builds are
+available from https://github.com/PalWorks/tabspack/releases and the whole
+source is public.
 
 Note for Firefox users: release Firefox refuses to install any extension Mozilla
 has not signed and reports the refusal as the file appearing "corrupt". Until
@@ -184,7 +203,7 @@ other file reaches for a browser API. A cross browser matrix loads the extension
 into real Chrome, real Edge and real Firefox and drives them, because the
 interesting failures in an extension are all about what a particular browser
 actually does. Every non-obvious decision is recorded as a numbered decision
-record in the repository, thirty-nine of them at present.
+record in the repository, forty-four of them at present.
 
 ## Contact
 

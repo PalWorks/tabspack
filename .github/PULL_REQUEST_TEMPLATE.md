@@ -8,7 +8,7 @@
 
 ## What I ran
 
-- [ ] `npm run verify` (typecheck, lint, schema check, tests, contrast, budgets, both builds)
+- [ ] `npm run verify` (typecheck, lint, schema check, site check, tests, contrast, budgets, both builds, AMO's linter)
 - [ ] `npm run smoke` against a real Chromium
 
 ## What I verified by hand, and where
@@ -31,7 +31,9 @@ you loaded none, say that: an honest gap is useful, a guess is not.
 
 - [ ] `CHANGELOG.md` under Unreleased
 - [ ] The task's status in `docs/ROADMAP.md` Table R1
-- [ ] Any of `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/LIMITATIONS.md`, `docs/PLAYBOOK.md` that this change makes wrong
+- [ ] Any of `docs/SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/LIMITATIONS.md`, `docs/PLAYBOOK.md`, `docs/DOMAIN.md`, `docs/TESTING.md` that this change makes wrong
+- [ ] If a user can see it: `README.md`, `store_listing.md`, and the site under `scripts/site/` followed by `npm run site`. A stale claim on those is a false statement, not an out of date note
+- [ ] If it changes what is read, stored or sent: `PRIVACY.md` and its version, and `SECURITY.md` if it opens or closes an attack surface
 
 ## Format changes only
 
