@@ -505,6 +505,23 @@ section {
   }
 }
 
+/* The explainer animation, embedded. It carries its own pause button and
+   plays only while on screen; the frame gives it the site's corners. */
+.explainer {
+  margin: clamp(30px, 5vw, 48px) auto 0;
+  max-width: 1040px;
+}
+.explainer iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  background: #2563ff;
+}
+
 .trustbar {
   display: flex;
   flex-wrap: wrap;

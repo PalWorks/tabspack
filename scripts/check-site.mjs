@@ -28,7 +28,16 @@ const fail = (file, detail) => problems.push(`${file}  ${detail}`);
 
 const exists = async (p) => Boolean(await stat(p).catch(() => null));
 
-const pages = (await walkFiles("website/**/*.html", root)).sort();
+/*
+ * Pages, not every HTML file. `website/assets/` holds documents that live
+ * inside a page, like the explainer the home page embeds, which have no header,
+ * no canonical and no place in the sitemap by design.
+ */
+const pages = (await walkFiles("website/**/*.html", root))
+  .filter((p) => !p.replaceAll("\\", "/").startsWith("website/assets/"))
+  // Search Console's verification file is one line of text for Google, not a page.
+  .filter((p) => !/^website\/google[0-9a-f]{16}\.html$/.test(p.replaceAll("\\", "/")))
+  .sort();
 if (pages.length === 0) {
   console.error("check-site: no pages, run `npm run site`");
   process.exit(1);
@@ -70,7 +79,7 @@ for (const rel of pages) {
    * `<link rel=canonical>`, `<link rel=sitemap>` and `og:url` are *required* to
    * be absolute, so a rule about relative links must not look at them.
    */
-  const followed = [...html.matchAll(/<(?:a|img|script)\b[^>]*?(?:href|src)="([^"]+)"[^>]*>/g)];
+  const followed = [...html.matchAll(/<(?:a|img|script|iframe)\b[^>]*?(?:href|src)="([^"]+)"[^>]*>/g)];
   for (const match of followed) {
     const href = match[1];
     if (/^(https?:|mailto:|#|data:)/.test(href)) {
@@ -79,7 +88,7 @@ for (const rel of pages) {
       }
       continue;
     }
-    const [target] = href.split("#");
+    const [target] = href.split(/[?#]/);
     if (target === "") continue;
     const resolved = path.resolve(dir, target);
     const candidate = resolved.endsWith("/") || !path.extname(resolved)
@@ -93,6 +102,10 @@ for (const rel of pages) {
     if (/^(https?:|data:)/.test(href)) continue;
     const resolved = path.resolve(dir, href.split("#")[0]);
     if (!(await exists(resolved))) fail(file, `broken <link> to ${href}`);
+  }
+
+  for (const frame of html.matchAll(/<iframe\b[^>]*>/g)) {
+    if (!/\btitle="[^"]{10,}"/.test(frame[0])) fail(file, `iframe without a title: ${frame[0].slice(0, 70)}`);
   }
 
   /* 2. Images. ------------------------------------------------------------ */

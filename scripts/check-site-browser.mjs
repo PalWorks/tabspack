@@ -60,7 +60,11 @@ const WIDTHS = [320, 390, 768, 1024, 1440];
  * and every measurement taken here would be of an unstyled document. Its
  * markup and metadata are checked by `check-site.mjs` like every other page.
  */
-const pages = (await walkFiles("website/**/*.html", root)).filter((p) => !p.endsWith("404.html")).sort();
+// website/assets/ holds documents embedded in a page, measured inside it.
+const pages = (await walkFiles("website/**/*.html", root))
+  .filter((p) => !p.endsWith("404.html") && !p.replaceAll("\\", "/").startsWith("website/assets/"))
+  .filter((p) => !/^website\/google[0-9a-f]{16}\.html$/.test(p.replaceAll("\\", "/")))
+  .sort();
 const problems = [];
 
 // The site has mailto links. Nothing here clicks them, and nothing here may

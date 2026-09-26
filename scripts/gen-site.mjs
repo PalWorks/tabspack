@@ -218,6 +218,17 @@ rendered.set(
 rendered.set("llms.txt", await readFile(path.join(src, "llms.txt"), "utf8"));
 rendered.set("llms-full.txt", await readFile(path.join(src, "llms-full.txt"), "utf8"));
 
+/*
+ * Google Search Console's ownership proof for the URL prefix property
+ * https://palworks.github.io/tabspack/. Google fetches it at the site root and
+ * compares the bytes, so it is copied through untouched, and it stays for as
+ * long as the property should stay verified: delete it and ownership lapses.
+ * The token is public by design; it proves control, it grants nothing.
+ */
+for (const name of (await readdir(src)).filter((n) => /^google[0-9a-f]{16}\.html$/.test(n))) {
+  rendered.set(name, await readFile(path.join(src, name), "utf8"));
+}
+
 /**
  * The JSON Schema, published at the address it declares as its own `$id`.
  *
@@ -232,11 +243,35 @@ rendered.set(
   await readFile(path.join(root, "schema", "tabspack.v1.schema.json"), "utf8"),
 );
 
+/**
+ * The explainer animation the home page embeds, copied from `assets/promo/` so
+ * there is one animation and the site serves it. It lives under `assets/`
+ * because it is part of a page, not a page: the site checks skip that folder.
+ *
+ * Two changes on the way: the mark comes from the site's own icon rather than
+ * the 270 KB source image, and a search engine is asked not to index the
+ * document on its own, since out of its page it is a video with no context.
+ * The fonts are binary, so they travel as Buffers.
+ */
+const promo = path.join(root, "assets", "promo");
+const explainer = (await readFile(path.join(promo, "explainer.html"), "utf8"))
+  .replace('src="../icon.png"', 'src="../img/icon-128.png"')
+  .replace('<meta name="viewport"', '<meta name="robots" content="noindex" />\n<meta name="viewport"');
+if (!explainer.includes("../img/icon-128.png") || !explainer.includes('content="noindex"')) {
+  throw new Error("explainer: the mark or the viewport line moved, update gen-site.mjs");
+}
+rendered.set("assets/explainer/explainer.html", explainer);
+for (const font of (await readdir(path.join(promo, "fonts"))).sort()) {
+  const bytes = await readFile(path.join(promo, "fonts", font));
+  rendered.set(`assets/explainer/fonts/${font}`, font.endsWith(".woff2") ? bytes : bytes.toString("utf8"));
+}
+
 if (check) {
   const problems = [];
   for (const [dest, expected] of rendered) {
-    const actual = await readFile(path.join(out, dest), "utf8").catch(() => null);
-    if (actual !== expected) problems.push(dest);
+    const binary = Buffer.isBuffer(expected);
+    const actual = await readFile(path.join(out, dest), binary ? undefined : "utf8").catch(() => null);
+    if (binary ? !(actual && expected.equals(actual)) : actual !== expected) problems.push(dest);
   }
   if (problems.length > 0) {
     console.error(`site: stale, run \`npm run site\`:\n  ${problems.join("\n  ")}`);
@@ -249,7 +284,7 @@ if (check) {
 for (const [dest, contents] of rendered) {
   const full = path.join(out, dest);
   await mkdir(path.dirname(full), { recursive: true });
-  await writeFile(full, contents, "utf8");
+  await writeFile(full, contents, Buffer.isBuffer(contents) ? undefined : "utf8");
 }
 await writeFile(path.join(out, ".nojekyll"), "", "utf8");
 console.log(`site: ${rendered.size} files written to website/`);
