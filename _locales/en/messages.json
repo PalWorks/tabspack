@@ -144,13 +144,13 @@
     "message": "Flat JSON, one way"
   },
   "formatNotePack": {
-    "message": "Windows, order, pinned tabs and groups are preserved."
+    "message": "Everything comes back: windows, order, pinned tabs and groups."
   },
   "formatNoteUrls": {
-    "message": "URLs only. This format cannot be restored faithfully."
+    "message": "A plain list you can read anywhere. Windows, groups and order are lost."
   },
   "formatNoteFlat": {
-    "message": "Titles and URLs only. This format cannot be restored faithfully."
+    "message": "Titles and addresses, for a script or a spreadsheet. Windows, groups and order are lost."
   },
   "taskExport": {
     "message": "Export"
