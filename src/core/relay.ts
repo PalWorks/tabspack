@@ -38,7 +38,14 @@
  * `server/support-worker/wrangler.toml`. One address written four times is
  * three chances to ship a Send button that reaches nothing.
  */
-export const RELAY_ORIGIN = "https://support.palworks.ai";
+export const RELAY_ORIGIN = "https://tabspack-support.palworks.ai";
+/*
+ * Not `support.palworks.ai`, which looks like the obvious name and is already
+ * a live worker belonging to another product on the same domain. Deploying
+ * over it would have taken that product down, and until someone noticed, every
+ * TabsPack support message would have been posted to a stranger's endpoint.
+ * Found by making one request to it before deploying anything.
+ */
 
 /** The match pattern the browser is asked to grant. */
 export const RELAY_PERMISSION = `${RELAY_ORIGIN}/*`;
@@ -95,6 +102,21 @@ export function relayBody(payload: RelayPayload): Record<string, string> {
   };
 }
 
+/**
+ * Whether the answer came from the relay. The worker replies `{"ok":true}` and
+ * nothing else does by accident. A body that cannot be read or parsed is not an
+ * acknowledgement: the caller falls back, which costs a duplicate at worst and
+ * never a message the user believes was delivered.
+ */
+async function acknowledged(response: Response): Promise<boolean> {
+  try {
+    const body: unknown = await response.json();
+    return typeof body === "object" && body !== null && (body as { ok?: unknown }).ok === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function sendViaRelay(payload: RelayPayload, options: RelayOptions = {}): Promise<RelayOutcome> {
   const send = options.fetch ?? (globalThis.fetch.bind(globalThis) as Fetcher);
   const controller = new AbortController();
@@ -115,7 +137,16 @@ export async function sendViaRelay(payload: RelayPayload, options: RelayOptions 
       signal: controller.signal,
     });
 
-    if (response.ok) return "sent";
+    /*
+     * `response.ok` is not enough, and the reason is not hypothetical: the
+     * first host chosen for this was already answering, for a different
+     * product. A captive portal, a corporate proxy, a parked domain and a
+     * misrouted hostname can all answer 200 with a page. Reporting "sent" for
+     * any of them would lose the message and tell the user it arrived, which
+     * is the single worst thing this function can do. Only our own worker's
+     * answer counts.
+     */
+    if (response.ok) return (await acknowledged(response)) ? "sent" : "refused";
     // 429 is a cap being hit, ours or theirs, and it is temporary by
     // construction. 503 is the worker saying it is not configured to send.
     if (response.status === 429 || response.status === 503) return "busy";

@@ -239,7 +239,7 @@ a rejection or a slow review. Each row says **what** the permission does and
 | `downloads` | Required | Writes the export file the user asked for, with a meaningful filename, without a save dialog on every export. Only files the user explicitly requested are ever written. |
 | `tabGroups` | Optional, requested in-product | Reads and restores a tab group's title, colour and collapsed state. Without it the browser does not expose the tab groups API at all, so a group's name cannot be read and an export would silently contain unnamed groups. It is requested from a button before an export, which is the point at which the information would otherwise be lost. Declining is fully supported: the tabs still restore grouped, just unnamed. |
 | `offscreen` | Optional, requested in-product | Copies text to the clipboard in Manifest V3, where a service worker has no document to copy from. Used only for the Copy action the user pressed. |
-| `https://support.palworks.ai/*` | **Optional host**, requested in-product | Delivers a support message the user has written and read, and pressed Send on. It is the only address the extension can ever reach. It is requested at the moment Send is pressed, never at install, and the browser's own permission prompt gates it. If the user declines, the same message is handed to their email client instead. No tab address, title or count is ever in the payload, which two automated tests assert. |
+| `https://tabspack-support.palworks.ai/*` | **Optional host**, requested in-product | Delivers a support message the user has written and read, and pressed Send on. It is the only address the extension can ever reach. It is requested at the moment Send is pressed, never at install, and the browser's own permission prompt gates it. If the user declines, the same message is handed to their email client instead. No tab address, title or count is ever in the payload, which two automated tests assert. |
 
 ### Table S7: The answer to "why no host permissions at install"
 
@@ -247,7 +247,7 @@ Reviewers sometimes query an extension that has an optional host permission.
 The short answer, if asked:
 
 > TabsPack declares no required host permissions, so a fresh install cannot make
-> any network request. The single optional host, `support.palworks.ai`, exists
+> any network request. The single optional host, `tabspack-support.palworks.ai`, exists
 > only so a user can send a support message from inside the extension, and it is
 > requested at the moment they press Send. The build enforces this: the project's
 > linter fails on `fetch`, `XMLHttpRequest`, `EventSource`, `WebSocket` or

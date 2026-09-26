@@ -14,8 +14,9 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 - `scripts/gen-og.mjs`, the 1200 by 630 social card, drawn rather than screenshotted
 - `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, with `SoftwareApplication`, `FAQPage`, `Organization`, `WebSite` and `BreadcrumbList` structured data generated from each page's own front matter
 - **Send, in the Support pane.** A support message now goes to us directly, through the relay in `server/support-worker/`. The mail client route is still there as a button of its own and as the fallback for every way the relay can fail. ADR-039, T-715
+- The relay client requires the worker's own `{"ok":true}` answer, not merely a 2xx. The first hostname chosen for it turned out to be live already, serving another product, which is exactly the case where a 200 means nothing and reporting a message as sent would lose it
 - `src/core/relay.ts`, the only file in the source permitted to make a network request, and eleven tests covering every outcome it can return
-- `optional_host_permissions` for `https://support.palworks.ai/*` in both manifests. Nothing is requested at install; the browser asks the first time Send is pressed, and declining is handled
+- `optional_host_permissions` for `https://tabspack-support.palworks.ai/*` in both manifests. Nothing is requested at install; the browser asks the first time Send is pressed, and declining is handled
 - `hasOrigins` and `requestOrigins` on the adapter, host access being a separate list from the named permissions
 - A lint rule that fails the build if the relay's address disagrees between `src/core/relay.ts`, either manifest and the worker's own route
 - Five new icon candidates in `assets/candidates/`, drawn after the first two sets were thrown away for reading as a folder, a briefcase, a mushroom and a handbag at 16 pixels. `npm run icons:compare` now shows each one as a tile and as a bare glyph, at five sizes, in a toolbar between real neighbours

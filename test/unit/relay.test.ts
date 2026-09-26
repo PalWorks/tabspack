@@ -25,12 +25,12 @@ const payload: RelayPayload = {
   replyTo: "  someone@example.com  ",
 };
 
-/** A fetch that records what it was given and answers with a status. */
-function stub(status: number) {
+/** A fetch that records what it was given and answers like the worker does. */
+function stub(status: number, body: unknown = { ok: status < 400 }) {
   const seen: { url: string; init: RequestInit }[] = [];
   const fetch = async (url: string, init: RequestInit) => {
     seen.push({ url, init });
-    return new Response(JSON.stringify({ ok: status < 400 }), { status });
+    return new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
   };
   return { fetch, seen };
 }
@@ -91,6 +91,23 @@ test("a cap or an unconfigured worker is busy, which is temporary and says so", 
 test("anything else it answers is a refusal", async () => {
   assert.equal(await sendViaRelay(payload, { fetch: stub(400).fetch }), "refused");
   assert.equal(await sendViaRelay(payload, { fetch: stub(502).fetch }), "refused");
+});
+
+/*
+ * The host first chosen for this was already answering, for somebody else's
+ * product. A parked domain, a captive portal and a corporate proxy all do the
+ * same thing. Saying "sent" for any of them loses the message and tells the
+ * user it arrived, which is the worst outcome available here.
+ */
+test("a 200 from something that is not the relay is a refusal, not a send", async () => {
+  assert.equal(await sendViaRelay(payload, { fetch: stub(200, "<!doctype html><title>Almost</title>").fetch }), "refused");
+  assert.equal(await sendViaRelay(payload, { fetch: stub(200, { ok: false }).fetch }), "refused");
+  assert.equal(await sendViaRelay(payload, { fetch: stub(200, { delivered: true }).fetch }), "refused");
+  assert.equal(await sendViaRelay(payload, { fetch: stub(200, {}).fetch }), "refused");
+});
+
+test("only the worker's own acknowledgement counts as sent", async () => {
+  assert.equal(await sendViaRelay(payload, { fetch: stub(200, { ok: true }).fetch }), "sent");
 });
 
 test("offline, blocked or DNS gone is unreachable, never a throw", async () => {

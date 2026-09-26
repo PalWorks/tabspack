@@ -7,7 +7,7 @@ compatibility_date = "2026-09-01"
 # both manifests all name the same host, because three copies of one address is
 # three chances to ship a Send button that reaches nothing.
 routes = [
-  { pattern = "support.palworks.ai", custom_domain = true }
+  { pattern = "tabspack-support.palworks.ai", custom_domain = true }
 ]
 
 # The Resend key is a secret and is never written here or committed:

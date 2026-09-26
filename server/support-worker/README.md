@@ -34,14 +34,14 @@ npx wrangler deploy
 Before it will send, two things have to be true at Resend: `palworks.ai` is a
 verified sending domain, and `support@palworks.ai` receives mail.
 
-`support.palworks.ai` has to resolve to the worker. `wrangler deploy` creates
+`tabspack-support.palworks.ai` has to resolve to the worker. `wrangler deploy` creates
 the custom domain record when the zone is on the same Cloudflare account; if
 the zone lives elsewhere, add a CNAME to the workers.dev hostname instead.
 
 ### Check it after deploying
 
 ```
-curl -i https://support.palworks.ai/v1/support \
+curl -i https://tabspack-support.palworks.ai/v1/support \
   -H 'content-type: application/json' \
   -d '{"subject":"deploy check","body":"Ignore this, it is a deploy check.","replyTo":""}'
 ```
@@ -51,7 +51,7 @@ and the detail is in `npx wrangler tail`.
 
 ## If the address changes
 
-`support.palworks.ai` is written in four places and `npm run lint` fails the
+`tabspack-support.palworks.ai` is written in four places and `npm run lint` fails the
 build if they disagree, which is deliberate: a Send button pointing at a host
 nobody deployed fails silently and nothing else would catch it.
 

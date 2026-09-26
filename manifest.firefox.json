@@ -39,7 +39,7 @@
     "tabGroups"
   ],
   "optional_host_permissions": [
-    "https://support.palworks.ai/*"
+    "https://tabspack-support.palworks.ai/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"

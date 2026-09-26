@@ -77,7 +77,7 @@ authenticate as the user anywhere.
 - The extension declares no host permissions at install. It therefore cannot
   make any network request when installed.
 - There is exactly one optional host permission it can ever hold:
-  `https://support.palworks.ai/*`. It is requested at the moment the user
+  `https://tabspack-support.palworks.ai/*`. It is requested at the moment the user
   presses Send in the Support pane, gated by the browser's own permission
   prompt, and declining is fully supported: the message is handed to the user's
   own mail client instead.
@@ -105,7 +105,7 @@ authenticate as the user anywhere.
   collapsed state. Requested from a button in the interface, before an export,
   because that is where the information would otherwise be silently lost.
 - `offscreen` (optional): copy text to the clipboard.
-- `https://support.palworks.ai/*` (optional host): deliver a support message the
+- `https://tabspack-support.palworks.ai/*` (optional host): deliver a support message the
   user wrote and sent.
 
 ## Import formats supported

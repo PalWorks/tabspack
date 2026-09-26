@@ -124,14 +124,14 @@
                 <tr><th scope="row"><code>downloads</code></th><td>To write the export file you asked for</td></tr>
                 <tr><th scope="row"><code>tabGroups</code>, optional</th><td>Requested the first time you use a feature involving tab groups, and only then</td></tr>
                 <tr><th scope="row"><code>offscreen</code>, optional</th><td>Requested only to copy text to your clipboard</td></tr>
-                <tr><th scope="row"><code>https://support.palworks.ai/*</code>, optional</th><td>Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message</td></tr>
+                <tr><th scope="row"><code>https://tabspack-support.palworks.ai/*</code>, optional</th><td>Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message</td></tr>
               </tbody>
             </table>
           </div>
           <p>
             TabsPack asks for <strong>no</strong> host permission when you install it, so out of the box it
             cannot reach any address at all. The one it can ever be granted is
-            <code>support.palworks.ai</code>, it is granted by you at the moment you press Send, and you can
+            <code>tabspack-support.palworks.ai</code>, it is granted by you at the moment you press Send, and you can
             take it back at any time in your browser's extension settings. TabsPack still cannot read or modify
             the content of any web page, ever, because it injects no content script anywhere.
           </p>
@@ -144,7 +144,7 @@
           </p>
           <p>
             <strong>Send</strong> delivers the message to us directly. The first time, your browser asks whether
-            TabsPack may connect to <code>support.palworks.ai</code>. If you agree, the message is posted there
+            TabsPack may connect to <code>tabspack-support.palworks.ai</code>. If you agree, the message is posted there
             and forwarded to our inbox. Nothing else goes with it: no identifier, no account, no cookie, no
             counter, no record of you having used the extension. We receive the message you wrote, and the
             address you typed if you typed one.
@@ -179,7 +179,7 @@
             <table>
               <thead><tr><th scope="col">Service</th><th scope="col">What it handles</th><th scope="col">What it never sees</th></tr></thead>
               <tbody>
-                <tr><th scope="row">Cloudflare Workers</th><td>Receives the message at <code>support.palworks.ai</code> and passes it on. Stores nothing. Keeps no copy of the message</td><td>Anything about your tabs, your settings or your browsing</td></tr>
+                <tr><th scope="row">Cloudflare Workers</th><td>Receives the message at <code>tabspack-support.palworks.ai</code> and passes it on. Stores nothing. Keeps no copy of the message</td><td>Anything about your tabs, your settings or your browsing</td></tr>
                 <tr><th scope="row">Resend</th><td>Delivers that message to our inbox as email</td><td>The same</td></tr>
               </tbody>
             </table>

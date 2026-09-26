@@ -50,9 +50,9 @@ Private windows are excluded from exports by default. TabsPack cannot see them a
 | `downloads` | To write the export file you asked for |
 | `tabGroups`, optional | Requested the first time you use a feature involving tab groups, and only then |
 | `offscreen`, optional | Requested only to copy text to your clipboard |
-| `https://support.palworks.ai/*`, optional | Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message |
+| `https://tabspack-support.palworks.ai/*`, optional | Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message |
 
-TabsPack asks for **no** host permission when you install it, so out of the box it cannot reach any address at all. The one it can ever be granted is `support.palworks.ai`, it is granted by you at the moment you press Send, and you can take it back at any time in your browser's extension settings. TabsPack still cannot read or modify the content of any web page, ever.
+TabsPack asks for **no** host permission when you install it, so out of the box it cannot reach any address at all. The one it can ever be granted is `tabspack-support.palworks.ai`, it is granted by you at the moment you press Send, and you can take it back at any time in your browser's extension settings. TabsPack still cannot read or modify the content of any web page, ever.
 
 ## Children
 
@@ -67,7 +67,7 @@ worth being exact about how.
 There are two ways to send, and you choose:
 
 **Send** delivers the message to us directly. The first time, your browser asks
-whether TabsPack may connect to `support.palworks.ai`. If you agree, the
+whether TabsPack may connect to `tabspack-support.palworks.ai`. If you agree, the
 message is posted there and forwarded to our inbox. Nothing else goes with it:
 no identifier, no account, no cookie, no counter, no record of you having used
 the extension. We receive the message you wrote, and the address you typed if
@@ -99,7 +99,7 @@ Two services carry a support message you choose to send, and only that:
 
 | | What it handles | What it never sees |
 |---|---|---|
-| Cloudflare Workers | Receives the message at `support.palworks.ai` and passes it on. Stores nothing. Keeps no log of the message | Anything about your tabs, your settings or your browsing |
+| Cloudflare Workers | Receives the message at `tabspack-support.palworks.ai` and passes it on. Stores nothing. Keeps no log of the message | Anything about your tabs, your settings or your browsing |
 | Resend | Delivers that message to our inbox as email | The same |
 
 If you use the mail client route instead, neither is involved and TabsPack makes

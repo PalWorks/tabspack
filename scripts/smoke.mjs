@@ -941,7 +941,7 @@ try {
    * is already held. What is checked here is the route that needs nothing.
    */
   const noHost = await options.evaluate(() =>
-    chrome.permissions.contains({ origins: ["https://support.palworks.ai/*"] }),
+    chrome.permissions.contains({ origins: ["https://tabspack-support.palworks.ai/*"] }),
   );
   check("a default install holds no host permission at all", noHost === false, String(noHost));
   // Back to where the rest of this run expects to be.
@@ -998,7 +998,7 @@ try {
   /** Every request the page made to the relay, and what the relay answered. */
   const seen = [];
   let answer = 200;
-  await context2.route("https://support.palworks.ai/**", async (route) => {
+  await context2.route("https://tabspack-support.palworks.ai/**", async (route) => {
     seen.push({ url: route.request().url(), body: route.request().postData() });
     await route.fulfill({
       status: answer,
@@ -1024,7 +1024,7 @@ try {
     check("a granted host sends, and the page says so", true, (await page.textContent("#support-report")) ?? "");
     check("the message box is cleared, so the same report cannot go twice", (await page.inputValue("#support-message")) === "");
     check("exactly one request left", seen.length === 1, String(seen.length));
-    check("and it went to the pinned endpoint", seen[0]?.url === "https://support.palworks.ai/v1/support", seen[0]?.url);
+    check("and it went to the pinned endpoint", seen[0]?.url === "https://tabspack-support.palworks.ai/v1/support", seen[0]?.url);
 
     const payload = JSON.parse(seen[0]?.body ?? "{}");
     check(

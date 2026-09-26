@@ -14,10 +14,10 @@ permission gets this, not an improvisation.
 | `downloads` | Yes | Write the export file you asked for, with a sensible name, without a save dialog every time |
 | `tabGroups` | Optional, requested from a button in the interface | Restore a tab group's title, colour and collapsed state. Refusing it still restores the tabs, and the extension says so |
 | Host permissions | **None required** | The extension never reads or changes the content of a page. At install it holds no host access at all |
-| `https://support.palworks.ai/*` | Optional, requested from the Send button in the Support pane | The address that receives a support message the user has written and read. It is the only host the extension can ever reach, it is requested at the moment of use rather than at install, and declining it is handled: the same message goes to the user's own mail client instead |
+| `https://tabspack-support.palworks.ai/*` | Optional, requested from the Send button in the Support pane | The address that receives a support message the user has written and read. It is the only host the extension can ever reach, it is requested at the moment of use rather than at install, and declining it is handled: the same message goes to the user's own mail client instead |
 
 **If a reviewer asks about the support form.** The user writes a message and
-sees it in full. Send posts exactly four fields to `https://support.palworks.ai/v1/support`
+sees it in full. Send posts exactly four fields to `https://tabspack-support.palworks.ai/v1/support`
 (subject, body, an optional reply address, and an always-empty honeypot field)
 and that message is forwarded to one fixed inbox. No identifier, no cookie, no
 account, no analytics and nothing about the user's tabs is in the payload, which

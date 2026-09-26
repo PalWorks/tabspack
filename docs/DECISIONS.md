@@ -672,7 +672,7 @@ Nothing in ADR-035's reasoning about the key has changed, and nothing in it is b
 |---|---|
 | Leave it as it is | Everyone without a mail client has no way to report a bug, which is most of the people most likely to hit one |
 | Ship the key and send directly | Not an option, for the reason ADR-035 gives |
-| Relay through a worker, with the host as a **required** permission | Every install shows "read and change your data on support.palworks.ai" at the prompt, for a feature almost nobody uses. The permission dialogue is the most expensive screen in the product |
+| Relay through a worker, with the host as a **required** permission | Every install shows "read and change your data on tabspack-support.palworks.ai" at the prompt, for a feature almost nobody uses. The permission dialogue is the most expensive screen in the product |
 | Relay through a worker, with the host as an **optional** permission | Install prompt unchanged. The browser asks the first time Send is pressed, which is the moment the user is choosing to contact us. Costs the absolute form of the network claim |
 
 **Decision.** The last one.
@@ -685,6 +685,12 @@ Nothing in ADR-035's reasoning about the key has changed, and nothing in it is b
 6. **The payload does not grow.** Four fields: subject, body, reply address, and an always-empty honeypot. It is the message the user read on screen, and the test that proves no tab data can reach it is now two tests.
 
 **What the privacy claim becomes.** "TabsPack makes no network request" becomes "TabsPack makes no network request unless you press Send in the Support pane, and your browser asks you first". That is a longer sentence and a worse headline, and it is the honest one. `PRIVACY.md`, both store documents and the listing copy all change in the same release, which is what ADR-005 says has to happen.
+
+**Two things found by making one request before deploying anything.**
+
+The obvious hostname, `support.palworks.ai`, **was already live**, serving a Cloudflare Worker belonging to a different product on the same domain. Deploying over it with `custom_domain = true` would have taken that product down, and in the meantime every TabsPack support message would have been posted to a stranger's endpoint. The relay is therefore at `tabspack-support.palworks.ai`, and the lesson is cheap and general: a hostname you own the domain of is not a hostname that is free.
+
+That also exposed a real defect in the client, which treated any `response.ok` as a delivered message. The endpoint that was already there answers with HTML. A captive portal, a corporate proxy, a parked domain and a misrouted host all do the same. `sendViaRelay` now requires the worker's own `{"ok":true}` body, because telling somebody their bug report was sent when it went nowhere is the worst thing this function can do: a duplicate costs nothing, a silently swallowed report costs the report.
 
 **Consequence.** The Support pane gains a second button, "Use my email app", so the original route is still one click for the people who prefer it, and it is where Send lands when anything goes wrong. The worker is open to the internet by construction, so it is capped three ways and holds no state; past the global cap it answers 429 and the extension uses the mail client, which means the worst outcome of an attack on it is a slower support channel rather than a lost message or a bill. Eleven unit tests cover the client, and every refusal path in the worker was exercised against a local deployment before it shipped.
 
