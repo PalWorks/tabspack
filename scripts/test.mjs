@@ -8,17 +8,14 @@
  */
 import { build } from "esbuild";
 import { spawnSync } from "node:child_process";
-import { glob, mkdir, rm } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
+import { files as walkFiles } from "./lib/walk.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const outdir = path.join(root, ".tmp", "tests");
 
-const entries = [];
-for await (const entry of glob("test/unit/*.test.ts", { cwd: root })) {
-  entries.push(path.join(root, entry));
-}
-entries.sort();
+const entries = (await walkFiles("test/unit/*.test.ts", root)).map((entry) => path.join(root, entry));
 
 if (entries.length === 0) {
   console.error("test: no test files found");

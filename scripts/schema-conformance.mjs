@@ -7,8 +7,9 @@
  * meaning: an unexpected pass is as much a failure as an unexpected rejection.
  */
 import Ajv from "ajv";
-import { glob, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { files as walkFiles } from "./lib/walk.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const schema = JSON.parse(await readFile(path.join(root, "schema", "tabspack.v1.schema.json"), "utf8"));
@@ -24,7 +25,7 @@ let checked = 0;
 
 async function listFixtures(dir) {
   const found = [];
-  for await (const entry of glob(`test/fixtures/${dir}/*.json`, { cwd: root })) {
+  for (const entry of await walkFiles(`test/fixtures/${dir}/*.json`, root)) {
     if (entry.endsWith("expectations.json")) continue;
     found.push(entry);
   }

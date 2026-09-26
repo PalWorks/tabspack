@@ -7,8 +7,8 @@
  * dependency, no config and no plugin API between the rule and its reason.
  */
 import { readFile } from "node:fs/promises";
-import { glob } from "node:fs/promises";
 import path from "node:path";
+import { files as walkFiles } from "./lib/walk.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const failures = [];
@@ -18,9 +18,7 @@ function fail(file, line, rule, detail) {
 }
 
 async function files(pattern) {
-  const out = [];
-  for await (const entry of glob(pattern, { cwd: root })) out.push(entry);
-  return out.sort();
+  return await walkFiles(pattern, root);
 }
 
 /** Comments are stripped before scanning so prose never trips a rule. */
