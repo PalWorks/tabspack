@@ -856,3 +856,19 @@ Date 2026-09-26. Status accepted.
 **Two things learned on the way.** `tabs.discard` crashes any browser Playwright launches, including the installed Edge 154, while the same Edge launched directly restores 200 tabs with unloading on; docs/LIMITATIONS.md Table L3 now says so precisely, and the capture restores with unloading off. And the design device every asset shares, the fan of tab cards from the mark, is drawn the same way in the explainer, the screenshots and both tiles, so the listing reads as one piece of work.
 
 **Consequence.** Changing the interface means running `npm run store-art` and looking at the result, not redrawing anything. The captures are committed, so a headline can change with `npm run store-art:compose` and no browser.
+
+---
+
+## ADR-046: The export pane previews the tabs, not the bytes
+
+Date 2026-09-27. Status accepted.
+
+**Context.** The export pane was the settings card with its buttons, then an Output card holding a textarea that stayed empty until an export ran. The user reviewing it asked for three things: the output to be a preview of what will be exported, in the same shape as the import preview; the buttons to sit under that preview; and the settings to fold away after an export, as the import intake does. The same review found unticked checkboxes drawn as dark filled squares on a light page.
+
+**Decision.** The pane is now two cards. Export settings, which fold to one line naming the chosen options after an export or a copy, with a Change settings button, the pattern of ADR-031. Then What will be exported: the `PreviewTree` the import pane uses, loaded with the tabs in scope after the filters, then the age line, the Export and Copy buttons, the report, and the exact bytes of the last export under a closed "See the file contents" disclosure. The bytes stay one click away because reading them is still how the product earns trust; they no longer fill the screen by default.
+
+**Unticking a tab leaves it out.** The export collects the tabs again when the button is pressed, so an untick cannot be stored by position: a sort, or a tab opened meanwhile, changes positions. It is stored by `tabIdentities`, the window, the address and which copy of that address it is, and applied by `dropUnticked` after every filter, counted in the report as "tabs you unticked left out". A tab that cannot be matched is exported. The page reads the tabs again whenever it becomes visible, so the preview is not a picture of the browser from an hour ago.
+
+**Checkboxes are drawn by the page.** A native checkbox follows the system colour scheme rather than the page's. Every checkbox is now an empty box with a border until it is ticked, filled with the accent and a tick when it is, in both themes. A chosen theme also sets `color-scheme`, so selects and scrollbars follow it.
+
+**Consequence.** Two trees share the manager page, so `PreviewTree` takes an id prefix to keep row ids unique. `totalRemoved` now counts stale and unticked tabs, and it had been missing stale since B-202, so "filters emptied the scope" was not said when only the age filter emptied it.

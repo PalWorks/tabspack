@@ -71,10 +71,24 @@
             <div id="export-groups-callout" hidden></div>
             <div id="export-rating" hidden></div>
 
-            <section class="card" aria-labelledby="export-legend">
-              <h2 class="legend" id="export-legend" data-i18n="taskExport">Export</h2>
+            <section id="export-settings" class="card" aria-labelledby="export-legend" data-collapsed="false">
+              <div class="intake-head">
+                <h2 class="legend" id="export-legend" data-i18n="exportSettingsLegend">Export settings</h2>
+                <button
+                  id="settings-toggle"
+                  class="btn btn-secondary intake-toggle"
+                  type="button"
+                  hidden
+                  aria-expanded="true"
+                  aria-controls="export-body"
+                  data-i18n="changeSettings"
+                >
+                  Change settings
+                </button>
+              </div>
+              <p id="settings-summary" class="summary settings-summary" hidden></p>
 
-              <div class="control-grid">
+              <div id="export-body" class="control-grid">
                 <span class="control-label" id="scope-label" data-i18n="scopeLabel">Scope</span>
                 <div id="scope" class="segmented scope" role="radiogroup" aria-labelledby="scope-label">
                   <button type="button" role="radio" data-value="all_windows" aria-checked="true" data-i18n="scopeAllWindows">All windows</button>
@@ -143,27 +157,50 @@
                 </div>
               </div>
 
+            </section>
+
+            <section id="export-preview" class="card" aria-labelledby="export-preview-legend">
+              <h2 class="legend" id="export-preview-legend" data-i18n="exportPreviewLegend">What will be exported</h2>
+              <p class="hint" data-i18n="exportPreviewHint">Untick any tab to leave it out. The file holds exactly what is ticked here.</p>
+
+              <div class="actions preview-actions">
+                <label class="visually-hidden" for="export-search" data-i18n="searchLabel">Search titles and addresses</label>
+                <input
+                  id="export-search"
+                  class="search"
+                  type="search"
+                  data-i18n-attr="placeholder:searchLabel"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button id="export-select-all" class="btn btn-secondary" type="button" data-i18n="selectAll">Select all</button>
+                <button id="export-select-none" class="btn btn-secondary" type="button" data-i18n="selectNone">Select none</button>
+                <span id="export-selection" class="summary"></span>
+              </div>
+
+              <div id="export-tree" class="tree" data-i18n-attr="aria-label:exportTreeLabel"></div>
+
+              <p id="age" class="hint age" hidden></p>
+
               <div class="actions">
                 <button id="export" class="btn btn-primary action" type="button" disabled data-i18n="exportButton">Export</button>
                 <button id="copy" class="btn btn-secondary" type="button" disabled data-i18n="copyButton">Copy</button>
                 <span id="summary" class="summary" data-i18n="readingTabs">Reading tabs</span>
               </div>
 
-              <p id="age" class="hint age" hidden></p>
-
               <div id="report" class="report" role="status" aria-live="polite"></div>
-            </section>
 
-            <section class="card" aria-labelledby="output-legend">
-              <h2 class="legend" id="output-legend" data-i18n="outputLegend">Output</h2>
-              <p id="output-meta" class="summary" data-i18n="outputEmpty">Nothing exported yet.</p>
-              <textarea
-                id="output"
-                class="output"
-                readonly
-                spellcheck="false"
-                data-i18n-attr="aria-label:outputAria"
-              ></textarea>
+              <details id="output-details" class="output-details">
+                <summary data-i18n="showFileContents">See the file contents</summary>
+                <p id="output-meta" class="summary" data-i18n="exportedNothingYet">Export or copy to see the exact contents here.</p>
+                <textarea
+                  id="output"
+                  class="output"
+                  readonly
+                  spellcheck="false"
+                  data-i18n-attr="aria-label:outputAria"
+                ></textarea>
+              </details>
             </section>
           </div>
 

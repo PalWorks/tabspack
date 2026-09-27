@@ -28,6 +28,8 @@ export interface FilterCounts {
   stale: number;
   excluded: number;
   duplicate: number;
+  /** Unticked by the user in the export preview. Applied after every filter. */
+  unticked: number;
 }
 
 export interface FilterResult {
@@ -51,7 +53,7 @@ export function applyFilters(
   options: FilterOptions = {},
 ): FilterResult {
   const now = options.now ?? Date.now();
-  const removed: FilterCounts = { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 };
+  const removed: FilterCounts = { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 };
   const patterns = compileExcludeList(settings.excludeList);
   const seen = new Set<string>();
 
@@ -101,6 +103,43 @@ export function applyFilters(
   }
 
   return { session: { ...session, windows }, removed };
+}
+
+/**
+ * What a tab is called across two collections of the same browser: its window,
+ * its address, and which copy of that address it is in the window. Not its
+ * index, which a sort or a newly opened tab changes. The export preview stores
+ * the tabs a user unticked under this name, and the export, which collects the
+ * tabs again, leaves out exactly those.
+ *
+ * If a tab cannot be matched, because its window closed or it navigated away,
+ * it is exported: a tab the user did not see unticked is never dropped.
+ */
+export function tabIdentities(win: SessionWindow): string[] {
+  const seen = new Map<string, number>();
+  return win.tabs.map((tab) => {
+    const copy = seen.get(tab.url) ?? 0;
+    seen.set(tab.url, copy + 1);
+    return `${win.key}\u0000${tab.url}\u0000${copy}`;
+  });
+}
+
+/** Leaves out the tabs whose identity is in `unticked`. See `tabIdentities`. */
+export function dropUnticked(result: FilterResult, unticked: ReadonlySet<string>): FilterResult {
+  if (unticked.size === 0) return result;
+  let dropped = 0;
+  const windows: SessionWindow[] = [];
+  for (const win of result.session.windows) {
+    const ids = tabIdentities(win);
+    const tabs = win.tabs.filter((_, position) => !unticked.has(ids[position] as string));
+    dropped += win.tabs.length - tabs.length;
+    if (tabs.length === 0) continue;
+    windows.push(tabs.length === win.tabs.length ? win : reindexWindow(win, tabs));
+  }
+  return {
+    session: { ...result.session, windows },
+    removed: { ...result.removed, unticked: result.removed.unticked + dropped },
+  };
 }
 
 /**

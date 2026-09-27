@@ -411,6 +411,34 @@ try {
   });
   check("unticking puts it back to off", await manager.isHidden("#stale-hint"));
 
+  /*
+   * The export preview: the tabs the file will hold, as a tree, where unticking
+   * a tab leaves it out of the export. The export collects the tabs again, so
+   * this proves the untick survives that, not just that the tree repaints.
+   */
+  const exportRows = await manager.$$eval("#export-tree .tree-row.kind-tab .tree-detail", (nodes) =>
+    nodes.map((node) => node.textContent ?? ""),
+  );
+  check(
+    "the export preview lists the tabs in scope",
+    ["example.com/one", "example.com/two", "example.com/three"].every((url) => exportRows.includes(url)),
+    exportRows.join(", "),
+  );
+  const uncheckedFill = await manager.evaluate(() => {
+    const box = [...document.querySelectorAll("#export-body input[type=checkbox]")].find((node) => !node.checked && !node.disabled);
+    return box ? getComputedStyle(box).backgroundColor : "none";
+  });
+  check("an unticked box is an empty light box, not a filled one", uncheckedFill === "rgb(255, 255, 255)", uncheckedFill);
+  const labelBefore = (await manager.textContent("#export")) ?? "";
+  await manager.click("#export-tree .tree-row.kind-tab:has(.tree-detail:text-is('example.com/two'))");
+  const labelAfter = (await manager.textContent("#export")) ?? "";
+  const countOf = (label) => Number((/\d+/.exec(label) ?? ["0"])[0]);
+  check(
+    "unticking a tab takes one off the export button",
+    countOf(labelAfter) === countOf(labelBefore) - 1,
+    `${labelBefore} then ${labelAfter}`,
+  );
+
   await manager.click("#copy");
   // A textarea's value is not a child node, so :empty never changes: poll the
   // value instead.
@@ -427,6 +455,17 @@ try {
     managerReport ?? "",
   );
   check("the output panel shows the exact bytes", output.trimStart().startsWith("{"), output.slice(0, 40));
+  check("the unticked tab is not in the file", !output.includes("example.com/two") && output.includes("example.com/one"));
+  check("and the report says it was left out", /you unticked/.test(managerReport ?? ""), managerReport ?? "");
+  check(
+    "the settings fold to one line after an export",
+    (await manager.isHidden("#export-body")) && (await manager.isVisible("#settings-toggle")) &&
+      ((await manager.textContent("#settings-summary")) ?? "").length > 0,
+    (await manager.textContent("#settings-summary")) ?? "",
+  );
+  await manager.click("#settings-toggle");
+  check("and one button opens them again", await manager.isVisible("#export-body"));
+  await manager.click("#export-tree .tree-row.kind-tab:has(.tree-detail:text-is('example.com/two'))");
   await manager.screenshot({ path: path.join(shots, "manager-light.png"), fullPage: true });
   await manager.emulateMedia({ colorScheme: "dark" });
   await settle(manager);
@@ -458,7 +497,7 @@ try {
     /1 recovered from a tab suspender/.test(fileMeta ?? ""),
     fileMeta ?? "",
   );
-  const previewUrls = await manager.$$eval(".tree-row .tree-detail", (nodes) =>
+  const previewUrls = await manager.$$eval("#tree .tree-row .tree-detail", (nodes) =>
     nodes.map((node) => node.textContent ?? ""),
   );
   check(
@@ -468,7 +507,7 @@ try {
     previewUrls.join(" "),
   );
 
-  const rows = await manager.$$eval(".tree-row", (nodes) =>
+  const rows = await manager.$$eval("#tree .tree-row", (nodes) =>
     nodes.map((node) => ({
       kind: node.className,
       checked: node.getAttribute("aria-checked"),
@@ -489,7 +528,7 @@ try {
   );
   await manager.setInputFiles("#file", packPath);
   await manager.waitForSelector("#preview:not([hidden])", { timeout: 10_000 });
-  const secondRows = await manager.$$eval(".tree-row", (nodes) => nodes.length);
+  const secondRows = await manager.$$eval("#tree .tree-row", (nodes) => nodes.length);
   check("a second import of the same file shows its list too", secondRows >= 6, `${secondRows} rows`);
   await manager.click("#intake-toggle");
   check(
@@ -517,7 +556,7 @@ try {
   await manager.keyboard.press("ArrowDown");
   await manager.keyboard.press(" ");
   const afterKeyboard = await manager.textContent("#selection-count");
-  const groupRowState = await manager.getAttribute(".tree-row.kind-group", "aria-checked");
+  const groupRowState = await manager.getAttribute("#tree .tree-row.kind-group", "aria-checked");
   check(
     "space on a group row deselects the whole group",
     /5 of 7 selected/.test(afterKeyboard ?? "") && groupRowState === "false",
@@ -689,7 +728,7 @@ try {
 
   await manager.fill("#tree-search", "grouped");
   const searching = await manager.textContent("#selection-count");
-  const shownRows = await manager.$$eval(".tree-row", (nodes) =>
+  const shownRows = await manager.$$eval("#tree .tree-row", (nodes) =>
     nodes.map((node) => node.textContent ?? ""),
   );
   check(
@@ -747,7 +786,7 @@ try {
       { timeout: 60_000 },
     );
     const elapsed = Date.now() - started;
-    const domRows = await manager.$$eval(".tree-row", (nodes) => nodes.length);
+    const domRows = await manager.$$eval("#tree .tree-row", (nodes) => nodes.length);
     check(
       `a 5000 tab pack previews in ${elapsed} ms without freezing`,
       elapsed < 5_000,

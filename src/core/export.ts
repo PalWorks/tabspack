@@ -8,7 +8,7 @@ import type { BrowserAdapter } from "./adapter/types.js";
 import type { Session } from "../types/session.js";
 import type { ExportFormat, Settings } from "./settings.js";
 import type { FilterCounts } from "./filters.js";
-import { applyFilters } from "./filters.js";
+import { applyFilters, dropUnticked } from "./filters.js";
 import { collectSession } from "./collect.js";
 import { unsuspendSession } from "./unsuspend.js";
 import { stringify, toFile } from "./serialize.js";
@@ -31,6 +31,8 @@ export interface ExportPayload {
 export interface BuildExportOptions {
   /** Overrides the clock. Tests pass a fixed date. */
   now?: Date;
+  /** Tabs the user unticked in the export preview, by `tabIdentities`. */
+  unticked?: ReadonlySet<string>;
 }
 
 export async function buildExport(
@@ -39,8 +41,9 @@ export async function buildExport(
   options: BuildExportOptions = {},
 ): Promise<ExportPayload> {
   const when = options.now ?? new Date();
-  const { session, removed, recovered } = await collectFiltered(adapter, settings, when);
-  return renderExport(session, removed, settings, when, recovered);
+  const collected = await collectFiltered(adapter, settings, when);
+  const { session, removed } = dropUnticked(collected, options.unticked ?? new Set());
+  return renderExport(session, removed, settings, when, collected.recovered);
 }
 
 /**

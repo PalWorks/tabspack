@@ -212,11 +212,44 @@ select {
   cursor: pointer;
 }
 
-.check input {
-  width: 14px;
-  height: 14px;
+/*
+ * Checkboxes are drawn here rather than by the browser. A native box follows
+ * the system's colour scheme, not the page's, so on a light page under a dark
+ * system it rendered as a dark filled square that read as ticked. Drawn, it is
+ * an empty box with a border until it is ticked, in every browser and theme.
+ */
+input[type="checkbox"] {
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
   margin: 0;
-  accent-color: var(--accent);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface-raised) no-repeat center / 12px 12px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  background-image: var(--tick);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled {
+  cursor: not-allowed;
 }
 
 .check[data-disabled="true"] {

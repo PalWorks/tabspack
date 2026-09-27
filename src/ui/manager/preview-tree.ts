@@ -34,6 +34,12 @@ export interface Row {
 
 export interface TreeCallbacks {
   onSelectionChange(): void;
+  /**
+   * Prepended to every row's element id. Two trees share the manager page, the
+   * import preview and the export preview, and their rows would otherwise carry
+   * the same ids, which breaks `aria-activedescendant` for both.
+   */
+  idPrefix?: string;
 }
 
 /**
@@ -111,6 +117,17 @@ export class PreviewTree {
 
   selectedTabIds(): Set<string> {
     return new Set(this.selected);
+  }
+
+  /**
+   * Clears the given tabs without announcing a change. The export preview uses
+   * it to carry the user's unticked tabs across a reload of the tree, which
+   * happens whenever a setting changes the tabs in scope.
+   */
+  deselect(ids: Iterable<string>): void {
+    for (const id of ids) this.selected.delete(id);
+    this.recount();
+    this.paint();
   }
 
   /**
@@ -223,13 +240,14 @@ export class PreviewTree {
       if (!row) continue;
       this.surface.appendChild(this.renderRow(row, index));
     }
-    this.scroller.setAttribute("aria-activedescendant", this.visible[this.focusIndex]?.id ?? "");
+    const focused = this.visible[this.focusIndex];
+    this.scroller.setAttribute("aria-activedescendant", focused ? this.domId(focused) : "");
   }
 
   private renderRow(row: Row, index: number): HTMLElement {
     const node = el("div", { class: `tree-row kind-${row.kind}` });
     node.style.top = `${index * ROW_HEIGHT}px`;
-    node.id = row.id;
+    node.id = this.domId(row);
     node.setAttribute("role", "treeitem");
     node.setAttribute("aria-level", String(row.level + 1));
     node.dataset.index = String(index);
@@ -273,6 +291,10 @@ export class PreviewTree {
       this.toggle(row);
     });
     return node;
+  }
+
+  private domId(row: Row): string {
+    return `${this.callbacks.idPrefix ?? ""}${row.id}`;
   }
 
   private stateOf(row: Row): "true" | "false" | "mixed" {

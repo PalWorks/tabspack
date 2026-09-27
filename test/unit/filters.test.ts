@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_EXCLUDE_PATTERNS, applyFilters, compileExcludeList, dedupeKey, domainOf } from "../../src/core/filters.js";
+import {
+  MAX_EXCLUDE_PATTERNS,
+  applyFilters,
+  compileExcludeList,
+  dedupeKey,
+  domainOf,
+  dropUnticked,
+  tabIdentities,
+} from "../../src/core/filters.js";
 import { DEFAULT_SETTINGS } from "../../src/core/settings.js";
 import type { Session, SessionTab, SessionWindow } from "../../src/types/session.js";
 
@@ -164,4 +172,53 @@ test("the exclude list is bounded, so a pasted wall of patterns cannot hang a fi
   const started = performance.now();
   compiled[0]?.test(`https://example.com/${"a".repeat(4000)}`);
   assert.ok(performance.now() - started < 100, "matching must not backtrack for seconds");
+});
+
+/* Unticked in the export preview ------------------------------------------ */
+
+test("a tab's identity is its window, its address and which copy it is, not its index", () => {
+  const win = sessionOf([
+    tabOf({ index: 0, url: "https://a.example/" }),
+    tabOf({ index: 1, url: "https://b.example/" }),
+    tabOf({ index: 2, url: "https://a.example/" }),
+  ]).windows[0] as SessionWindow;
+  const ids = tabIdentities(win);
+  assert.equal(new Set(ids).size, 3, "two copies of one address are two tabs");
+  const moved = { ...win, tabs: [win.tabs[1], win.tabs[0], win.tabs[2]].map((tab, index) => ({ ...(tab as SessionTab), index })) };
+  assert.equal(tabIdentities(moved)[1], ids[0], "moving a tab does not rename it");
+});
+
+test("unticked tabs are left out, counted, and the window is reindexed", () => {
+  const session = sessionOf(
+    [
+      tabOf({ index: 0, url: "https://a.example/" }),
+      tabOf({ index: 1, url: "https://b.example/", groupKey: "g1" }),
+      tabOf({ index: 2, url: "https://c.example/", openerIndex: 0 }),
+    ],
+    [{ key: "g1", title: "Solo", color: "blue", collapsed: false }],
+  );
+  const filtered = applyFilters(session, OFF);
+  const ids = tabIdentities(filtered.session.windows[0] as SessionWindow);
+  const result = dropUnticked(filtered, new Set([ids[1] as string]));
+  const win = result.session.windows[0] as SessionWindow;
+  assert.deepEqual(win.tabs.map((tab) => [tab.index, tab.url]), [
+    [0, "https://a.example/"],
+    [1, "https://c.example/"],
+  ]);
+  assert.equal(win.tabs[1]?.openerIndex, 0);
+  assert.equal(win.groups.length, 0, "a group left with no members goes with them");
+  assert.equal(result.removed.unticked, 1);
+});
+
+test("an untick that matches nothing drops nothing", () => {
+  const filtered = applyFilters(sessionOf([tabOf({ index: 0, url: "https://a.example/" })]), OFF);
+  const result = dropUnticked(filtered, new Set(["w9\u0000https://gone.example/\u00000"]));
+  assert.equal(result.session.windows[0]?.tabs.length, 1);
+  assert.equal(result.removed.unticked, 0);
+});
+
+test("unticking every tab in a window drops the window", () => {
+  const filtered = applyFilters(sessionOf([tabOf({ index: 0, url: "https://a.example/" })]), OFF);
+  const ids = tabIdentities(filtered.session.windows[0] as SessionWindow);
+  assert.equal(dropUnticked(filtered, new Set(ids)).session.windows.length, 0);
 });

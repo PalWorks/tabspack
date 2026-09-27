@@ -34,7 +34,7 @@ const session: Session = {
 test("a report counts what was kept and what was dropped", () => {
   const report = buildExportReport({
     session,
-    removed: { scheme: 1, pinned: 0, stale: 0, excluded: 0, duplicate: 2 },
+    removed: { scheme: 1, pinned: 0, stale: 0, excluded: 0, duplicate: 2, unticked: 0 },
     format: "tabspack",
     bytes: 2048,
     filename: "tabspack-20260924-0930.tabspack.json",
@@ -64,7 +64,7 @@ test("a group with no name and no colour is counted, so the export can say so", 
   };
   const report = buildExportReport({
     session: bare,
-    removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 },
+    removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 },
     format: "tabspack",
     bytes: 100,
     filename: "x.tabspack.json",
@@ -76,7 +76,7 @@ test("a group with no name and no colour is counted, so the export can say so", 
 test("a pack whose groups all have names reports none missing", () => {
   const report = buildExportReport({
     session,
-    removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 },
+    removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 },
     format: "tabspack",
     bytes: 100,
     filename: "x.tabspack.json",
@@ -87,16 +87,16 @@ test("a pack whose groups all have names reports none missing", () => {
 
 test("every filter that dropped something is named", () => {
   // The order is the order the interface prints them in, most surprising first.
-  assert.deepEqual(removedParts({ scheme: 1, pinned: 2, stale: 0, excluded: 3, duplicate: 4 }), [
+  assert.deepEqual(removedParts({ scheme: 1, pinned: 2, stale: 0, excluded: 3, duplicate: 4, unticked: 0 }), [
     { kind: "duplicate", count: 4 },
     { kind: "pinned", count: 2 },
     { kind: "scheme", count: 1 },
     { kind: "excluded", count: 3 },
   ]);
-  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 1 }), [
+  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 1, unticked: 0 }), [
     { kind: "duplicate", count: 1 },
   ]);
-  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 }), []);
+  assert.deepEqual(removedParts({ scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 }), []);
 });
 
 test("byte counts are rendered at a human scale", () => {

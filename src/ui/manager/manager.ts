@@ -9,8 +9,12 @@
  * `import-panel.ts`, the preview tree it drives is `preview-tree.ts`, snapshots
  * are `snapshot-panel.ts` and the last two panes are `settings-panel.ts`.
  *
- * The output panel is the honesty mechanism of the product: the user reads the
- * exact bytes before trusting them.
+ * The export pane is two cards. Settings first, which fold to one line after an
+ * export the way the import intake folds after a file loads (ADR-031), then
+ * the preview: the tabs the file will hold, as the same tree the import pane
+ * uses, where unticking a tab leaves it out. The exact bytes of the last export
+ * stay one click away under it, because reading them is still the honesty
+ * mechanism of the product.
  */
 import { realAdapter } from "../../core/adapter/index.js";
 import { buildExport, collectFiltered, type ExportPayload } from "../../core/export.js";
@@ -22,13 +26,15 @@ import {
   type Settings,
   type SortMode,
 } from "../../core/settings.js";
-import { countSession } from "../../types/session.js";
+import { countSession, type Session } from "../../types/session.js";
+import { tabIdentities } from "../../core/filters.js";
+import { PreviewTree, tabId, type TreeStrings } from "./preview-tree.js";
 import { DEFAULT_STALE_DAYS, worthReporting } from "../../core/staleness.js";
 import type { Scope } from "../../types/session.js";
 import { must } from "../shared/dom.js";
 import { applyI18n, t } from "../shared/i18n.js";
 import { applyTheme } from "../shared/theme.js";
-import { ageLine, countsLine, tabs as tabsPhrase } from "../shared/wording.js";
+import { ageLine, countsLine, groups as groupsPhrase, tabs as tabsPhrase } from "../shared/wording.js";
 import { initTabs } from "../shared/tabs.js";
 import { initImportPanel } from "./import-panel.js";
 import { initSnapshotPanel } from "./snapshot-panel.js";
@@ -70,6 +76,14 @@ const ui = {
   report: must<HTMLDivElement>("#report"),
   output: must<HTMLTextAreaElement>("#output"),
   outputMeta: must<HTMLParagraphElement>("#output-meta"),
+  settingsCard: must<HTMLElement>("#export-settings"),
+  settingsToggle: must<HTMLButtonElement>("#settings-toggle"),
+  settingsSummary: must<HTMLParagraphElement>("#settings-summary"),
+  search: must<HTMLInputElement>("#export-search"),
+  selectAll: must<HTMLButtonElement>("#export-select-all"),
+  selectNone: must<HTMLButtonElement>("#export-select-none"),
+  selection: must<HTMLSpanElement>("#export-selection"),
+  tree: must<HTMLDivElement>("#export-tree"),
 };
 
 const FORMAT_NOTES: Record<ExportFormat, string> = {
@@ -80,6 +94,15 @@ const FORMAT_NOTES: Record<ExportFormat, string> = {
 
 let settings: Settings;
 let available = 0;
+/** The tabs in scope after the filters, as the preview shows them. */
+let inScope: Session | null = null;
+/**
+ * Tabs the user unticked, by `tabIdentities`, so the choice survives a
+ * settings change that reloads the tree and survives the export collecting
+ * the tabs again.
+ */
+let unticked = new Set<string>();
+let tree: PreviewTree | null = null;
 let settingsPanel: { paint(latest: Settings): void } | null = null;
 let groupsCallout: { update(groups: number): Promise<void> } | null = null;
 let rating: { used(action: "export" | "restore"): void } | null = null;
@@ -150,7 +173,7 @@ async function start(): Promise<void> {
         mime: "application/json;charset=utf-8",
         bytes: text.length,
         session: { windows: [], source: {}, capturedAt: 0 },
-        removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0 },
+        removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 },
         recovered: 0,
       });
     },
@@ -219,7 +242,116 @@ async function start(): Promise<void> {
   ui.exportButton.addEventListener("click", () => void run("save"));
   ui.copyButton.addEventListener("click", () => void run("copy"));
 
+  const strings: TreeStrings = {
+    tabs: tabsPhrase,
+    groups: groupsPhrase,
+    pinned: (count) => t("pinnedCount", String(count)),
+    window: (ordinal) => t("windowOrdinal", String(ordinal)),
+    unnamedGroup: t("unnamedGroup"),
+  };
+  treeStrings = strings;
+  tree = new PreviewTree(ui.tree, { onSelectionChange: () => rememberSelection(), idPrefix: "x-" });
+  ui.selectAll.addEventListener("click", () => tree?.setAll(true));
+  ui.selectNone.addEventListener("click", () => tree?.setAll(false));
+  ui.search.addEventListener("input", () => {
+    tree?.setQuery(ui.search.value);
+    paintSelection();
+  });
+  ui.settingsToggle.addEventListener("click", () => {
+    foldSettings(false);
+    ui.format.focus();
+  });
+  /*
+   * The preview is of tabs that change while this page sits in the background.
+   * Coming back to it is when a stale list would mislead, so that is when it
+   * is read again. Unticked tabs keep their state by identity.
+   */
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void refresh();
+  });
+
   await refresh();
+}
+
+let treeStrings: TreeStrings | null = null;
+
+/**
+ * Folds the settings to one line after an export, like the import intake after
+ * a file loads: the user's next question is about the tabs, not the options.
+ * The line says what the options are, so nothing is hidden, and one button
+ * opens them again.
+ */
+function foldSettings(folded: boolean): void {
+  ui.settingsCard.dataset.collapsed = folded ? "true" : "false";
+  ui.settingsToggle.hidden = !folded;
+  ui.settingsToggle.setAttribute("aria-expanded", folded ? "false" : "true");
+  ui.settingsSummary.hidden = !folded;
+  if (folded) ui.settingsSummary.textContent = settingsLine();
+}
+
+/** The chosen options in the words the controls themselves use. */
+function settingsLine(): string {
+  const text = (node: Element | null | undefined): string => (node?.textContent ?? "").trim();
+  const parts = [
+    text(ui.scope.querySelector('[aria-checked="true"]')),
+    text(ui.format.selectedOptions[0]),
+  ];
+  for (const box of [ui.dedupe, ui.web, ui.pinned]) {
+    if (box.checked) parts.push(text(box.closest("label")));
+  }
+  if (ui.stale.checked) parts.push(`${text(ui.stale.closest("label"))} ${text(ui.staleDays.selectedOptions[0])}`);
+  if (ui.sort.value !== "natural") parts.push(text(ui.sort.selectedOptions[0]));
+  if (ui.exclude.value.trim() !== "") parts.push(text(document.querySelector('label[for="opt-exclude"]')));
+  return parts.filter(Boolean).join(" · ");
+}
+
+/** Reads the tree's ticks back into identities, then repaints the counts. */
+function rememberSelection(): void {
+  if (!tree || !inScope) return;
+  const selected = tree.selectedTabIds();
+  const next = new Set<string>();
+  for (const win of inScope.windows) {
+    const ids = tabIdentities(win);
+    win.tabs.forEach((tab, position) => {
+      if (!selected.has(tabId(win, tab))) next.add(ids[position] as string);
+    });
+  }
+  unticked = next;
+  paintSelection();
+}
+
+/** How many tabs the export will hold, which is what the buttons promise. */
+function paintSelection(): void {
+  if (!tree || !inScope) return;
+  const chosen = tree.selectedCount();
+  available = chosen;
+  const parts = [t("selectedOf", String(chosen), String(tree.totalSelectable()))];
+  if (tree.searching()) parts.push(t("shownCount", String(tree.shownCount())));
+  ui.selection.textContent = parts.join(" · ");
+  ui.exportButton.textContent = chosen === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(chosen));
+  setEnabled(chosen > 0);
+}
+
+/** Loads the tree with what is in scope and re-applies the user's unticks. */
+function paintTree(session: Session): void {
+  inScope = session;
+  if (!tree || !treeStrings) return;
+  tree.load(session, { blocked: new Map(), strings: treeStrings });
+  const present = new Set<string>();
+  const clear: string[] = [];
+  for (const win of session.windows) {
+    const ids = tabIdentities(win);
+    win.tabs.forEach((tab, position) => {
+      const identity = ids[position] as string;
+      present.add(identity);
+      if (unticked.has(identity)) clear.push(tabId(win, tab));
+    });
+  }
+  // An untick for a tab that is no longer here would make every count lie.
+  unticked = new Set([...unticked].filter((identity) => present.has(identity)));
+  tree.deselect(clear);
+  if (ui.search.value.trim() !== "") tree.setQuery(ui.search.value);
+  paintSelection();
 }
 
 /** The five panes, and the only names the address is allowed to carry. */
@@ -374,11 +506,8 @@ async function refresh(): Promise<void> {
   try {
     const { session, removed, age } = await collectFiltered(adapter, settings);
     const counts = countSession(session);
-    available = counts.tabs;
     ui.summary.textContent = countsLine(counts);
-    ui.exportButton.textContent =
-      counts.tabs === 0 ? t("exportButton") : t("exportButtonCount", tabsPhrase(counts.tabs));
-    setEnabled(counts.tabs > 0);
+    paintTree(session);
     // Nothing is said when every tab is recent or when the browser gave no
     // dates at all: a line that always appears is a line nobody reads. B-202.
     const say = worthReporting(age);
@@ -391,6 +520,7 @@ async function refresh(): Promise<void> {
     }
   } catch (error) {
     available = 0;
+    inScope = null;
     setEnabled(false);
     ui.summary.textContent = t("tabsUnavailable");
     ui.age.hidden = true;
@@ -409,7 +539,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
   notify.working("export");
 
   try {
-    const payload = await buildExport(adapter, settings);
+    const payload = await buildExport(adapter, settings, { unticked });
     showOutput(payload);
     const outcome = mode === "save" ? await savePayload(adapter, payload) : await copyPayload(adapter, payload);
     if (outcome.error) {
@@ -427,6 +557,7 @@ async function run(mode: "save" | "copy"): Promise<void> {
       saved: outcome.saved,
     });
     renderExportReport(ui.report, report);
+    foldSettings(true);
     rating?.used("export");
     // The manager page is often behind other windows, so the toolbar has to
     // carry the outcome too: ADR-033.

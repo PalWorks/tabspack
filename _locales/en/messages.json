@@ -281,17 +281,32 @@
   "filtersEmptiedScope": {
     "message": "Every tab in this scope was removed by a filter."
   },
-  "outputLegend": {
-    "message": "Output"
-  },
-  "outputEmpty": {
-    "message": "Nothing exported yet."
-  },
   "outputAria": {
     "message": "Exported file contents"
   },
   "outputTruncated": {
     "message": "Preview truncated. The saved file is complete."
+  },
+  "exportSettingsLegend": {
+    "message": "Export settings"
+  },
+  "changeSettings": {
+    "message": "Change settings"
+  },
+  "exportPreviewLegend": {
+    "message": "What will be exported"
+  },
+  "exportTreeLabel": {
+    "message": "Windows, groups and tabs that will be exported"
+  },
+  "exportPreviewHint": {
+    "message": "Untick any tab to leave it out. The file holds exactly what is ticked here."
+  },
+  "showFileContents": {
+    "message": "See the file contents"
+  },
+  "exportedNothingYet": {
+    "message": "Export or copy to see the exact contents here."
   },
   "reportSaved": {
     "message": "Saved $tabs$ from $windows$",
@@ -413,6 +428,22 @@
   },
   "unit_removed_excluded_other": {
     "message": "$count$ excluded tabs skipped",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_unticked_one": {
+    "message": "$count$ tab you unticked left out",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_removed_unticked_other": {
+    "message": "$count$ tabs you unticked left out",
     "placeholders": {
       "count": {
         "content": "$1"

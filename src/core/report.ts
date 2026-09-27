@@ -68,7 +68,7 @@ export function buildExportReport(input: {
 }
 
 export function totalRemoved(removed: FilterCounts): number {
-  return removed.scheme + removed.pinned + removed.excluded + removed.duplicate;
+  return removed.scheme + removed.pinned + removed.stale + removed.excluded + removed.duplicate + removed.unticked;
 }
 
 /**
@@ -76,7 +76,7 @@ export function totalRemoved(removed: FilterCounts): number {
  * turns these into words, because the words are translated and this decision is
  * not: see `src/ui/shared/wording.ts` and ADR-022.
  */
-export type RemovedKind = "duplicate" | "pinned" | "stale" | "scheme" | "excluded";
+export type RemovedKind = "duplicate" | "pinned" | "stale" | "scheme" | "excluded" | "unticked";
 
 export function removedParts(removed: FilterCounts): { kind: RemovedKind; count: number }[] {
   const parts: { kind: RemovedKind; count: number }[] = [];
@@ -85,6 +85,7 @@ export function removedParts(removed: FilterCounts): { kind: RemovedKind; count:
   if (removed.stale > 0) parts.push({ kind: "stale", count: removed.stale });
   if (removed.scheme > 0) parts.push({ kind: "scheme", count: removed.scheme });
   if (removed.excluded > 0) parts.push({ kind: "excluded", count: removed.excluded });
+  if (removed.unticked > 0) parts.push({ kind: "unticked", count: removed.unticked });
   return parts;
 }
 

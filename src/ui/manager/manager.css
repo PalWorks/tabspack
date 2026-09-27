@@ -818,3 +818,50 @@
 .maker-link:hover {
   color: var(--accent);
 }
+
+/* The export pane: settings that fold, then the preview -------------------- */
+
+/*
+ * After an export the settings fold to one line that names them, the way the
+ * import intake folds after a file loads: ADR-031. The preview below is what
+ * the user came back to look at.
+ */
+#export-settings[data-collapsed="true"] #export-body {
+  display: none;
+}
+
+.settings-summary {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+#export-preview > .hint {
+  margin: 0 0 var(--space-3);
+}
+
+/* The exact bytes, one click away rather than a wall of text by default. */
+.output-details {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.output-details > summary {
+  cursor: pointer;
+  font-size: var(--text-dense);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.output-details > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.output-details .summary {
+  margin: var(--space-2) 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
