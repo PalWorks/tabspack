@@ -110,7 +110,7 @@ the listing is public.
 4. The version in `package.json` and both manifests match, and CHANGELOG.md has
    a heading for it.
 
-## Where 1.0.0 stands, 2026-09-26
+## Where the release stands, updated 2026-09-28
 
 Everything that can be prepared without a person is prepared. What is left needs
 an account, a fee or a decision, and none of those is something an agent may do
@@ -120,20 +120,21 @@ on somebody's behalf.
 
 | Gate | State |
 |---|---|
-| Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13 |
-| Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, re-run 2026-09-26 against this tree. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
-| `npm run verify` | Green, including 275 unit tests and 0 addons-linter errors |
-| `npm run smoke` | Green, 107 checks |
-| Version | `1.0.0` in `package.json` and both manifests, with a CHANGELOG heading |
+| Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13. For 1.1.0, M9's rows in Table R14 are done, B-502 apart, whose publish waits on npm two factor |
+| Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, run 2026-09-26 for 1.0.0. For 1.1.0 on 2026-09-28, headless, the three new recovery rows pass on Chrome and Edge; the headed run with the flags is still to do before submission. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
+| `npm run verify` | Green for 1.1.0 on 2026-09-28, including 303 unit tests, 0 addons-linter errors and the npm package test |
+| `npm run smoke` | Green, 126 checks, on 2026-09-28 |
+| Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is the version in review at Chrome |
 | Packages | Built, in `dist/artifacts/`, and audited: manifest at the archive root, no source map, no `.env`, no 32 character account id, no credential shape anywhere in the source archive |
 
 ### Table T6: What is actually blocking each store
 
 | Store | Credential | Blocking |
 |---|---|---|
-| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | The maintainer's go. A listing goes live under their own developer account and an unpublish leaves a record |
+| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0 was submitted by the maintainer, item `bgomldlmhkecjeceibdphdkoencnghjm`, rejected once for keyword spam (other products named in the description), fixed and resubmitted 2026-09-26, and is in review. 1.1.0 follows as an update once it is accepted |
 | **Edge Add-ons** | None on this machine | An account has to be created |
 | **AMO** | None on this machine | An account has to be created |
+| **npm**, for the `tabspack` package | This machine's npm CLI, logged in as `palaniappan` through the `npmu` profile switch | npm refuses a publish without two factor authentication, or a granular token allowed to bypass it. The account needs two factor turned on, then `npm publish --otp=<code>` from `packages/tabspack` |
 
 ### The Chrome upload, when the word is given
 

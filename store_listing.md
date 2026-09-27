@@ -451,7 +451,7 @@ listed here, that is a question to answer and record, not a sentence to improvis
 | | Support URL | `https://palworks.github.io/tabspack/contact/` | Table S9 |
 | | Mature content | No | Table S9 |
 | **Privacy practices** | Single purpose | The paragraph in Table S8, pasted exactly. It names one purpose and says why each feature belongs to it, which is what a reviewer checks | Table S8 |
-| | Permission justification, one per permission | `tabs`, `storage`, `downloads`, the optional `tabGroups`, and the optional support host, word for word | Table S6 |
+| | Permission justification, one per permission | `tabs`, `storage`, `downloads`, `alarms` from 1.1.0, the optional `tabGroups` and `sessions`, and the optional support host, word for word | Table S6 |
 | | Are you using remote code? | No. Everything runs from the package, and the content security policy pins scripts to it | Table S8 |
 | | Data usage | The answers in Table S8. The one that needs care: a support message the user chooses to send is "personal communications", and an optional reply address is "personally identifiable information". Both are sent only when the user presses Send, and only to answer them | Table S8 |
 | | The three certifications | Tick all three: not sold, not used for anything unrelated to the single purpose, not used for creditworthiness or lending | Table S8 |

@@ -225,7 +225,7 @@ other file reaches for a browser API. A cross browser matrix loads the extension
 into real Chrome, real Edge and real Firefox and drives them, because the
 interesting failures in an extension are all about what a particular browser
 actually does. Every non-obvious decision is recorded as a numbered decision
-record in the repository, forty-four of them at present.
+record in the repository, forty-eight of them at present.
 
 ## Contact
 

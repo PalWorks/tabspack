@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Version | 0.3 |
+| Version | 0.4 |
 | Date | 2026-09-26 |
-| Status | M0 to M8 built and verified. Version 1.0.0 packaged, not yet submitted to any store |
+| Status | M0 to M9 built and verified. 1.0.0 in review at the Chrome Web Store; 1.1.0, with the export preview and M9 durability, built and verified |
 | Supersedes | `docs/history/TabPack_BRD_PRD_v0.9.md` (BRD and PRD v0.9, 2026-07-14) |
 | Normative format spec | [docs/SPEC.md](docs/SPEC.md) |
 | Sequencing and exit tests | [docs/ROADMAP.md](docs/ROADMAP.md) |
@@ -192,7 +192,7 @@ Each is measurable and each becomes a test. The v0.9 targets for startup and mem
 | NFR-004 | Restore 200 tabs with no single UI block longer than 200 ms | Long task observation during restore, throttled creation plus discard enabled |
 | NFR-005 | The manager page opens a 5000 tab file without crashing | Fixture load and preview render |
 | NFR-006 | Zero network requests from the extension | Automated check that no fetch, XHR or remote resource appears in the built bundle, plus manual devtools verification |
-| NFR-007 | Zero host permissions, three required permissions | Manifest assertion in CI |
+| NFR-007 | Zero host permissions at install, four required permissions (`alarms` added in M9, ADR-048) | Manifest assertion in CI |
 | NFR-008 | Works fully offline | Airplane mode run of the full export and import path |
 | NFR-009 | No telemetry, no analytics, no remote logging | Code review gate, stated in `PRIVACY.md` |
 
@@ -203,11 +203,12 @@ Each is measurable and each becomes a test. The v0.9 targets for startup and mem
 | Permission | Required or optional | Justification given to reviewers |
 |---|---|---|
 | `tabs` | Required | Read the url and title of open tabs. Without it the product cannot function |
-| `storage` | Required | Settings and named snapshots |
+| `storage` | Required | Settings, snapshots, and, when turned on, automatic snapshots and the recovery copy |
+| `alarms` | Required since 1.1.0 | Wakes the worker for the recovery copy and automatic snapshots, only when the user turned them on. No install warning: ADR-048 |
 | `downloads` | Required | Write the export file |
 | `tabGroups` | Optional, requested on first use | Chrome shows an update warning for newly added required permissions. Requesting at first use avoids it |
 | `offscreen` | Never | Not needed. The background writes a file through a data URL on Chromium and a blob URL on Gecko, and the clipboard is only ever written from a page: ADR-021 supersedes ADR-015 |
-| `sessions` | Optional, post v1 | Recently closed recovery |
+| `sessions` | Optional, requested from the Show recently closed button, since 1.1.0 | The browser's recently closed list, and reopening an entry with its history |
 | Host permissions | None | Never needed. Export Tabs asking for `<all_urls>` is a review risk we will not repeat |
 
 ## 13. Capability matrix
