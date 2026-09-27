@@ -60,3 +60,6 @@ jobs:
 
       - name: AMO's own linter over the Firefox package
         run: npm run lint:amo
+
+      - name: The npm package installs and reads the fixtures outside the repository
+        run: npm run package:test

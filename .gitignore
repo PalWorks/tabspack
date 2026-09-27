@@ -10,6 +10,10 @@ node_modules/
 
 # Build output
 dist/
+# The npm package's build output and the two files copied in at build time.
+packages/tabspack/dist/
+packages/tabspack/schema.json
+packages/tabspack/LICENSE
 # The promo video is 9 MB and `npm run video` rebuilds it exactly.
 assets/promo/*.mp4
 *.zip

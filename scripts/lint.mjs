@@ -347,6 +347,38 @@ async function ruleSchemaId() {
   }
 }
 
+/**
+ * The `tabspack` npm package, B-502, is compiled from src/package/index.ts and
+ * everything it imports. If any of that reaches the browser boundary, the
+ * interface or the worker, the package would ship browser code to people
+ * running it in node. Followed transitively, because the import that breaks it
+ * is never the one in index.ts.
+ */
+async function rulePackageBoundary() {
+  const entry = "src/package/index.ts";
+  const seen = new Set();
+  const queue = [entry];
+  while (queue.length > 0) {
+    const file = queue.shift();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    const text = await readFile(path.join(root, file), "utf8").catch(() => null);
+    if (text === null) {
+      fail(entry, 1, "package-boundary", `${file} is imported and does not exist`);
+      continue;
+    }
+    for (const match of text.matchAll(/^(?:import|export)[^"']*?from\s+["'](\.[^"']+)["']/gm)) {
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), match[1].replace(/\.js$/, ".ts")));
+      if (/^src\/(core\/adapter\/|ui\/|background\/)/.test(target)) {
+        fail(file, lineOf(text, match.index), "package-boundary", `the npm package reaches ${target}, which is browser code`);
+        continue;
+      }
+      queue.push(target);
+    }
+  }
+}
+
+await rulePackageBoundary();
 await ruleAdapterBoundary();
 await ruleNoHtmlInjection();
 await ruleNoNetwork();

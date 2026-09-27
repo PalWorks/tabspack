@@ -1,0 +1,22 @@
+{
+  "name": "tabspack",
+  "version": "1.0.0",
+  "description": "Read, validate and write TabsPack files: every open browser tab in one open, documented JSON file. The reference reader and writer from the TabsPack extension.",
+  "keywords": ["tabspack", "tabs", "browser tabs", "session", "tab session", "json schema", "bookmarks", "export", "import"],
+  "homepage": "https://palworks.github.io/tabspack/",
+  "repository": { "type": "git", "url": "git+https://github.com/PalWorks/tabspack.git", "directory": "packages/tabspack" },
+  "bugs": { "url": "https://github.com/PalWorks/tabspack/issues" },
+  "license": "MIT",
+  "author": "palworks.ai (https://palworks.ai)",
+  "type": "module",
+  "sideEffects": false,
+  "engines": { "node": ">=18" },
+  "exports": {
+    ".": { "types": "./dist/package/index.d.ts", "default": "./dist/package/index.js" },
+    "./schema.json": "./schema.json",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/package/index.js",
+  "types": "./dist/package/index.d.ts",
+  "files": ["dist", "schema.json", "README.md", "LICENSE"]
+}
