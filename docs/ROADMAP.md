@@ -372,6 +372,21 @@ the inbox, and the same message goes to the mail client when the permission is
 declined. Every page of the site returns 200 and loads nothing from anywhere
 else. Both verified against production on 2026-09-26.
 
+### Table R14: M9 Durability and the format package
+
+Promoted 2026-09-28 under sequencing rule 5, each keeping its id (ADR-042).
+The decisions behind this phase are in
+[proposals/next-six.md](proposals/next-six.md) Table P3b. It ships as one
+release, 1.1.0.
+
+| Id | Requirements | Constraints | Acceptance criteria | Status |
+|---|---|---|---|---|
+| B-502 | None | Built from the extension's own source files, no copy. Zero runtime dependencies. Nothing in it reaches `core/adapter/`, the interface or the worker | `npm install tabspack` in an empty project exposes `read`, `write`, `validate`, the types and `tabspack/schema.json`, in Node 18 or later. Every fixture behaves through the installed tarball as through the extension. The major version is `schemaVersion`. Proved by `npm run package:test` in CI | in progress |
+| B-101 | None | Off by default. `alarms` is the only new required permission. The worker holds no state in memory. Manual snapshots are never deleted by TabsPack | An interval setting of off, hourly, every four hours or daily. When due, a snapshot named for its time and tagged `auto` is written, unless the tabs are unchanged since the last automatic snapshot, when nothing is written. The newest N automatic snapshots are kept, N set by the user, default 10, and older automatic ones are removed, ADR-047. A worker terminated between alarms loses nothing | in progress |
+| B-102 | None | Off at install, offered after the first export. `sessions` stays optional and is asked for only when the user opens the recently closed list. Never restores on its own: DOMAIN business rule 4 | With the recovery copy on, one rolling record of the current session, at most a minute old, in a single storage key. On browser start, after the browser's own restore goes quiet, a meaningful loss (a whole window, or at least ten tabs and a fifth of the session) is offered on the toolbar, in the popup and on the manager, as a count and a time. Preview and restore opens it in the import preview with only the missing tabs ticked. A clean restart the browser restored itself offers nothing. Proved in the real browser matrix with a killed and relaunched profile | in progress |
+| B-103 | None | Pure comparison in `src/core/compare.ts`. Deleting is a confirmed action that names what it deletes | Any snapshot compares with the one before it: tabs added, removed, moved to another window and regrouped, each list openable in the import preview. Tidy finds runs of snapshots with no difference, keeps the newest of each run, names the rest, and deletes them only on confirmation | in progress |
+| B-201 | None | Combining never deletes the originals on its own | An overlap view lists the addresses found in three or more snapshots, with how many and which. Combine saves the selected snapshots as one new snapshot with every address once: the newest one's windows, plus one window of addresses found only in older ones | in progress |
+
 ## 4. Sequencing rules
 
 1. No phase starts while the previous exit test is red.

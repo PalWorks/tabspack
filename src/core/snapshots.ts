@@ -145,7 +145,14 @@ export async function renameSnapshot(
   name: string,
   now?: Date,
 ): Promise<SnapshotMeta | null> {
-  return await editMeta(adapter, id, (meta) => ({ ...meta, name, updatedAt: isoOf(now ?? new Date()) }));
+  // Naming an automatic snapshot is choosing to keep it, so it leaves the
+  // rolling series and is never removed by it: ADR-047.
+  return await editMeta(adapter, id, (meta) => ({
+    ...meta,
+    name,
+    tags: meta.tags.filter((tag) => tag !== "auto"),
+    updatedAt: isoOf(now ?? new Date()),
+  }));
 }
 
 export async function tagSnapshot(

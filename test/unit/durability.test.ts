@@ -1,0 +1,171 @@
+/**
+ * M9: the recovery copy (B-102) and automatic snapshots (B-101), driven the way
+ * the worker drives them, against a browser that only exists in node.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  ALARM_AUTO,
+  ALARM_RECOVERY,
+  AUTO_TAG,
+  OFFER_KEY,
+  PENDING_KEY,
+  RECOVERY_KEY,
+  beginStartup,
+  checkStartup,
+  readAutoState,
+  readOffer,
+  readPrevious,
+  reconcileAlarms,
+  runAutoSnapshot,
+  scheduleRecovery,
+  writeRecovery,
+} from "../../src/core/durability.js";
+import { DEFAULT_SETTINGS, type Settings } from "../../src/core/settings.js";
+import { listSnapshots, renameSnapshot, saveSnapshot } from "../../src/core/snapshots.js";
+import { onAlarm, onStartup, onTabsChanged } from "../../src/background/durability.js";
+import { createFakeAdapter, tab, window_, type FakeAdapter } from "../tools/fake-adapter.js";
+
+const ON: Settings = { ...DEFAULT_SETTINGS, recoveryCopy: true, autoSnapshotHours: 1, autoSnapshotKeep: 3 };
+
+function browserWith(count: number, prefix = "a", storage: Record<string, unknown> = {}): FakeAdapter {
+  return createFakeAdapter({
+    windows: [window_({ id: 1, tabs: Array.from({ length: count }, (_, index) => tab({ id: index + 1, index, url: `https://${prefix}.example/${index}` })) })],
+    groups: [],
+    storage: { settings: ON, ...storage },
+  });
+}
+
+function setTabs(adapter: FakeAdapter, count: number, prefix = "a"): void {
+  adapter.state.windows = [
+    window_({ id: 1, tabs: Array.from({ length: count }, (_, index) => tab({ id: 100 + index, index, url: `https://${prefix}.example/${index}` })) }),
+  ];
+}
+
+test("the recovery copy is off unless it is turned on", async () => {
+  const adapter = browserWith(3);
+  assert.equal(await writeRecovery(adapter, DEFAULT_SETTINGS), "off");
+  assert.equal(await scheduleRecovery(adapter, DEFAULT_SETTINGS), false);
+  assert.equal(adapter.alarms.size, 0);
+});
+
+test("the copy is written once, and not again until the tabs change", async () => {
+  const adapter = browserWith(3);
+  assert.equal(await writeRecovery(adapter, ON, 1000), "written");
+  assert.equal(await writeRecovery(adapter, ON, 2000), "unchanged");
+  setTabs(adapter, 4);
+  assert.equal(await writeRecovery(adapter, ON, 3000), "written");
+  const stored = (await adapter.storageGet({ [RECOVERY_KEY]: null as unknown }))[RECOVERY_KEY] as { tabs: number; capturedAt: number };
+  assert.equal(stored.tabs, 4);
+  assert.equal(stored.capturedAt, 3000);
+});
+
+test("an empty browser never overwrites the copy", async () => {
+  const adapter = browserWith(3);
+  await writeRecovery(adapter, ON, 1000);
+  adapter.state.windows = [];
+  assert.equal(await writeRecovery(adapter, ON, 2000), "empty");
+  const stored = (await adapter.storageGet({ [RECOVERY_KEY]: null as unknown }))[RECOVERY_KEY] as { tabs: number };
+  assert.equal(stored.tabs, 3);
+});
+
+test("a storm of tab changes schedules one write", async () => {
+  const adapter = browserWith(3);
+  assert.equal(await scheduleRecovery(adapter, ON), true);
+  assert.equal(await scheduleRecovery(adapter, ON), false);
+  assert.ok(adapter.alarms.has(ALARM_RECOVERY));
+});
+
+test("a window closing does not schedule anything, because a shutdown looks the same", async () => {
+  const adapter = browserWith(3);
+  await onTabsChanged(adapter, { closing: true });
+  assert.equal(adapter.alarms.size, 0);
+  await onTabsChanged(adapter, { closing: false });
+  assert.ok(adapter.alarms.has(ALARM_RECOVERY));
+});
+
+test("after a crash that lost the session, the start check offers it, and the copy waits until then", async () => {
+  const adapter = browserWith(40);
+  await writeRecovery(adapter, ON, 1000);
+  // The browser comes back with one new tab page and nothing else.
+  adapter.state.windows = [window_({ id: 9, tabs: [tab({ id: 900, url: "chrome://newtab/" })] })];
+  await onStartup(adapter);
+  assert.equal((await adapter.storageGet({ [PENDING_KEY]: false }))[PENDING_KEY], true);
+  assert.equal(await writeRecovery(adapter, ON, 2000), "pending", "the evidence is not overwritten before the check");
+
+  const detail = await onAlarm(adapter, "tabspack-startup");
+  assert.match(detail, /40 of 40 tabs not open/);
+  const offer = await readOffer(adapter);
+  assert.equal(offer?.missingTabs, 40);
+  assert.equal(offer?.capturedAt, 1000);
+  assert.equal(adapter.badges.at(-1)?.text, "↺");
+  assert.equal((await adapter.storageGet({ [PENDING_KEY]: false }))[PENDING_KEY], false);
+
+  const previous = await readPrevious(adapter, ON);
+  assert.equal(previous?.missing.windows[0]?.tabs.length, 40);
+  assert.deepEqual(previous?.missing.windows[0]?.tabs.map((t) => t.index).slice(0, 3), [0, 1, 2]);
+});
+
+test("a restart the browser restored itself offers nothing", async () => {
+  const adapter = browserWith(40);
+  await writeRecovery(adapter, ON, 1000);
+  setTabs(adapter, 40);
+  assert.equal(await beginStartup(adapter, ON), true);
+  assert.equal(await checkStartup(adapter, ON), null);
+  assert.equal(await readOffer(adapter), null);
+});
+
+test("with the copy off, a start sets nothing aside", async () => {
+  const adapter = browserWith(3);
+  await writeRecovery(adapter, ON, 1000);
+  assert.equal(await beginStartup(adapter, DEFAULT_SETTINGS), false);
+  assert.equal((await adapter.storageGet({ [OFFER_KEY]: null as unknown }))[OFFER_KEY], null);
+});
+
+test("automatic snapshots are written only when the tabs changed", async () => {
+  const adapter = browserWith(5);
+  assert.equal((await runAutoSnapshot(adapter, ON, 1000)).outcome, "written");
+  assert.equal((await runAutoSnapshot(adapter, ON, 2000)).outcome, "unchanged");
+  setTabs(adapter, 6);
+  assert.equal((await runAutoSnapshot(adapter, ON, 3000)).outcome, "written");
+  const list = await listSnapshots(adapter);
+  assert.equal(list.length, 2);
+  assert.ok(list.every((meta) => meta.tags.includes(AUTO_TAG)));
+});
+
+test("the rolling limit removes the oldest automatic snapshots and never a manual one", async () => {
+  const adapter = browserWith(2);
+  const collected = await import("../../src/core/collect.js");
+  const manual = await collected.collectSession(adapter, { scope: "all_windows", includeIncognito: false });
+  await saveSnapshot(adapter, manual, { name: "Mine", now: new Date(500) });
+  for (let run = 0; run < 5; run += 1) {
+    setTabs(adapter, 3 + run);
+    await runAutoSnapshot(adapter, ON, 1000 * (run + 1));
+  }
+  const list = await listSnapshots(adapter);
+  const autos = list.filter((meta) => meta.tags.includes(AUTO_TAG));
+  assert.equal(autos.length, ON.autoSnapshotKeep);
+  assert.ok(list.some((meta) => meta.name === "Mine"), "the manual snapshot survives");
+  assert.deepEqual(autos.map((meta) => meta.counts.tabs), [7, 6, 5], "the newest are the ones kept");
+  assert.equal((await readAutoState(adapter)).removed, 2);
+});
+
+test("naming an automatic snapshot takes it out of the series", async () => {
+  const adapter = browserWith(2);
+  await runAutoSnapshot(adapter, ON, 1000);
+  const [auto] = await listSnapshots(adapter);
+  await renameSnapshot(adapter, auto?.id ?? "", "Keep this");
+  const [renamed] = await listSnapshots(adapter);
+  assert.equal(renamed?.tags.includes(AUTO_TAG), false);
+});
+
+test("alarms follow the settings", async () => {
+  const adapter = browserWith(1);
+  await reconcileAlarms(adapter, ON);
+  assert.equal(adapter.alarms.get(ALARM_AUTO)?.periodInMinutes, 60);
+  await reconcileAlarms(adapter, { ...ON, autoSnapshotHours: 24 });
+  assert.equal(adapter.alarms.get(ALARM_AUTO)?.periodInMinutes, 1440);
+  await scheduleRecovery(adapter, ON);
+  await reconcileAlarms(adapter, DEFAULT_SETTINGS);
+  assert.equal(adapter.alarms.size, 0);
+});

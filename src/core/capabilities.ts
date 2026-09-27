@@ -17,6 +17,8 @@ export function describeCapabilities(caps: Capabilities): string {
     ["downloads", yesNo(caps.downloads)],
     ["window bounds", yesNo(caps.windowBounds)],
     ["keyboard commands", yesNo(caps.commands)],
+    ["alarms", yesNo(caps.alarms)],
+    ["recently closed", yesNo(caps.sessions)],
     ["discard on create", caps.discardOnCreate === null ? "unknown" : yesNo(caps.discardOnCreate)],
   ];
   const width = Math.max(...rows.map(([label]) => label.length));

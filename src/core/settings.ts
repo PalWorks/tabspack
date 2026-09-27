@@ -73,7 +73,22 @@ export interface Settings {
 
   /** Light, dark or whatever the operating system says. FR-405. */
   theme: Theme;
+
+  /* Durability, M9. */
+  /**
+   * Keep one rolling copy of the open tabs, so a crash or a browser that did
+   * not restore its session can be recovered. Off at install and offered after
+   * the first export: B-102, decision D2.
+   */
+  recoveryCopy: boolean;
+  /** Hours between automatic snapshots. `0` is off, the default. B-101. */
+  autoSnapshotHours: number;
+  /** How many automatic snapshots are kept. Older ones are removed: ADR-047. */
+  autoSnapshotKeep: number;
 }
+
+/** The intervals the Snapshots pane offers. Anything else falls back to off. */
+export const AUTO_SNAPSHOT_HOURS = [0, 1, 4, 24] as const;
 
 export const DEFAULT_SETTINGS: Settings = {
   scope: "all_windows",
@@ -99,6 +114,10 @@ export const DEFAULT_SETTINGS: Settings = {
   openPlaceholder: true,
 
   theme: "system",
+
+  recoveryCopy: false,
+  autoSnapshotHours: 0,
+  autoSnapshotKeep: 10,
 };
 
 /**
@@ -113,6 +132,7 @@ const NUMERIC_LIMITS: Record<string, { min: number; max: number }> = {
   discardThreshold: { min: 0, max: 10_000 },
   restoreBatchSize: { min: 1, max: 100 },
   restoreDelayMs: { min: 0, max: 5_000 },
+  autoSnapshotKeep: { min: 1, max: 100 },
 };
 
 const STORAGE_KEY = "settings";
@@ -172,6 +192,9 @@ export function mergeSettings(raw: Partial<Settings> | undefined): Settings {
   }
   if (!["system", "light", "dark"].includes(merged.theme)) {
     merged.theme = DEFAULT_SETTINGS.theme;
+  }
+  if (!(AUTO_SNAPSHOT_HOURS as readonly number[]).includes(merged.autoSnapshotHours)) {
+    merged.autoSnapshotHours = DEFAULT_SETTINGS.autoSnapshotHours;
   }
   for (const [key, limit] of Object.entries(NUMERIC_LIMITS)) {
     const current = (merged as unknown as Record<string, unknown>)[key];

@@ -87,6 +87,27 @@ export interface Capabilities {
   windowBounds: boolean;
   commands: boolean;
   discardOnCreate: boolean | null;
+  /** Scheduled wake ups for the worker. Needed by automatic snapshots and the recovery copy. */
+  alarms: boolean;
+  /** The browser's own recently closed list. Present only once the optional permission is granted. */
+  sessions: boolean;
+}
+
+/** A scheduled wake up of the worker. */
+export interface AlarmInfo {
+  name: string;
+  scheduledTime: number;
+  periodInMinutes?: number;
+}
+
+/** One entry in the browser's recently closed list, narrowed to what TabsPack shows. */
+export interface ClosedItem {
+  /** What `restoreClosed` takes. Missing on an entry the browser cannot restore. */
+  sessionId: string | null;
+  /** Epoch milliseconds. */
+  closedAt: number;
+  kind: "tab" | "window";
+  tabs: { url: string; title: string }[];
 }
 
 /** What `tabs.create` is given. Only the fields TabsPack sets. */
@@ -241,4 +262,11 @@ export interface BrowserAdapter {
    */
   openExternal(url: string): Promise<void>;
   copyText(text: string): Promise<void>;
+  alarmGet(name: string): Promise<AlarmInfo | null>;
+  /** Replaces an alarm of the same name. */
+  alarmCreate(name: string, when: { delayInMinutes?: number; periodInMinutes?: number }): Promise<void>;
+  alarmClear(name: string): Promise<void>;
+  /** Null when the list cannot be read, which without the permission it cannot. */
+  recentlyClosed(): Promise<ClosedItem[] | null>;
+  restoreClosed(sessionId: string): Promise<void>;
 }

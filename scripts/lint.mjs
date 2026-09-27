@@ -232,7 +232,9 @@ function visibleText(html) {
 }
 
 async function ruleManifests() {
-  const required = ["tabs", "storage", "downloads"];
+  // `alarms` since M9: the worker's only way to wake later, for the recovery
+  // copy and automatic snapshots. It carries no install warning. ADR-048.
+  const required = ["tabs", "storage", "downloads", "alarms"];
   const allowedOptional = ["tabGroups", "offscreen", "sessions"];
   for (const target of ["chrome", "firefox"]) {
     const file = `manifest.${target}.json`;

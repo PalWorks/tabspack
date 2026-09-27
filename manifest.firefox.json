@@ -33,10 +33,12 @@
   "permissions": [
     "tabs",
     "storage",
-    "downloads"
+    "downloads",
+    "alarms"
   ],
   "optional_permissions": [
-    "tabGroups"
+    "tabGroups",
+    "sessions"
   ],
   "optional_host_permissions": [
     "https://tabspack-support.palworks.ai/*"

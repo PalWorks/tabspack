@@ -872,3 +872,24 @@ Date 2026-09-27. Status accepted.
 **Checkboxes are drawn by the page.** A native checkbox follows the system colour scheme rather than the page's. Every checkbox is now an empty box with a border until it is ticked, filled with the accent and a tick when it is, in both themes. A chosen theme also sets `color-scheme`, so selects and scrollbars follow it.
 
 **Consequence.** Two trees share the manager page, so `PreviewTree` takes an id prefix to keep row ids unique. `totalRemoved` now counts stale and unticked tabs, and it had been missing stale since B-202, so "filters emptied the scope" was not said when only the age filter emptied it.
+
+---
+
+## ADR-047: Automatic snapshots keep a rolling series; manual snapshots are never deleted
+
+Date 2026-09-28. Status accepted. Amends ADR-012 for automatic snapshots only.
+
+**Context.** ADR-012 ruled that TabsPack never deletes a snapshot on its own, and that B-101's automatic series would respect the soft cap and be pruned by explicit user action. The maintainer's direction for B-101 is that the aim is less work for the user managing sessions and tabs, not more: a series that fills the store and then stops, waiting for someone to tidy it, is a chore the product created.
+
+**Options.** Keep ADR-012 exactly: never write an unchanged snapshot, stop automatic saving at the cap, and let the user prune. Amend it: keep the newest N automatic snapshots and remove the older ones as new ones arrive.
+
+**Decision.** Amend it, narrowly.
+
+- An automatic snapshot is TabsPack's own safety copy, not something the user chose to keep. The newest N are kept, N set on the Snapshots pane with a default of 10, and each new automatic snapshot removes the oldest automatic one beyond N.
+- **A manual snapshot is never deleted by TabsPack**, whatever the count or the space. ADR-012 stands for everything the user saved themselves.
+- An unchanged session writes nothing, so the series is ten different moments, not ten copies of one.
+- Removing an automatic snapshot is recorded in the worker log and counted on the Snapshots pane, so it is never silent.
+- If the store is at the soft cap because of manual snapshots, automatic saving stops and says so rather than evicting anything the user made.
+- Renaming or tagging an automatic snapshot makes it manual, which is the one-step way to keep one forever.
+
+**Consequence.** B-101 implements the series and its limit. B-103's tidy action remains, for manual snapshots and for anyone who wants a shorter series than N.

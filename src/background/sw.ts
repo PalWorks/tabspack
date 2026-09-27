@@ -1,20 +1,49 @@
 /**
  * The background.
  *
- * It does two things: it reports what this browser can do when the extension is
- * installed, and it runs the keyboard commands. It holds no state, because the
- * browser terminates it when idle, and it answers no messages, because nothing
- * sends any: every TabsPack page has the extension APIs itself, and a page is
- * where the long running work belongs. See docs/ARCHITECTURE.md section 7.
+ * It reports what this browser can do when the extension is installed, runs
+ * the keyboard commands, and since M9 keeps the recovery copy and the
+ * automatic snapshots, which have to happen when no TabsPack page is open. It
+ * still holds no state, because the browser terminates it when idle: what it
+ * knows between wakes is in storage. It answers no messages, because nothing
+ * sends any. See docs/ARCHITECTURE.md section 7.
+ *
+ * Every listener is registered here, at the top level, synchronously. A
+ * listener added later misses the event that woke the worker.
  */
 import { events, realAdapter } from "../core/adapter/index.js";
 import { capabilityNotices, describeCapabilities } from "../core/capabilities.js";
 import { runCommand } from "./commands.js";
+import * as durability from "./durability.js";
 
 events.onInstalled((reason) => {
   // An unhandled rejection in a worker is a log line nobody sees.
   report(reason).catch((error: unknown) => console.error("[TabsPack] startup report failed:", error));
+  durability.onSettingsChanged(realAdapter).catch(logFailure("alarms"));
 });
+
+events.onStartup(() => {
+  durability.onStartup(realAdapter).catch(logFailure("startup"));
+});
+
+events.onTabsChanged((change) => {
+  durability.onTabsChanged(realAdapter, change).catch(logFailure("tab change"));
+});
+
+events.onAlarm((name) => {
+  durability
+    .onAlarm(realAdapter, name)
+    .then((detail) => console.info(`[TabsPack] ${detail}`))
+    .catch(logFailure(name));
+});
+
+realAdapter.onStorageChanged((keys) => {
+  if (keys.includes("settings")) durability.onSettingsChanged(realAdapter).catch(logFailure("alarms"));
+});
+
+function logFailure(what: string): (error: unknown) => void {
+  return (error) => console.error(`[TabsPack] ${what} failed:`, error);
+}
 
 /**
  * A keyboard command is the one place the worker does real work, and there is

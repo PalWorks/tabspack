@@ -7,6 +7,7 @@ import type {
   BadgeTone,
   BrowserAdapter,
   Capabilities,
+  ClosedItem,
   CreateTabRequest,
   CreateWindowRequest,
   DownloadRequest,
@@ -106,6 +107,8 @@ export const realAdapter: BrowserAdapter = {
       downloads: typeof browser.downloads?.download === "function",
       windowBounds: typeof browser.windows?.update === "function",
       commands: typeof browser.commands?.getAll === "function",
+      alarms: typeof browser.alarms?.create === "function",
+      sessions: typeof browser.sessions?.getRecentlyClosed === "function",
       // No API reports whether tabs.create accepts `discarded`. Resolved when a
       // restore first needs it, in M2.
       discardOnCreate: null,
@@ -418,7 +421,63 @@ export const realAdapter: BrowserAdapter = {
     }
     await clipboard.writeText(text);
   },
+
+  async alarmGet(name: string) {
+    const found = await browser.alarms?.get(name);
+    return found ? { name: found.name, scheduledTime: found.scheduledTime, ...(found.periodInMinutes ? { periodInMinutes: found.periodInMinutes } : {}) } : null;
+  },
+
+  async alarmCreate(name, when) {
+    await browser.alarms?.create(name, compact(when));
+  },
+
+  async alarmClear(name: string) {
+    await browser.alarms?.clear(name);
+  },
+
+  async recentlyClosed() {
+    if (typeof browser.sessions?.getRecentlyClosed !== "function") return null;
+    try {
+      const raw = await browser.sessions.getRecentlyClosed({ maxResults: 25 });
+      return raw.map((entry) => closedItem(asRecord(entry)));
+    } catch {
+      return null;
+    }
+  },
+
+  async restoreClosed(sessionId: string) {
+    await browser.sessions?.restore(sessionId);
+  },
 };
+
+/**
+ * A recently closed entry. Chromium reports `lastModified` in seconds and Gecko
+ * in milliseconds, so anything that could only be seconds is scaled.
+ */
+function closedItem(entry: Record<string, unknown>): ClosedItem {
+  const stamp = typeof entry["lastModified"] === "number" ? entry["lastModified"] : 0;
+  const closedAt = stamp > 0 && stamp < 1e11 ? stamp * 1000 : stamp;
+  const tabOf = (value: unknown): { url: string; title: string; sessionId?: string } => {
+    const tab = asRecord(value);
+    return {
+      url: typeof tab["url"] === "string" ? tab["url"] : "",
+      title: typeof tab["title"] === "string" ? tab["title"] : "",
+      ...(typeof tab["sessionId"] === "string" ? { sessionId: tab["sessionId"] } : {}),
+    };
+  };
+  if (entry["window"]) {
+    const win = asRecord(entry["window"]);
+    const tabs = Array.isArray(win["tabs"]) ? win["tabs"].map(tabOf) : [];
+    return {
+      sessionId: typeof win["sessionId"] === "string" ? win["sessionId"] : null,
+      closedAt,
+      kind: "window",
+      tabs: tabs.map(({ url, title }) => ({ url, title })),
+    };
+  }
+  const tab = tabOf(entry["tab"]);
+  return { sessionId: tab.sessionId ?? null, closedAt, kind: "tab", tabs: [{ url: tab.url, title: tab.title }] };
+}
 
 /**
  * Lifecycle listeners, for the background only.
@@ -435,5 +494,31 @@ export const events = {
   /** Keyboard commands, declared in the manifest and rebindable by the user. */
   onCommand(handler: (command: string) => void): void {
     browser.commands?.onCommand?.addListener((command) => handler(command));
+  },
+  /** The browser starting with this profile, which is when a lost session shows. */
+  onStartup(handler: () => void): void {
+    browser.runtime.onStartup?.addListener(() => handler());
+  },
+  onAlarm(handler: (name: string) => void): void {
+    browser.alarms?.onAlarm.addListener((alarm) => handler(alarm.name));
+  },
+  /**
+   * Any change to what the tab strip holds: a tab opened, closed, moved,
+   * attached or detached, or one whose address, title, pinned state or group
+   * changed. Loading progress and activation are not changes to the session.
+   * A tab closed because its window is closing is reported, with `closing`, so
+   * a browser shutting down can be told apart from a person closing tabs.
+   */
+  onTabsChanged(handler: (change: { closing: boolean }) => void): void {
+    const tabs = browser.tabs;
+    const changed = (): void => handler({ closing: false });
+    tabs.onCreated?.addListener(changed);
+    tabs.onMoved?.addListener(changed);
+    tabs.onAttached?.addListener(changed);
+    tabs.onDetached?.addListener(changed);
+    tabs.onRemoved?.addListener((_id, info) => handler({ closing: Boolean(info?.isWindowClosing) }));
+    tabs.onUpdated?.addListener((_id, info) => {
+      if ("url" in info || "title" in info || "pinned" in info || "groupId" in info) changed();
+    });
   },
 };

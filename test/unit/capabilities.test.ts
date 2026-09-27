@@ -10,6 +10,8 @@ const full: Capabilities = {
   windowBounds: true,
   commands: true,
   discardOnCreate: null,
+  alarms: true,
+  sessions: false,
 };
 
 test("the capability table names every probe and reports unknowns honestly", () => {

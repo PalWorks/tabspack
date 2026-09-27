@@ -70,6 +70,8 @@ export interface FakeState {
    * interface has to work that way round: ADR-039.
    */
   grantOrigins?: boolean;
+  /** The browser's recently closed list. Absent means the permission was never granted. */
+  recentlyClosed?: import("../../src/core/adapter/types.js").ClosedItem[];
 }
 
 export interface FakeAdapter extends BrowserAdapter {
@@ -84,6 +86,9 @@ export interface FakeAdapter extends BrowserAdapter {
   /** Every mutating call, in order, so a test can assert the sequence. */
   calls: { method: string; detail?: unknown }[];
   storageListeners: ((keys: string[]) => void)[];
+  /** Scheduled alarms by name, as the worker left them. */
+  alarms: Map<string, { delayInMinutes?: number; periodInMinutes?: number }>;
+  restoredClosed: string[];
   state: FakeState;
 }
 
@@ -94,6 +99,8 @@ const DEFAULT_CAPABILITIES: Capabilities = {
   windowBounds: true,
   commands: true,
   discardOnCreate: null,
+  alarms: true,
+  sessions: false,
 };
 
 const DEFAULT_PLATFORM: PlatformInfo = {
@@ -160,6 +167,8 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     originsAsked: [],
     calls: [],
     storageListeners: [],
+    alarms: new Map(),
+    restoredClosed: [],
 
     async platform() {
       return { ...DEFAULT_PLATFORM, ...(state.platform ?? {}) };
@@ -440,6 +449,22 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     },
     onStorageChanged(handler: (keys: string[]) => void) {
       adapter.storageListeners.push(handler);
+    },
+    async alarmGet(name: string) {
+      const found = adapter.alarms.get(name);
+      return found ? { name, scheduledTime: 0, ...(found.periodInMinutes ? { periodInMinutes: found.periodInMinutes } : {}) } : null;
+    },
+    async alarmCreate(name: string, when: { delayInMinutes?: number; periodInMinutes?: number }) {
+      adapter.alarms.set(name, { ...when });
+    },
+    async alarmClear(name: string) {
+      adapter.alarms.delete(name);
+    },
+    async recentlyClosed() {
+      return state.recentlyClosed ? state.recentlyClosed.map((item) => ({ ...item, tabs: [...item.tabs] })) : null;
+    },
+    async restoreClosed(sessionId: string) {
+      adapter.restoredClosed.push(sessionId);
     },
     async storageBytesInUse() {
       if (state.storageBytesInUse === null) return null;

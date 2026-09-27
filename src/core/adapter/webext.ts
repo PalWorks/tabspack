@@ -19,6 +19,7 @@ export interface WebExtApi {
     getPlatformInfo?(): Promise<{ os: string; arch: string }>;
     getBrowserInfo?(): Promise<{ name: string; version: string }>;
     onInstalled: Listener<[{ reason?: string }]>;
+    onStartup?: Listener<[]>;
     openOptionsPage?(): Promise<void>;
     lastError?: { message?: string };
   };
@@ -31,6 +32,22 @@ export interface WebExtApi {
     remove(tabIds: number | number[]): Promise<void>;
     discard?(tabIds: number | number[]): Promise<unknown>;
     group?(options: Record<string, unknown>): Promise<number>;
+    onCreated?: Listener<[unknown]>;
+    onRemoved?: Listener<[number, { isWindowClosing?: boolean; windowId?: number }]>;
+    onUpdated?: Listener<[number, Record<string, unknown>, unknown]>;
+    onMoved?: Listener<[number, unknown]>;
+    onAttached?: Listener<[number, unknown]>;
+    onDetached?: Listener<[number, unknown]>;
+  };
+  alarms?: {
+    get(name: string): Promise<{ name: string; scheduledTime: number; periodInMinutes?: number } | undefined>;
+    create(name: string, info: { delayInMinutes?: number; periodInMinutes?: number }): Promise<void> | void;
+    clear(name: string): Promise<boolean>;
+    onAlarm: Listener<[{ name: string }]>;
+  };
+  sessions?: {
+    getRecentlyClosed(filter?: { maxResults?: number }): Promise<unknown[]>;
+    restore(sessionId?: string): Promise<unknown>;
   };
   windows: {
     getAll(props: Record<string, unknown>): Promise<unknown[]>;
