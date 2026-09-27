@@ -2,14 +2,14 @@
 
 **Export, move, share and restore browser tabs across browsers, using an open, offline first format.**
 
-[![Status](https://img.shields.io/badge/status-1.0.0%20packaged%2C%20not%20yet%20submitted-yellow)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-1.0.0%20in%20review%2C%201.1.0%20built-yellow)](docs/ROADMAP.md)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: 1.0.0 is built, packaged and verified. Nothing is published yet.** Milestones M0 to M8 are done. The extension exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, reads the export files of seven other tab tools, restores 200 tabs without taking the browser down, saves named snapshots, and has keyboard commands, settings, a theme and a translation layer. The cross browser matrix is green on Chrome, Edge and Firefox, there is a public site with the legal pages, and a support form that reaches us without a mail client.
+> **Project status: 1.0.0 is in review at the Chrome Web Store, and 1.1.0 is built and verified.** Milestones M0 to M9 are done. 1.1.0 adds the export preview, automatic snapshots, crash recovery and the snapshot tools, and is the first version Edge and AMO will receive. The extension exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, reads the export files of seven other tab tools, restores 200 tabs without taking the browser down, saves named snapshots, and has keyboard commands, settings, a theme and a translation layer. The cross browser matrix is green on Chrome, Edge and Firefox, there is a public site with the legal pages, and a support form that reaches us without a mail client.
 >
-> What is left is what a machine cannot do: [four manual checks](docs/MANUAL-CHECKS.md), and three store submissions that each need a developer account. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> What is left is what a machine cannot do: [the manual checks](docs/MANUAL-CHECKS.md), the store submissions, which each need a developer account, and publishing the `tabspack` npm package. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Contents
 
@@ -55,7 +55,9 @@ Working today:
 - **Import from other tools.** Tab Session Manager, Session Buddy JSON and CSV, OneTab, Markdown link lists, browser bookmark exports, flat JSON and plain lists of addresses, all detected by what is in the file rather than by its name. Each import states what the source format could not carry.
 - **Search and select** in the preview, for taking part of a pack rather than all of it.
 
-- **Snapshots**, saved locally, named and tagged, for the days when you do not want to think about where a file went. Export one to a file, or add a file as a snapshot without opening a single tab.
+- **Snapshots**, saved locally, named and tagged, for the days when you do not want to think about where a file went. Export one to a file, or add a file as a snapshot without opening a single tab. Compare any snapshot with the one before it, tidy runs of identical ones, find the addresses that keep turning up, and combine several into one.
+- **Automatic protection**, off until you turn it on. A recovery copy of your open tabs means a crash, or a browser that starts without your tabs, ends with TabsPack showing you what is missing and restoring it from the preview. Automatic snapshots run hourly, every four hours or daily, skip the times nothing changed, and keep the newest ten.
+- **Preview what you export.** The export pane shows the tabs the file will hold, as the same tree the import preview uses, and a tab you untick is left out.
 - **Keyboard commands** for exporting all windows, exporting this window and saving a snapshot, with no page in the way.
 
 - **Settings, a theme and translations.** Every default, filter and restore policy in one place, light or dark or whatever the system says, and every string the interface shows read from `_locales`.
@@ -93,6 +95,12 @@ The JSON Schema has a canonical address, and it resolves:
 <https://palworks.github.io/tabspack/schema/tabspack.v1.schema.json>
 
 The site serves the same bytes as `schema/` in this repository, and the build fails if the two disagree or if the schema's `$id` stops matching the path it is published at.
+
+To read or write the format from code, the reference reader and writer are an npm package, [`packages/tabspack`](packages/tabspack/README.md), compiled from the extension's own source so the two cannot disagree:
+
+```js
+import { read, write, validate } from "tabspack";
+```
 
 ## Architecture
 
@@ -140,6 +148,8 @@ npm run verify         # typecheck, lint, schema check, tests, budgets, build
 | `npm run fixtures`, `npm run assets` | Regenerate fixtures, the extension icons and Edge's store logo |
 | `npm run store-art` | Photograph the built extension and compose the Chrome Web Store screenshots, tiles and store icon. `npm run store-art:compose` recomposes from the committed captures without a browser |
 | `npm run pack` | Every store archive into `dist/artifacts/`: Chrome, Edge, the Firefox `.xpi` and the source zip AMO asks for |
+| `npm run package:build`, `npm run package:test` | Build the `tabspack` npm package from the extension's own reader and writer, and prove the packed tarball works installed outside the repository |
+| `npm run video` | Render the 30 second promo video and its YouTube thumbnail from the explainer and the store screens |
 | `npm run icons:compare` | Renders every candidate in `assets/candidates/` at 16, 32, 48 and 128 in both themes. A mark is chosen at 16 px in a toolbar, not at 128 on a slide |
 
 Then load it unpacked:
@@ -189,8 +199,8 @@ manifest.firefox.json   Gecko manifest
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
 
 ```bash
-npm run verify        # typecheck, lint, schema, site, 275 tests, contrast, budgets, both builds, AMO's linter
-npm run smoke         # 109 checks against the built extension in a real Chromium
+npm run verify        # typecheck, lint, schema, site, 303 tests, contrast, budgets, both builds, AMO's linter, the npm package
+npm run smoke         # 126 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
 npm run matrix:firefox -- --headed --grant-groups

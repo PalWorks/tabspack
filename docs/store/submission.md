@@ -74,7 +74,13 @@ security policy pins `script-src` to `'self'`.
   which this is: submit the repository archive with `README.md`, `package.json`
   and the build instruction `npm ci && npm run build`, and name node 20 or later.
 - The extension id is in `manifest.firefox.json` under `browser_specific_settings`.
-- `npm run lint:amo` runs AMO's own linter over `dist/firefox`. It must report **zero errors**. It reports about forty warnings and two notices, all of them the same thing: `strict_min_version` is 115 while `tabs.group`, `tabGroups.query`, `tabGroups.update` and `permissions.request` arrived in Firefox 139. That is deliberate. Every one of those calls sits behind a capability probe, so on Firefox 115 to 138 the extension installs and works with everything except tab group titles and colours, which it says it cannot do. Raising the minimum to 139 to silence the warnings would lock out those versions for a feature they were never going to have.
+- `npm run lint:amo` runs AMO's own linter over `dist/firefox`. It must report **zero errors**. It reports about forty warnings and two notices, all of them the same thing: `strict_min_version` is 115 while `tabs.group`, `tabGroups.query`, `tabGroups.update` and `permissions.request` arrived in Firefox 139. That is deliberate. Every one of those calls sits behind a capability probe, so on Firefox 115 to 138 the extension installs and works with everything except tab group titles and colours, which it says it cannot do. Raising the minimum to 139 to silence the warnings would lock out those versions for a feature they were never going to have. Since 1.1.0 four more warnings say the same about `data_collection_permissions`, which Firefox 140 introduced and older versions ignore.
+- **Data collection, 1.1.0.** AMO requires new extensions to declare what they collect, in `browser_specific_settings.gecko.data_collection_permissions` ([Mozilla's guide](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/), read 2026-09-28). TabsPack requires nothing, `"required": ["none"]`. It lists as optional what a support message can carry:
+  - `personalCommunications`, the message itself
+  - `personallyIdentifyingInfo`, a reply address, only if one is typed
+  - `technicalAndInteraction`, the browser name and version, only if the box is ticked
+
+  Firefox asks for them in the same prompt as the relay's address, at the moment Send is pressed. Local storage is not collection under Mozilla's definition, so snapshots, automatic snapshots and the recovery copy need no declaration. ADR-048
 
 ## Installing a build in Firefox before it is signed
 

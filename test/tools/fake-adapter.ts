@@ -89,6 +89,10 @@ export interface FakeAdapter extends BrowserAdapter {
   /** Scheduled alarms by name, as the worker left them. */
   alarms: Map<string, { delayInMinutes?: number; periodInMinutes?: number }>;
   restoredClosed: string[];
+  /** `storage.session`: empty again after `restartBrowser()`. */
+  sessionStore: Record<string, unknown>;
+  /** What each origin request said it would send, in Firefox's consent vocabulary. */
+  dataCollectionAsked: string[];
   state: FakeState;
 }
 
@@ -169,6 +173,8 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     storageListeners: [],
     alarms: new Map(),
     restoredClosed: [],
+    dataCollectionAsked: [],
+    sessionStore: {},
 
     async platform() {
       return { ...DEFAULT_PLATFORM, ...(state.platform ?? {}) };
@@ -422,8 +428,9 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
       adapter.originsAsked.push(...origins);
       return state.grantOrigins ?? false;
     },
-    async requestOrigins(origins: string[]) {
+    async requestOrigins(origins: string[], dataCollection: string[] = []) {
       adapter.originsAsked.push(...origins);
+      adapter.dataCollectionAsked.push(...dataCollection);
       return state.grantOrigins ?? false;
     },
     async isAllowedIncognitoAccess() {
@@ -449,6 +456,12 @@ export function createFakeAdapter(state: FakeState): FakeAdapter {
     },
     onStorageChanged(handler: (keys: string[]) => void) {
       adapter.storageListeners.push(handler);
+    },
+    async sessionGet(key: string) {
+      return adapter.sessionStore[key] ?? null;
+    },
+    async sessionSet(values: Record<string, unknown>) {
+      Object.assign(adapter.sessionStore, values);
     },
     async alarmGet(name: string) {
       const found = adapter.alarms.get(name);

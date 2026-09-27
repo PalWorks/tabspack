@@ -1,6 +1,6 @@
 {
   "name": "tabspack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Export, move, share and restore browser tabs across browsers using an open, offline first format",
   "license": "MIT",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/node": "22.10.5",
-    "addons-linter": "^7.20.0",
+    "addons-linter": "^10.13.0",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "esbuild": "0.25.0",

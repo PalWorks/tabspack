@@ -19,7 +19,13 @@ import * as durability from "./durability.js";
 events.onInstalled((reason) => {
   // An unhandled rejection in a worker is a log line nobody sees.
   report(reason).catch((error: unknown) => console.error("[TabsPack] startup report failed:", error));
-  durability.onSettingsChanged(realAdapter).catch(logFailure("alarms"));
+  // An install or an update is also a new session as far as the worker can
+  // tell, and a browser that loads the build after it has started sends no
+  // onStartup at all: ADR-048.
+  durability
+    .onSettingsChanged(realAdapter)
+    .then(() => durability.onStartup(realAdapter))
+    .catch(logFailure("start"));
 });
 
 events.onStartup(() => {

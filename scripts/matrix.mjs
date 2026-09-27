@@ -98,7 +98,7 @@ const profile = keepProfile || (await mkdtemp(path.join(tmpdir(), "matrix-profil
 await mkdir(downloads, { recursive: true });
 
 /** Starts the browser and returns everything the rows need. */
-async function start(profileDir) {
+async function start(profileDir, options = {}) {
   // Written before the browser starts, or it is overwritten by the defaults.
   await mkdir(path.join(profileDir, "Default"), { recursive: true });
   await writeFile(
@@ -107,6 +107,8 @@ async function start(profileDir) {
       download: { default_directory: downloads, prompt_for_download: false, directory_upgrade: true },
       savefile: { default_directory: downloads },
       profile: { default_content_setting_values: { automatic_downloads: 1 } },
+      // 1 is "continue where you left off", which the clean restart row needs.
+      ...(options.restoreSession ? { session: { restore_on_startup: 1 } } : {}),
     }),
     "utf8",
   );
@@ -767,6 +769,100 @@ if (process.argv.includes("--keys") && headed) {
       `${snapsBefore} snapshots before, ${snapsAfter} after`,
     );
   }
+}
+
+/* Rows: recovery after a crash, B-102 -------------------------------------- */
+
+/*
+ * The browser is killed, not closed, and relaunched on the same profile: the
+ * worker's start check has to find the tabs the crash lost and offer them.
+ * Then the ordinary case: a clean close with "continue where you left off",
+ * where the browser brings everything back itself and nothing may be offered.
+ *
+ * A killed Edge headless restores its own session on the next start, so
+ * after the kill the profile's session files are removed: that is the crash
+ * the feature exists for, one the browser cannot recover from itself.
+ *
+ * The worker notices the new browser session from `storage.session`, not only
+ * from `runtime.onStartup`, which Edge 153 headless did not fire: measured
+ * 2026-09-28. That is also what makes these rows valid for Chrome 154, which
+ * takes the build over CDP after it has started.
+ */
+const until = async (probe, ms) => {
+  const deadline = Date.now() + ms;
+  let value = await probe();
+  while (!value && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    value = await probe();
+  }
+  return value;
+};
+const stored = (key) => rig.worker(async (name) => (await chrome.storage.local.get(name))[name] ?? null, key);
+
+{
+  await rig.worker(async () => {
+    const current = (await chrome.storage.local.get("settings")).settings ?? {};
+    await chrome.storage.local.set({ settings: { ...current, recoveryCopy: true } });
+    const made = await chrome.windows.create({ url: "https://example.org/lost-0", focused: false });
+    for (let index = 1; index < 12; index += 1) {
+      await chrome.tabs.create({ windowId: made.id, url: `https://example.org/lost-${index}`, active: false });
+    }
+  });
+  const copy = await until(async () => {
+    const record = await stored("recovery");
+    return record && record.text.includes("lost-11") ? record : null;
+  }, 120_000);
+  row("the recovery copy is written about half a minute after the tabs change", Boolean(copy), copy ? `${copy.tabs} tabs` : "never written");
+
+  try {
+    process.kill(-rig.child.pid, "SIGKILL");
+  } catch {
+    /* already gone */
+  }
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await rm(path.join(profile, "Default", "Sessions"), { recursive: true, force: true });
+  rig = await start(profile);
+  const offer = await until(() => stored("recoveryOffer"), 120_000);
+  row(
+    "after a killed browser, the lost tabs are offered",
+    Boolean(offer) && offer.missingTabs >= 12,
+    offer ? `${offer.missingTabs} of ${offer.totalTabs} tabs offered` : "no offer",
+  );
+
+  // Now the ordinary restart: the tabs are open, the copy is current, and the
+  // browser will restore them itself.
+  await rig.worker(async () => {
+    await chrome.storage.local.remove(["recoveryOffer"]);
+    const made = await chrome.windows.create({ url: "https://example.org/kept-0", focused: false });
+    for (let index = 1; index < 12; index += 1) {
+      await chrome.tabs.create({ windowId: made.id, url: `https://example.org/kept-${index}`, active: false });
+    }
+  });
+  const kept = await until(async () => {
+    const record = await stored("recovery");
+    return record && record.text.includes("kept-11") ? record : null;
+  }, 120_000);
+  await rig.browser.close();
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  try {
+    process.kill(-rig.child.pid, "SIGKILL");
+  } catch {
+    /* closed cleanly, as intended */
+  }
+  rig = await start(profile, { restoreSession: true });
+  // The check has run once the copy from before the restart has been set aside
+  // and the pending flag it raised is gone again.
+  const checked = await until(async () => {
+    const previous = await stored("recoveryPrevious");
+    const pending = await stored("recoveryPending");
+    return kept && previous?.capturedAt === kept.capturedAt && !pending ? "done" : null;
+  }, 120_000);
+  const falseAlarm = await stored("recoveryOffer");
+  row(
+    "after a clean restart the browser restored, nothing is offered",
+    Boolean(checked) && falseAlarm === null,
+    falseAlarm ? `${falseAlarm.missingTabs} tabs offered` : "no offer",
+  );
 }
 
 /* Row: the keyboard commands are declared and bound ------------------------ */

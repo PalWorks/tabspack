@@ -9,6 +9,7 @@
 | Encoding | UTF-8, no byte order mark |
 | Status | Frozen as of milestone M1 in [ROADMAP.md](ROADMAP.md). A change now requires a `schemaVersion` decision and the procedure in [PLAYBOOK.md](PLAYBOOK.md) section 4 |
 | Licence | The specification is released under MIT with the rest of the repository. Third party implementations are encouraged |
+| Reference reader and writer | The npm package `tabspack`, [`packages/tabspack`](../packages/tabspack/README.md): `read`, `write`, `validate` and this schema, compiled from the extension's own source. B-502 |
 
 This is the normative description of the format. The extension is one implementation of it. Where this document and the code disagree, this document is wrong and must be corrected, or the code is a bug; either way the discrepancy is a defect.
 

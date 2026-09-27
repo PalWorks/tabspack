@@ -78,8 +78,9 @@ test("a storm of tab changes schedules one write", async () => {
 
 test("a window closing does not schedule anything, because a shutdown looks the same", async () => {
   const adapter = browserWith(3);
+  adapter.sessionStore.tabspackBoot = 1;
   await onTabsChanged(adapter, { closing: true });
-  assert.equal(adapter.alarms.size, 0);
+  assert.equal(adapter.alarms.has(ALARM_RECOVERY), false);
   await onTabsChanged(adapter, { closing: false });
   assert.ok(adapter.alarms.has(ALARM_RECOVERY));
 });
@@ -168,4 +169,22 @@ test("alarms follow the settings", async () => {
   await scheduleRecovery(adapter, ON);
   await reconcileAlarms(adapter, DEFAULT_SETTINGS);
   assert.equal(adapter.alarms.size, 0);
+});
+
+test("a new browser session is noticed by the first tab event, even if onStartup never fires", async () => {
+  const adapter = browserWith(30);
+  adapter.sessionStore.tabspackBoot = 1;
+  await writeRecovery(adapter, ON, 1000);
+  // Restart: session storage is emptied, the tabs are gone, and onStartup is silent.
+  adapter.sessionStore = {};
+  adapter.state.windows = [window_({ id: 5, tabs: [tab({ id: 500, url: "chrome://newtab/" })] })];
+  await onTabsChanged(adapter, { closing: false });
+  assert.equal((await adapter.storageGet({ [PENDING_KEY]: false }))[PENDING_KEY], true, "the copy was set aside");
+  assert.ok(adapter.alarms.has("tabspack-startup"));
+  await onTabsChanged(adapter, { closing: false });
+  assert.match(await onAlarm(adapter, "tabspack-startup"), /30 of 30 tabs not open/);
+  // A second event in the same session does not set it aside again.
+  await adapter.storageRemove([PENDING_KEY]);
+  await onTabsChanged(adapter, { closing: false });
+  assert.equal((await adapter.storageGet({ [PENDING_KEY]: false }))[PENDING_KEY], false);
 });

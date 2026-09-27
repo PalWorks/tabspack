@@ -68,8 +68,10 @@
 
         <div class="panes">
           <div id="panel-export" role="tabpanel" aria-labelledby="tab-export" class="panel">
+            <div id="recovery-offer" hidden></div>
             <div id="export-groups-callout" hidden></div>
             <div id="export-rating" hidden></div>
+            <div id="recovery-ask" hidden></div>
 
             <section id="export-settings" class="card" aria-labelledby="export-legend" data-collapsed="false">
               <div class="intake-head">
@@ -228,7 +230,7 @@
                 <div id="dropzone" class="dropzone">
                   <p class="dropzone-lead" data-i18n="dropLead">Drop a pack here</p>
                   <button id="choose-file" class="btn btn-secondary" type="button" data-i18n="chooseFile">Choose a file</button>
-                  <p class="hint" data-i18n="dropHint">A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.</p>
+                  <p class="hint" data-i18n="dropHint">A .tabspack.json file, an export from another tab manager, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so.</p>
                   <input id="file" class="visually-hidden" type="file" accept=".json,.tabspack.json,application/json,text/plain" />
                 </div>
               </div>
@@ -319,8 +321,55 @@
               <div id="snapshot-warning" class="notice" hidden></div>
               <div id="snapshot-report" class="report" role="status" aria-live="polite"></div>
 
+              <div id="snapshot-tools" class="actions snapshot-tools">
+                <button id="combine-snapshots" class="btn btn-secondary" type="button" disabled data-i18n="combineButton">Combine selected</button>
+                <button id="tidy-snapshots" class="btn btn-secondary" type="button" data-i18n="tidyButton">Tidy unchanged</button>
+                <button id="overlap-snapshots" class="btn btn-secondary" type="button" data-i18n="overlapButton">Find repeated addresses</button>
+                <span id="combine-hint" class="hint" data-i18n="combineHint">Tick two or more snapshots to combine them into one.</span>
+              </div>
+              <div id="snapshot-analysis" class="analysis" role="region" aria-live="polite" hidden></div>
+
               <p id="snapshot-empty" class="summary" data-i18n="snapshotsEmpty">No snapshots yet.</p>
               <ul id="snapshot-list" class="snapshot-list"></ul>
+            </section>
+
+            <section id="durability" class="card" aria-labelledby="durability-legend">
+              <h2 class="legend" id="durability-legend" data-i18n="durabilityLegend">Automatic protection</h2>
+              <div class="control-grid">
+                <span class="control-label" data-i18n="recoveryLabel">Recovery</span>
+                <div class="check-row">
+                  <label class="check"><input type="checkbox" id="opt-recovery" /> <span data-i18n="optRecovery">Keep a recovery copy of my open tabs</span></label>
+                  <span class="hint" data-i18n="optRecoveryHint">Updated about half a minute after your tabs change, and kept on this machine only.</span>
+                </div>
+
+                <label class="control-label" for="opt-auto-interval" data-i18n="autoIntervalLabel">Automatic snapshots</label>
+                <div class="check-row">
+                  <select id="opt-auto-interval">
+                    <option value="0" data-i18n="autoOff">Off</option>
+                    <option value="1" data-i18n="autoHourly">Every hour</option>
+                    <option value="4" data-i18n="autoFourHours">Every 4 hours</option>
+                    <option value="24" data-i18n="autoDaily">Every day</option>
+                  </select>
+                  <span class="inline-field">
+                    <label for="opt-auto-keep" data-i18n="autoKeepLabel">Keep the newest</label>
+                    <input id="opt-auto-keep" class="number" type="number" min="1" max="100" step="1" />
+                  </span>
+                  <span class="hint" data-i18n="autoKeepHint">Older automatic snapshots are removed as new ones arrive. Snapshots you save or rename are never removed.</span>
+                </div>
+              </div>
+              <p id="auto-status" class="hint"></p>
+
+              <div id="previous-session" class="row" hidden>
+                <span id="previous-line" class="summary"></span>
+                <button id="previous-preview" class="btn btn-secondary" type="button" data-i18n="previousSessionPreview">Preview</button>
+              </div>
+
+              <div class="row">
+                <button id="recent-closed" class="btn btn-secondary" type="button" data-i18n="recentClosedButton">Show recently closed</button>
+                <span class="hint" data-i18n="recentClosedHint">The browser's own list of windows and tabs you closed.</span>
+              </div>
+              <div id="recent-report" class="report" role="status" aria-live="polite"></div>
+              <ul id="recent-list" class="snapshot-list" hidden></ul>
             </section>
           </div>
 

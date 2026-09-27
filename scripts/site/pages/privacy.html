@@ -1,11 +1,11 @@
 {
   "title": "Privacy policy — TabsPack",
   "ogTitle": "TabsPack privacy policy",
-  "description": "TabsPack collects nothing. No account, no sync, no analytics, no host permission at install. Your tabs never leave your device. The full policy, version 1.2, dated 26 September 2026.",
+  "description": "TabsPack collects nothing. No account, no sync, no analytics, no host permission at install. Your tabs never leave your device. The full policy, version 1.3, dated 28 September 2026.",
   "crumb": "Privacy policy",
   "pageType": "WebPage",
   "published": "2026-09-24",
-  "modified": "2026-09-26",
+  "modified": "2026-09-28",
   "keywords": ["TabsPack privacy policy", "browser extension privacy", "no tracking tab manager", "data collection"],
   "jsonld": {
     "@context": "https://schema.org",
@@ -25,7 +25,7 @@
           <span class="eyebrow">Legal</span>
           <h1>Privacy policy</h1>
           <p class="page-meta">
-            Version 1.2, dated 26 September 2026. Applies to the TabsPack browser extension for Chrome, Edge
+            Version 1.3, dated 28 September 2026. Applies to the TabsPack browser extension for Chrome, Edge
             and Firefox, and to this website. This is both the plain answer and the policy the browser stores
             require.
           </p>
@@ -83,6 +83,8 @@
                 <tr><th scope="row">When you last looked at a tab, if your browser supplies it</th><td>To restore the same detail, and to show you which tabs you have not opened in months</td><td>The same. It is read on your machine and shown on your screen, and it is never sent anywhere</td></tr>
                 <tr><th scope="row">Favicon address, optional and off by default</th><td>Shown in the preview</td><td>The same. Imported favicon addresses are never fetched</td></tr>
                 <tr><th scope="row">Your settings and snapshots</th><td>To remember your preferences and saved sessions</td><td>Your browser's local extension storage, on this machine only</td></tr>
+                <tr><th scope="row">Automatic snapshots and the recovery copy, only if you turn them on</th><td>So your tabs can be brought back after a crash, or from earlier in the day</td><td>Your browser's local extension storage, on this machine only. The recovery copy is one entry, replaced when your tabs change. Automatic snapshots keep the newest ones and remove older automatic ones; a snapshot you saved or renamed is never removed</td></tr>
+                <tr><th scope="row">The browser's recently closed list, only when you open it</th><td>To show you what you closed and reopen what you pick</td><td>Read on demand, never stored</td></tr>
               </tbody>
             </table>
           </div>
@@ -121,10 +123,11 @@
               <thead><tr><th scope="col">Permission</th><th scope="col">Why it is needed</th></tr></thead>
               <tbody>
                 <tr><th scope="row"><code>tabs</code></th><td>To read the address and title of your open tabs. The extension cannot work without it</td></tr>
-                <tr><th scope="row"><code>storage</code></th><td>To save your settings and your named snapshots on this machine</td></tr>
+                <tr><th scope="row"><code>storage</code></th><td>To save your settings, your snapshots and, if you turn them on, automatic snapshots and a recovery copy, on this machine</td></tr>
+                <tr><th scope="row"><code>alarms</code></th><td>To update the recovery copy and take automatic snapshots on schedule, when you have turned them on. Nothing is scheduled otherwise</td></tr>
                 <tr><th scope="row"><code>downloads</code></th><td>To write the export file you asked for</td></tr>
                 <tr><th scope="row"><code>tabGroups</code>, optional</th><td>Requested the first time you use a feature involving tab groups, and only then</td></tr>
-                <tr><th scope="row"><code>offscreen</code>, optional</th><td>Requested only to copy text to your clipboard</td></tr>
+                <tr><th scope="row"><code>sessions</code>, optional</th><td>Requested only when you press Show recently closed, to read and reopen the browser's own list of what you closed</td></tr>
                 <tr><th scope="row"><code>https://tabspack-support.palworks.ai/*</code>, optional</th><td>Requested the first time you press Send in the Support pane, and only then. It is the address that receives the message</td></tr>
               </tbody>
             </table>
@@ -233,7 +236,10 @@
           </p>
           <p>
             Version 1.1 was such a change: the support form gained a direct Send. Decision record ADR-039
-            explains why, and what was given up for it.
+            explains why, and what was given up for it. Version 1.3 adds automatic snapshots, the recovery
+            copy and the recently closed list, with the <code>alarms</code> permission and the optional
+            <code>sessions</code> permission. All three are off until you use them, and everything they keep
+            stays on your machine: no new transmission.
           </p>
 
           <h2 id="contact">Contact</h2>

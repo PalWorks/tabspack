@@ -41,6 +41,7 @@ import { initSnapshotPanel } from "./snapshot-panel.js";
 import { initSettingsPanel } from "./settings-panel.js";
 import { initSupportPanel } from "./support-panel.js";
 import { initRatingAsk } from "./rating-panel.js";
+import { initRecoveryPanel } from "./recovery-panel.js";
 import { initGroupsCallout } from "../shared/groups-callout.js";
 import { readSnapshotSession, type SnapshotMeta } from "../../core/snapshots.js";
 import { TABSPACK_SOURCE } from "../../core/import.js";
@@ -107,6 +108,7 @@ let settingsPanel: { paint(latest: Settings): void } | null = null;
 let groupsCallout: { update(groups: number): Promise<void> } | null = null;
 let rating: { used(action: "export" | "restore"): void } | null = null;
 let importPanelRef: { paint(latest: Settings): void } | null = null;
+let recoveryPanel: { askAfterExport(): void; paint(latest: Settings): void } | null = null;
 const notify = initNotifier(adapter);
 /** Repaints the scope control when a setting changes somewhere else. */
 let scope: (value: string) => void = () => undefined;
@@ -158,7 +160,14 @@ async function start(): Promise<void> {
     onGranted: () => void refresh(),
   });
 
+  const openInPreview = async (session: Session, label: string): Promise<void> => {
+    tabs.select("import");
+    await importPanel.showSession(session, TABSPACK_SOURCE, label);
+  };
+  recoveryPanel = initRecoveryPanel(adapter, settings, { preview: openInPreview });
+
   initSnapshotPanel(adapter, settings, {
+    previewSession: openInPreview,
     async preview(meta: SnapshotMeta): Promise<void> {
       const session = await readSnapshotSession(adapter, meta.id);
       if (!session) throw new Error("That snapshot could not be read.");
@@ -434,6 +443,7 @@ function watchSettings(): void {
       // changed elsewhere. Without this, Reset in Settings left the import
       // pane showing values the next restore would not have used.
       importPanelRef?.paint(settings);
+      recoveryPanel?.paint(settings);
       scope(settings.scope);
       if (rescan) await refresh();
     })();
@@ -559,6 +569,8 @@ async function run(mode: "save" | "copy"): Promise<void> {
     renderExportReport(ui.report, report);
     foldSettings(true);
     rating?.used("export");
+    // Offered once, at the moment an export shows what losing tabs would cost.
+    if (outcome.saved) recoveryPanel?.askAfterExport();
     // The manager page is often behind other windows, so the toolbar has to
     // carry the outcome too: ADR-033.
     notify.done(

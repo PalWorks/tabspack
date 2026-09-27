@@ -86,7 +86,14 @@ export function initSupportPanel(adapter: BrowserAdapter, settings: Settings): v
      * await in between is enough to lose that. Already granted resolves true
      * with no prompt, so this costs nothing on every send after the first.
      */
-    const permitted = adapter.requestOrigins([RELAY_PERMISSION]).catch(() => false);
+    // What this message will carry, in Firefox's data consent terms. Read from
+    // the fields directly, because nothing may be awaited before the request.
+    const carries = [
+      "personalCommunications",
+      ...(ui.reply.value.trim() !== "" ? ["personallyIdentifyingInfo"] : []),
+      ...(ui.include.checked ? ["technicalAndInteraction"] : []),
+    ];
+    const permitted = adapter.requestOrigins([RELAY_PERMISSION], carries).catch(() => false);
     void send(permitted);
   });
   ui.mail.addEventListener("click", () => void handOff(compose(), null));

@@ -67,10 +67,15 @@ export interface WebExtApi {
       remove(keys: string | string[]): Promise<void>;
       getBytesInUse?(keys: string | string[] | null): Promise<number>;
     };
+    /** In memory, and emptied when the browser restarts: how a worker tells a new browser session from a wake. */
+    session?: {
+      get(keys: unknown): Promise<Record<string, unknown>>;
+      set(values: Record<string, unknown>): Promise<void>;
+    };
   };
   permissions: {
     contains(permissions: { permissions?: string[]; origins?: string[] }): Promise<boolean>;
-    request(permissions: { permissions?: string[]; origins?: string[] }): Promise<boolean>;
+    request(permissions: { permissions?: string[]; origins?: string[]; data_collection?: string[] }): Promise<boolean>;
   };
   downloads?: {
     download(options: Record<string, unknown>): Promise<number>;

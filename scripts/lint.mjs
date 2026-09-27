@@ -190,7 +190,16 @@ async function ruleI18n() {
    * own vocabulary. The families are listed rather than guessed at, so adding one
    * is a deliberate line here.
    */
-  const DYNAMIC = [/^unit_removed_/, /^unit_restore_/, /^cmd/, /^extName$/, /^extDescription$/];
+  const DYNAMIC = [/^unit_removed_/, /^unit_restore_/, /^unit_diff_/, /^cmd/, /^extName$/, /^extDescription$/];
+
+  // The worker has no page, so it reads its few strings, the toolbar tooltips,
+  // through the adapter. Those lookups count as uses, and must name real keys.
+  for (const file of [...(await files("src/background/**/*.ts")), ...(await files("src/core/**/*.ts"))]) {
+    const source = stripComments(await readFile(path.join(root, file), "utf8"));
+    for (const match of source.matchAll(/getMessage\(\s*"([^"]+)"/g)) {
+      note(file, lineOf(source, match.index), match[1]);
+    }
+  }
 
   // A key named anywhere in the interface counts as used, which covers the ones
   // chosen by a ternary or held in a table.

@@ -116,14 +116,36 @@ authenticate as the user anywhere.
 
 - `tabs` (required): read the address and title of open tabs. This is the core
   function. It is never used to read page content.
-- `storage` (required): store the user's settings and named snapshots locally.
+- `storage` (required): store the user's settings and snapshots locally, and,
+  if turned on, automatic snapshots and a recovery copy.
+- `alarms` (required, from 1.1.0): wake the background worker to update the
+  recovery copy and take automatic snapshots, only when the user turned them on.
 - `downloads` (required): write the export file without a save dialog each time.
 - `tabGroups` (optional): read and restore a tab group's title, colour and
   collapsed state. Requested from a button in the interface, before an export,
   because that is where the information would otherwise be silently lost.
-- `offscreen` (optional): copy text to the clipboard.
+- `sessions` (optional, from 1.1.0): read and reopen the browser's own list of
+  recently closed windows and tabs, requested from a button.
 - `https://tabspack-support.palworks.ai/*` (optional host): deliver a support message the
   user wrote and sent.
+
+## Crash recovery and automatic snapshots, from 1.1.0
+
+Both are off until the user turns them on, on the Snapshots pane, and both keep
+everything on the device. The recovery copy is one rolling copy of the open
+tabs, written about half a minute after they change. When the browser starts
+without a meaningful part of the previous session, TabsPack says how many tabs
+are missing on the toolbar, in the popup and on its manager page, and opens them
+in the import preview; it never restores on its own, and offers nothing when the
+browser restored everything itself. Automatic snapshots run hourly, every four
+hours or daily, write nothing when the session is unchanged, and keep the newest
+ten, or as many as chosen. Snapshots the user saves or renames are never removed.
+
+## Reference reader and writer
+
+`npm install tabspack` gives `read`, `write`, `validate`, the TypeScript types
+and the JSON Schema. The package is compiled from the extension's own source
+files, so a file the extension accepts is a file the package accepts.
 
 ## Import formats supported
 

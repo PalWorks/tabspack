@@ -246,9 +246,18 @@ export const realAdapter: BrowserAdapter = {
     }
   },
 
-  async requestOrigins(origins: string[]): Promise<boolean> {
+  async requestOrigins(origins: string[], dataCollection: string[] = []): Promise<boolean> {
     try {
-      return await browser.permissions.request({ origins });
+      /*
+       * Firefox's built-in data consent, which AMO requires of new extensions:
+       * a manifest that declares optional data collection has to ask for it at
+       * the moment it is used. Detected from our own manifest, synchronously,
+       * so the request stays inside the click that caused it.
+       */
+      const gecko = (browser.runtime.getManifest() as { browser_specific_settings?: { gecko?: { data_collection_permissions?: unknown } } })
+        .browser_specific_settings?.gecko;
+      const consent = gecko?.data_collection_permissions !== undefined && dataCollection.length > 0;
+      return await browser.permissions.request(consent ? { origins, data_collection: dataCollection } : { origins });
     } catch {
       // A browser that refuses the call outright is a browser with no host
       // access, which the caller handles the same way as a declined prompt.
@@ -420,6 +429,20 @@ export const realAdapter: BrowserAdapter = {
       throw new Error("Copying works from the TabsPack pages, not from the background.");
     }
     await clipboard.writeText(text);
+  },
+
+  async sessionGet(key: string) {
+    const area = browser.storage.session;
+    if (!area) return null;
+    try {
+      return (await area.get(key))[key] ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  async sessionSet(values: Record<string, unknown>) {
+    await browser.storage.session?.set(values).catch(() => undefined);
   },
 
   async alarmGet(name: string) {

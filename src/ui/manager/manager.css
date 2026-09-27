@@ -521,10 +521,10 @@
 
 .snapshot {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 2fr) minmax(0, 1fr) auto;
   grid-template-areas:
-    "name tags actions"
-    "meta tags actions";
+    "pick name tags actions"
+    "pick meta tags actions";
   align-items: center;
   gap: var(--space-1) var(--space-3);
   padding: var(--space-2) var(--space-3);
@@ -591,13 +591,105 @@
 
 @media (max-width: 720px) {
   .snapshot {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas:
-      "name"
-      "meta"
-      "tags"
-      "actions";
+      "pick name"
+      "pick meta"
+      "pick tags"
+      "pick actions";
   }
+}
+
+.snapshot-select {
+  grid-area: pick;
+}
+
+.auto-chip {
+  display: inline-block;
+  margin-right: var(--space-2);
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  line-height: 16px;
+}
+
+/* A row of the browser's recently closed list: no tick box, no tags. */
+.snapshot.recent {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name actions"
+    "meta actions";
+}
+
+.snapshot-title {
+  grid-area: name;
+  margin: 0 0 0 var(--space-2);
+  font-size: var(--text-dense);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshot-tools {
+  margin-top: var(--space-3);
+}
+
+/* What a comparison, a tidy, an overlap or a combine found. */
+.analysis {
+  margin: var(--space-3) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.analysis-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.analysis-title {
+  margin: 0;
+  font-size: var(--text-dense);
+  font-weight: 600;
+}
+
+.analysis-close {
+  height: 28px;
+  font-size: var(--text-caption);
+}
+
+.analysis-section {
+  margin-top: var(--space-2);
+}
+
+.analysis-section > summary {
+  cursor: pointer;
+  font-size: var(--text-dense);
+}
+
+.analysis-list {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-5);
+  max-height: 240px;
+  overflow: auto;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.analysis .btn {
+  margin-top: var(--space-2);
+}
+
+#auto-status[data-tone="warn"] {
+  color: var(--warn);
 }
 
 /* Shortcuts, on About ----------------------------------------------------- */

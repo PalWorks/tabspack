@@ -157,7 +157,7 @@ rank.
 
 ## Detailed description
 
-Paste the contents of the box below exactly (the copy button on a rendered view takes all of it). It is **3,859 characters** against a 16,000 limit,
+Paste the contents of the box below exactly (the copy button on a rendered view takes all of it). It is **4,332 characters** against a 16,000 limit,
 counted inside the box. Short is deliberate: a long listing
 dilutes the phrases that matter, and the fields below the fold are read by almost nobody.
 
@@ -171,7 +171,7 @@ and no link; line breaks and Unicode are the only formatting there is. So:
 | One emoji per section heading, none inside sentences | In a field with no bold, an emoji is the only way a heading can stand out when somebody scrolls. Scattered through prose it reads as spam, and store search ignores emoji entirely |
 | No emoji in the first two sentences | Those are the search snippet and the sentence an answer engine quotes. They stay plain and carry the keywords |
 | No emoji in the name or the summary | Store policies discourage special characters there, and they add nothing to search |
-| Single codepoint emoji only: 📦 🔁 💤 ⏳ 🔓 📥 🔒 📄 ⚡ 🎁 | A composite emoji such as ⌨️ or 🕰️ needs an invisible variation character and falls back to a plain text glyph on some systems |
+| Single codepoint emoji only: 📦 🔁 💤 ⏳ 🧯 🔓 📥 🔒 📄 ⚡ 🎁 | A composite emoji such as ⌨️ or 🕰️ needs an invisible variation character and falls back to a plain text glyph on some systems |
 | ✓ for capabilities, • for facts | Both render everywhere, and the difference tells a scanning eye which list is a promise and which is a property |
 | Headings in capitals | The only emphasis plain text has, used once per section |
 | No other product's name, and no list of file formats | The first submission was rejected within minutes for keyword spam (violation "Yellow Argon") over one sentence naming three other tab managers and a run of formats. Say "other popular tab managers" and describe what a format is for, never what it is called. Chrome, Edge and Firefox are allowed: they say where it runs |
@@ -195,6 +195,7 @@ If you keep ninety tabs open because each one is a note to your future self, thi
 ✓ Move your tabs between Chrome, Edge and Firefox
 ✓ Switch computers without losing your session
 ✓ Keep named snapshots inside the browser
+✓ Get your tabs back after a crash
 ✓ Open files saved by other tab managers
 ✓ Find and archive tabs untouched for months
 ✓ Copy a plain list of links when you need one
@@ -216,6 +217,12 @@ A restore of 200 real pages takes about nine seconds and leaves 199 of them unlo
 TabsPack groups your open tabs by when you last looked at them, and can leave anything untouched for a month, three months, six months or a year out of the export, so you can archive it and close it with a clear conscience.
 
 It never guesses. A pinned tab is never called old, and a tab your browser gives no date for is counted separately and never dropped.
+
+🧯 A CRASH DOES NOT COST YOU YOUR TABS
+
+Turn on the recovery copy and TabsPack keeps one quiet copy of your open tabs on this machine. If the browser crashes, or starts without your tabs, it tells you how many are missing and shows them to you before anything opens.
+
+Automatic snapshots save your session every hour, every four hours or once a day. They skip the times nothing changed, and keep the newest ten, or as many as you choose.
 
 🔓 IT UNWRAPS SUSPENDED TABS
 
@@ -269,10 +276,11 @@ a rejection or a slow review. Each row says **what** the permission does and
 | Permission | Required? | Justification to paste |
 |---|---|---|
 | `tabs` | Required | Reads the address and title of the tabs the user has open. This is the extension's entire function: exporting them to a file and restoring them from one. It is never used to read page content, no content script is injected anywhere, and nothing is transmitted. |
-| `storage` | Required | Stores the user's own settings and the named snapshots they choose to save, in local extension storage on that machine only. Nothing is synced and nothing is sent anywhere. |
+| `storage` | Required | Stores the user's own settings, the snapshots they save, and, only if they turn these on, automatic snapshots and one recovery copy of their open tabs. All of it is in local extension storage on that machine only. Nothing is synced and nothing is sent anywhere. |
+| `alarms` | Required | Wakes the extension's background worker later: about half a minute after the tabs change, to update the recovery copy, and on the interval the user chose, to take an automatic snapshot. Both features are off until the user turns them on, and when they are off no alarm is ever set. It is not used to run anything on a timer otherwise. |
 | `downloads` | Required | Writes the export file the user asked for, with a meaningful filename, without a save dialog on every export. Only files the user explicitly requested are ever written. |
 | `tabGroups` | Optional, requested in-product | Reads and restores a tab group's title, colour and collapsed state. Without it the browser does not expose the tab groups API at all, so a group's name cannot be read and an export would silently contain unnamed groups. It is requested from a button before an export, which is the point at which the information would otherwise be lost. Declining is fully supported: the tabs still restore grouped, just unnamed. |
-| `offscreen` | Optional, requested in-product | Copies text to the clipboard in Manifest V3, where a service worker has no document to copy from. Used only for the Copy action the user pressed. |
+| `sessions` | Optional, requested in-product | Reads the browser's own list of recently closed windows and tabs, and reopens one the user picks, with its back button history. Requested only when the user presses "Show recently closed" on the Snapshots pane, never at install. Nothing from the list is stored or sent. |
 | `https://tabspack-support.palworks.ai/*` | **Optional host**, requested in-product | Delivers a support message the user has written and read, and pressed Send on. It is the only address the extension can ever reach. It is requested at the moment Send is pressed, never at install, and the browser's own permission prompt gates it. If the user declines, the same message is handed to their email client instead. No tab address, title or count is ever in the payload, which two automated tests assert. |
 
 ### Table S7: The answer to "why no host permissions at install"
@@ -297,14 +305,14 @@ noticed and is expensive.
 
 | Question | Answer |
 |---|---|
-| Single purpose | TabsPack saves the browser tabs a user has open and restores them later. It exports the open windows and tabs, with their order, pinned state and tab groups, to a file on the user's device or to a snapshot kept inside the browser, and reopens them from that file or snapshot, in the same browser or a different one. Every feature serves that one purpose: choosing which tabs go into an export, previewing a file before anything opens, and reading session files from other tab managers. |
+| Single purpose | TabsPack saves the browser tabs a user has open and restores them later. It exports the open windows and tabs, with their order, pinned state and tab groups, to a file on the user's device or to a snapshot kept inside the browser, and reopens them from that file or snapshot, in the same browser or a different one. Every feature serves that one purpose: choosing which tabs go into an export, previewing a file before anything opens, reading session files from other tab managers, and, if the user turns them on, automatic snapshots and a recovery copy so the tabs can be brought back after a crash. |
 | Personally identifiable information | Yes, only if the user types a reply email address into the optional field in the Support pane and presses Send. It is used to answer that message and for nothing else. Nothing is collected otherwise |
 | Health information | No |
 | Financial or payment information | No |
 | Authentication information | No. An export never contains cookies, tokens, headers or form values, by design and by specification |
 | Personal communications | Only a message the user writes in the Support pane and chooses to send, which is addressed to us. Used to answer them, and for nothing else |
 | Location | No |
-| Web history | The extension reads the tabs currently open, only when the user asks for an export, and writes them to a file on the user's own machine. No tab address, title or count is ever transmitted |
+| Web history | The extension reads the tabs currently open when the user asks for an export or a snapshot, and, only if the user turns them on, for automatic snapshots and a recovery copy. All of it stays on the user's own machine, in a file they chose or in local extension storage. No tab address, title or count is ever transmitted |
 | User activity | No |
 | Website content | No. No content script, no page access |
 | Is data sold or transferred to third parties? | Never sold, never transferred for anyone else's purposes. A support message the user sends is carried by Cloudflare Workers and delivered by Resend, acting only to get it to our inbox |
@@ -473,3 +481,49 @@ It has no sound, which suits a listing that autoplays muted anyway.
 **Before pressing Submit for review:** preview the listing from the dashboard and
 read it once as a stranger would. The first screenshot and the summary are what
 most people will ever see of it.
+
+---
+
+## Table S16: Edge Add-ons, field by field
+
+For 1.1.0, the first version Edge receives. The limits marked [Unverified] are from memory of the Partner Center form and must be checked on the form itself.
+
+| Section | Field | What to enter | Source |
+|---|---|---|---|
+| Packages | Package | `dist/artifacts/tabspack-1.1.0-edge.zip` | `npm run pack` |
+| Availability | Visibility and markets | Public, all markets | Table S9 |
+| Properties | Category | Productivity | Table S5 |
+| | Privacy policy | Required, because the Support pane can send a message: `https://palworks.github.io/tabspack/privacy/` | Table S9 |
+| | Website | `https://palworks.github.io/tabspack/` | |
+| | Support contact | `support@palworks.ai` | |
+| | Mature content | No | |
+| Store listing | Display name | From the package: `TabsPack: Cross Browser Tab Export & Restore` | Table S3 |
+| | Description | The box under "Detailed description", pasted exactly. [Unverified] Edge wants at least 250 characters | Above |
+| | Short description | The Table S4 summary | Table S4 |
+| | Extension logo, 300 by 300 | `assets/store/logo-300x300.png` | Table S10 |
+| | Small promotional tile, 440 by 280 | `assets/store/promo-small-440x280.png` | Table S10 |
+| | Large promotional tile, 1400 by 560 | `assets/store/promo-marquee-1400x560.png` | Table S10 |
+| | Screenshots | The five, in the Table S10 order | Table S10 |
+| | YouTube video | The same link as the Chrome listing, once uploaded | Table S15 |
+| | Search terms | [Unverified] up to seven: tab manager, export tabs, restore tabs, session manager, tab backup, save tabs, move tabs to Firefox | Table S2 |
+| Submission | Notes for certification | "TabsPack requests no host permission at install and makes no network request unless the user presses Send in the Support pane, which the browser's own permission prompt gates. `alarms` wakes the worker only when the user has turned on automatic snapshots or the recovery copy. `sessions` is optional and requested from a button." | |
+
+## Table S17: Firefox AMO, field by field
+
+| Field | What to enter | Source |
+|---|---|---|
+| Upload | `dist/artifacts/tabspack-1.1.0-firefox.xpi`, listed on this site | `npm run pack` |
+| Source code | Yes. `dist/artifacts/tabspack-1.1.0-source.zip` | `npm run pack` |
+| Name | From the package | Table S3 |
+| Add-on URL | `tabspack` | |
+| Summary | The Table S4 summary. [Unverified] AMO allows 250 characters | Table S4 |
+| Description | The detailed description box. AMO renders Markdown, so the headings and lists survive as written | Above |
+| Categories | Tabs; and Bookmarks if a second is allowed | Table S5 |
+| Support email and website | `support@palworks.ai`, `https://palworks.github.io/tabspack/contact/` | |
+| Licence | MIT | `LICENSE` |
+| Privacy policy | Paste `PRIVACY.md`, or its site URL if the form takes one | `PRIVACY.md` |
+| Homepage | `https://palworks.github.io/tabspack/` | |
+| Screenshots | The five 1280 by 800 PNGs | Table S10 |
+| Notes to reviewer | "Build: Node 20 or later, `npm ci && npm run build`, output in `dist/firefox`. The build is reproducible: the source archive rebuilds byte identical to the package. Data collection: nothing required; a support message the user writes is optional personal communications, asked for with the relay's address at the moment Send is pressed." | `docs/store/submission.md` |
+| Data collection | Declared in the manifest, and the form reads it from there | ADR-048 |
+

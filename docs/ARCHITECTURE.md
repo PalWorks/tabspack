@@ -31,6 +31,7 @@ src/
     sw.ts                 capability report on install, keyboard commands
     commands.ts           what each keyboard command does
     save-file.ts          writing a file from the background: blob, data URL, page
+    durability.ts         tab, start and alarm listeners for M9: ADR-048
   core/
     adapter/              the only code allowed to touch browser.*
       types.ts            BrowserAdapter interface, Raw* shapes, Capabilities
@@ -48,6 +49,9 @@ src/
     report.ts             export and import report objects
     settings.ts           defaults, merge on read, storage round trip
     snapshots.ts          the metadata index, one body per snapshot, quota
+    compare.ts            signature, lost tabs, diff, tidy, overlap, combine: M9
+    durability.ts         recovery copy, start check, automatic snapshots,
+                          the rolling limit and the alarms: ADR-047, ADR-048
     issues.ts             one shape for every validation, migration and read note
     schema.ts             structural validation and the version gate
     migrate.ts            the version step registry, empty until the format changes
@@ -69,6 +73,8 @@ src/
       text.ts             lists of addresses, and Markdown links
       netscape.ts         browser bookmark files
       flat-json.ts        an array of addresses or of objects
+  package/
+    index.ts              the public face of the tabspack npm package: B-502
   ui/
     shared/
       theme.css           tokens, light and dark
@@ -90,7 +96,10 @@ src/
       manager.ts          the shell and the export task
       import-panel.ts     file intake, validation display, restore controls
       preview-tree.ts     the virtualised windows, groups and tabs tree
-      snapshot-panel.ts   save, list, rename, tag, export and delete snapshots
+      snapshot-panel.ts   save, list, rename, tag, export and delete snapshots,
+                          and compare, tidy, overlap and combine them: B-103, B-201
+      recovery-panel.ts   the recovery offer, the one-time ask, and the
+                          Automatic protection card: B-101, B-102
       settings-panel.ts   the Settings and About panes: ADR-028
       support-panel.ts    compose, send through the relay, fall back: ADR-039
       rating-panel.ts     the ask, built once per pane, never a modal: ADR-036
@@ -215,8 +224,15 @@ What each context does instead:
   not terminated while it is open. Restore and import live on the manager page
   for that reason.
 - The **background** runs the keyboard commands, which arrive as browser events
-  rather than as messages, and reports the capability table on install. Its work
-  is bounded, so being terminated afterwards costs nothing.
+  rather than as messages, and reports the capability table on install. Since M9
+  it also keeps the recovery copy and takes automatic snapshots, because both
+  have to happen with no page open: tab changes schedule a 30 second alarm, the
+  alarm captures, and a new browser session is noticed from `storage.session`
+  as well as `runtime.onStartup` (ADR-048). It still holds nothing in memory:
+  every wake reads settings and state from storage. Its work is bounded, so
+  being terminated afterwards costs nothing. The logic is `src/core/durability.ts`
+  and `src/core/compare.ts`, pure apart from the adapter, and the listeners are
+  in `src/background/durability.ts`.
 - Pages that need to know about each other's work watch `storage.onChanged`. That
   is how the snapshot list follows a snapshot saved by a keyboard command, and how
   an open manager page follows a setting changed in another tab of it. The data is

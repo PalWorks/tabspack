@@ -30,7 +30,9 @@ import {
   type Usage,
 } from "../../core/snapshots.js";
 import type { Settings } from "../../core/settings.js";
-import { countSession } from "../../types/session.js";
+import { countSession, type Session } from "../../types/session.js";
+import { combine, diffSessions, isEmptyDiff, overlap, sessionOfTabs, signature, tidyCandidates, type TabRef } from "../../core/compare.js";
+import { isAuto } from "../../core/durability.js";
 import { clear, el, must } from "../shared/dom.js";
 import { plural as pluralUnit, t } from "../shared/i18n.js";
 import { tabs as tabsPhrase, windows as windowsPhrase, groups as groupsPhrase } from "../shared/wording.js";
@@ -41,6 +43,8 @@ export interface SnapshotPanelHooks {
   preview(meta: SnapshotMeta): Promise<void>;
   /** Writes a file, reusing the same path as an export. */
   save(text: string, filename: string): Promise<void>;
+  /** Hands any session, such as the tabs a comparison found, to the import preview. */
+  previewSession(session: Session, label: string): Promise<void>;
 }
 
 const CONFIRM_MS = 4000;
@@ -60,7 +64,21 @@ export function initSnapshotPanel(
     report: must<HTMLDivElement>("#snapshot-report"),
     list: must<HTMLUListElement>("#snapshot-list"),
     empty: must<HTMLParagraphElement>("#snapshot-empty"),
+    combine: must<HTMLButtonElement>("#combine-snapshots"),
+    tidy: must<HTMLButtonElement>("#tidy-snapshots"),
+    overlap: must<HTMLButtonElement>("#overlap-snapshots"),
+    combineHint: must<HTMLSpanElement>("#combine-hint"),
+    analysis: must<HTMLDivElement>("#snapshot-analysis"),
   };
+
+  /** Newest first, as the list shows them. */
+  let current: SnapshotMeta[] = [];
+  /** Ticked for combining, B-201. */
+  const selected = new Set<string>();
+
+  ui.combine.addEventListener("click", () => void combineSelected().catch(report));
+  ui.tidy.addEventListener("click", () => void proposeTidy().catch(report));
+  ui.overlap.addEventListener("click", () => void showOverlap().catch(report));
 
   ui.save.addEventListener("click", () => void saveCurrent());
   ui.addFile.addEventListener("click", () => ui.file.click());
@@ -137,10 +155,167 @@ export function initSnapshotPanel(
 
   async function refresh(): Promise<void> {
     const [list, room] = await Promise.all([listSnapshots(adapter), usage(adapter)]);
+    current = list;
+    for (const id of [...selected]) if (!list.some((meta) => meta.id === id)) selected.delete(id);
     paintUsage(room);
     clear(ui.list);
     ui.empty.hidden = list.length > 0;
     for (const meta of list) ui.list.appendChild(row(meta));
+    paintTools();
+  }
+
+  function paintTools(): void {
+    ui.combine.disabled = selected.size < 2;
+    ui.combine.textContent = selected.size >= 2 ? `${t("combineButton")} (${selected.size})` : t("combineButton");
+    ui.combineHint.hidden = selected.size >= 2 || current.length < 2;
+    ui.tidy.disabled = current.length < 2;
+    ui.overlap.disabled = current.length < 3;
+  }
+
+  /* Comparing, tidying, overlap and combining, B-103 and B-201 ------------ */
+
+  async function sessionsOf(metas: SnapshotMeta[]): Promise<{ meta: SnapshotMeta; session: Session }[]> {
+    const out: { meta: SnapshotMeta; session: Session }[] = [];
+    for (const meta of metas) {
+      const session = await readSnapshotSession(adapter, meta.id);
+      if (session) out.push({ meta, session });
+    }
+    return out;
+  }
+
+  function panel(headline: string): HTMLElement {
+    clear(ui.analysis);
+    ui.analysis.hidden = false;
+    const close = el("button", { class: "btn btn-secondary analysis-close", text: t("cancelButton") }) as HTMLButtonElement;
+    close.type = "button";
+    close.addEventListener("click", () => {
+      ui.analysis.hidden = true;
+      clear(ui.analysis);
+    });
+    const head = el("div", { class: "analysis-head" });
+    head.appendChild(el("p", { class: "analysis-title", text: headline }));
+    head.appendChild(close);
+    ui.analysis.appendChild(head);
+    return ui.analysis;
+  }
+
+  async function compareWithPrevious(meta: SnapshotMeta): Promise<void> {
+    const index = current.findIndex((entry) => entry.id === meta.id);
+    const older = current[index + 1];
+    if (!older) {
+      renderNote(ui.report, t("compareNothingBefore"));
+      return;
+    }
+    const [before, after] = await Promise.all([readSnapshotSession(adapter, older.id), readSnapshotSession(adapter, meta.id)]);
+    if (!before || !after) {
+      renderError(ui.report, t("snapshotUnreadable"));
+      return;
+    }
+    const diff = diffSessions(before, after);
+    if (isEmptyDiff(diff)) {
+      panel(t("compareSame", older.name, meta.name));
+      return;
+    }
+    const host = panel(t("compareHeadline", older.name, meta.name));
+    const section = (unit: string, list: TabRef[], openAs?: string): void => {
+      if (list.length === 0) return;
+      const box = el("details", { class: "analysis-section" });
+      box.appendChild(el("summary", { text: pluralUnit(list.length, unit) }));
+      const items = el("ul", { class: "analysis-list" });
+      for (const tab of list.slice(0, 200)) items.appendChild(el("li", { text: tab.title ? `${tab.title} · ${tab.url}` : tab.url }));
+      box.appendChild(items);
+      if (openAs) {
+        box.appendChild(
+          button(t("diffOpen"), async () => {
+            await hooks.previewSession(sessionOfTabs(list, openAs), openAs);
+          }),
+        );
+      }
+      host.appendChild(box);
+    };
+    section("diff_added", diff.added, t("diffAddedTitle", meta.name));
+    section("diff_removed", diff.removed, t("diffRemovedTitle", older.name));
+    section("diff_moved", diff.moved);
+    section("diff_regrouped", diff.regrouped);
+  }
+
+  async function proposeTidy(): Promise<void> {
+    clearReport(ui.report);
+    const read = await sessionsOf([...current].reverse());
+    const doomed = tidyCandidates(read.map(({ meta, session }) => ({ id: meta.id, signature: signature(session) })));
+    if (doomed.length === 0) {
+      panel(t("tidyNone"));
+      return;
+    }
+    const host = panel(t("tidyList"));
+    const items = el("ul", { class: "analysis-list" });
+    const names = current.filter((meta) => doomed.includes(meta.id));
+    for (const meta of names) items.appendChild(el("li", { text: `${meta.name} · ${readableDate(meta.createdAt)}` }));
+    host.appendChild(items);
+    const confirm = el("button", { class: "btn btn-secondary danger", text: t("tidyConfirm", pluralUnit(names.length, "snapshots")) }) as HTMLButtonElement;
+    confirm.type = "button";
+    confirm.addEventListener("click", () => {
+      confirm.disabled = true;
+      void (async () => {
+        for (const meta of names) await deleteSnapshot(adapter, meta.id);
+        ui.analysis.hidden = true;
+        renderSuccess(ui.report, t("tidyDone", pluralUnit(names.length, "snapshots")));
+        await refresh();
+      })().catch(report);
+    });
+    host.appendChild(confirm);
+  }
+
+  async function showOverlap(): Promise<void> {
+    clearReport(ui.report);
+    const read = await sessionsOf(current);
+    const found = overlap(read.map(({ meta, session }) => ({ id: meta.id, session })));
+    if (found.length === 0) {
+      panel(t("overlapNone"));
+      return;
+    }
+    const host = panel(t("overlapHeadline", String(found.length)));
+    const nameOf = new Map(current.map((meta) => [meta.id, meta.name]));
+    const items = el("ul", { class: "analysis-list" });
+    for (const entry of found.slice(0, 100)) {
+      const item = el("li", { text: `${entry.title || entry.url} · ${t("overlapIn", String(entry.snapshots.length))}` });
+      item.title = entry.snapshots.map((id) => nameOf.get(id) ?? id).join(", ");
+      items.appendChild(item);
+    }
+    host.appendChild(items);
+  }
+
+  async function combineSelected(): Promise<void> {
+    clearReport(ui.report);
+    const chosen = current.filter((meta) => selected.has(meta.id));
+    if (chosen.length < 2) return;
+    const read = await sessionsOf(chosen);
+    const name = t("combineName", pluralUnit(read.length, "snapshots"));
+    const merged = combine(read.map((entry) => entry.session), name);
+    const counts = countSession(merged);
+    const { meta } = await saveSnapshot(adapter, merged, { name });
+    selected.clear();
+    const host = panel(t("combineDone", meta.name, tabsPhrase(counts.tabs)));
+    const originals = chosen.map((entry) => entry.id);
+    const remove = el("button", { class: "btn btn-secondary danger", text: t("combineDeleteOriginals", String(originals.length)) }) as HTMLButtonElement;
+    remove.type = "button";
+    let armed = false;
+    remove.addEventListener("click", () => {
+      if (!armed) {
+        armed = true;
+        remove.textContent = t("deleteConfirm");
+        return;
+      }
+      remove.disabled = true;
+      void (async () => {
+        for (const id of originals) await deleteSnapshot(adapter, id);
+        ui.analysis.hidden = true;
+        renderNote(ui.report, t("combineDeleted", String(originals.length)));
+        await refresh();
+      })().catch(report);
+    });
+    host.appendChild(remove);
+    await refresh();
   }
 
   function paintUsage(room: Usage): void {
@@ -157,6 +332,17 @@ export function initSnapshotPanel(
   function row(meta: SnapshotMeta): HTMLLIElement {
     const item = el("li", { class: "snapshot" });
 
+    const pick = el("input", { class: "snapshot-select" }) as HTMLInputElement;
+    pick.type = "checkbox";
+    pick.checked = selected.has(meta.id);
+    pick.setAttribute("aria-label", t("snapshotSelectAria", meta.name));
+    pick.addEventListener("change", () => {
+      if (pick.checked) selected.add(meta.id);
+      else selected.delete(meta.id);
+      paintTools();
+    });
+    item.appendChild(pick);
+
     const name = el("input", { class: "snapshot-name" }) as HTMLInputElement;
     name.value = meta.name;
     name.setAttribute("aria-label", t("snapshotNameAria", readableDate(meta.createdAt)));
@@ -167,7 +353,7 @@ export function initSnapshotPanel(
     });
     item.appendChild(name);
 
-    item.appendChild(
+    const line = item.appendChild(
       el("p", {
         class: "snapshot-meta",
         text: [
@@ -179,6 +365,8 @@ export function initSnapshotPanel(
         ].join(" · "),
       }),
     );
+    // An automatic snapshot says so, in the line that describes it: ADR-047.
+    if (isAuto(meta)) line.prepend(el("span", { class: "auto-chip", text: t("autoChip") }));
 
     const tags = el("input", { class: "snapshot-tags" }) as HTMLInputElement;
     tags.value = meta.tags.join(", ");
@@ -205,6 +393,11 @@ export function initSnapshotPanel(
           return;
         }
         await hooks.save(text, `${fileNameOf(meta)}.tabspack.json`);
+      }),
+    );
+    actions.appendChild(
+      button(t("compareButton"), async () => {
+        await compareWithPrevious(meta);
       }),
     );
     actions.appendChild(deleteButton(meta));

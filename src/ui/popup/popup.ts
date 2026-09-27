@@ -16,6 +16,7 @@ import { clearReport, renderError, renderExportReport, renderNote } from "../sha
 import { savePayload, copyPayload } from "../shared/save.js";
 import { initSegmented } from "../shared/segmented.js";
 import { initNotifier } from "../shared/notify.js";
+import { readOffer } from "../../core/durability.js";
 
 const adapter = realAdapter;
 
@@ -66,6 +67,13 @@ async function start(): Promise<void> {
    * the import task rather than opening a picker this window will not survive.
    */
   ui.importButton.addEventListener("click", () => void adapter.openExtensionPage("manager.html#import"));
+  // A start that lost tabs, B-102. The manager holds the offer and the preview.
+  void readOffer(adapter).then((offer) => {
+    if (!offer) return;
+    must<HTMLParagraphElement>("#recovery-text").textContent = t("recoveryOfferTitle", tabsPhrase(offer.missingTabs));
+    must<HTMLDivElement>("#recovery").hidden = false;
+  });
+  must<HTMLButtonElement>("#recovery-open").addEventListener("click", () => void adapter.openExtensionPage("manager.html"));
   ui.settings.addEventListener("click", () => void adapter.openOptions());
 
   // The options page may be open in another tab while this popup is.

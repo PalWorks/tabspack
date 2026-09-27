@@ -4,15 +4,31 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC.md), which moves independently of the extension version. Format changes are listed here under a Format heading.
 
-## [Unreleased]
+## [1.1.0] - 2026-09-28
+
+Not yet published. By the maintainer's decision this is one combined release: it is the first update Chrome receives after 1.0.0 is accepted, and the first version Edge and AMO receive. The store title and summary below already shipped in the 1.0.0 package that was resubmitted to Chrome on 2026-09-26.
 
 ### Changed
 
+- **Permissions.** `alarms` is now required, and carries no install warning. `sessions` is a new optional permission. The Firefox manifest declares Mozilla's built-in data consent, which AMO requires of new extensions: nothing is required, and the support message's contents are optional, asked for in the same click as the relay's address. `addons-linter` moves to 10.13, the first line that accepts the declaration. ADR-048
+- The import screen's hint no longer names other extensions. It says "an export from another tab manager", after the store's keyword spam rejection taught the rule.
+- The privacy policy is now version 1.3, in `PRIVACY.md` and on the site. It adds automatic snapshots, the recovery copy and the recently closed list, all local, and there is no new transmission.
 - **The store title and summary say what the product does.** The manifest `name` was `TabsPack`, which is what every store reads as the listing title, so the dashboard showed a brand nobody has heard of. It is now `TabsPack: Cross Browser Tab Export & Restore`, 44 characters so nothing is cut at the 45 character search truncation and it fits AMO's 50. The summary is now `Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, pinned tab and group.`, 129 of 132, carrying save, export, import, restore, session and all three browser names once each.
 - The title and the wordmark are now two strings. `extName` is the store title; a new `brandName`, `TabsPack`, is what the popup, the manager, the placeholder page and the toolbar tooltip show, so a change made for search cannot turn the product's own header into a sentence.
 
 ### Added
 
+- **Automatic protection**, M9, on the Snapshots pane. Both parts are off until turned on.
+  - **The recovery copy** keeps one rolling copy of the open tabs. When the browser starts without a meaningful part of the last session, because it crashed or did not restore it, TabsPack says how many tabs are missing. It does so on the toolbar, in the popup and at the top of the manager, and opens those tabs in the preview. It never restores on its own, and it offers nothing when the browser restored everything itself. B-102, ADR-048
+  - The recovery copy is offered once, after a first export.
+  - **Automatic snapshots** are taken hourly, every four hours or daily. An unchanged session writes nothing. The newest ten are kept, or as many as chosen, and older automatic ones are removed. Snapshots you save or rename are never removed. B-101, ADR-047
+  - **Show recently closed** lists the browser's own recently closed windows and tabs, and reopens one with its history. It asks for the optional `sessions` permission from the button, never at install.
+- **Snapshot tools.** B-103, B-201
+  - **Compare with previous** names the tabs added, removed, moved to another window and regrouped, and opens the added or removed ones in the preview.
+  - **Tidy unchanged** proposes runs of identical snapshots, by name, and deletes them only on confirmation.
+  - **Find repeated addresses** lists the addresses in three or more snapshots.
+  - **Combine selected** saves several snapshots as one, with every address once. It never deletes the originals on its own.
+- **The `tabspack` npm package**: `read`, `write`, `validate`, the types and the JSON Schema. It is compiled from the extension's own reader and writer, with no copy of either. `npm run package:test` installs the packed tarball outside the repository and runs the fixture corpus through it. A lint rule keeps browser code out of it. B-502
 - **The export pane previews what will be exported.** The empty Output box is gone. Under the settings is the same tree the import pane uses, holding exactly the tabs the file will hold after the filters, with search, Select all and Select none. Untick a tab and it is left out, and the report says how many. The Export and Copy buttons sit under the preview, and the exact bytes of the last export are one click away under "See the file contents". After an export the settings fold to one line that names them, with a Change settings button, as the import intake does. ADR-046
 - Checkboxes are drawn by the page: an empty box with a border until ticked, in both themes. A native box followed the system's colour scheme, so on a light page under a dark system an unticked box looked like a filled one. A chosen theme now sets `color-scheme` too
 - **An explainer animation**, `assets/promo/explainer.html`: sixteen seconds, one self-contained page. A crowded tab strip lifts into a fan of tab cards, folds into one file, travels to Chrome, Edge or Firefox, and comes back as the same windows, pins and collapsed groups, asleep. Every element runs on one timeline, so any frame renders exactly, and reduced motion opens it paused on the last frame. Fonts are self-hosted under the OFL.

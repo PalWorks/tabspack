@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
-| Date | 2026-09-26 |
+| Version | 1.1 |
+| Date | 2026-09-28 |
 | Task | `T-507`, the last four rows of [TESTING.md](TESTING.md) Table X2 |
-| Time needed | About twenty minutes |
+| Time needed | About thirty minutes |
 | Needed before | `T-509`, the first store submission |
 
 Everything else in the matrix is automated and green. These four are not
@@ -106,10 +106,25 @@ all come from `_locales`. None of that says whether it is any good.
 Go through all five panes in both themes, in a window that is not maximised:
 
 - **Export.** Does the primary button say what it will do? Is the report a
-  success when it succeeded?
+  success when it succeeded? Untick a tab in **What will be exported** and
+  export: the file must leave it out, and the report must say so. After the
+  export the settings should fold to one line, and **Change settings** should
+  open them again. Unticked checkboxes must read as empty boxes in both themes,
+  never as filled squares.
 - **Import.** Drop a file in. Is the preview readable at a glance with fifty
   rows in it?
 - **Snapshots.** With none saved, does the empty state tell you what to do?
+  Save a few, then try **Compare with previous**, **Tidy unchanged**, **Find
+  repeated addresses** and **Combine selected**. Is each result clear about what
+  it found, and does anything delete without asking first?
+- **Automatic protection**, on the Snapshots pane. Turn on the recovery copy,
+  open a dozen tabs, wait a minute, then quit the browser from a terminal with
+  `pkill -9` on its process, and start it again. If the browser does not bring
+  the tabs back, TabsPack should offer them: a badge on the toolbar, a line in
+  the popup, and a card on the manager that previews them before anything
+  opens. Press **Show recently closed** and answer the browser's prompt: the
+  list should appear, and **Reopen** should bring a window back with its
+  history.
 - **Settings** and **About.** Is anything stated twice?
 - **The popup**, which is the surface most people see most often.
 
@@ -131,4 +146,5 @@ state of a check nobody has done.
 | 1 | The same, and refusing it still exports with a stated loss | Edge | not yet |
 | 2 | A real suspender's parked tab is recovered to its true address | Chrome or Edge | not yet |
 | 3 | `Alt+Shift+E` and `Alt+Shift+S` fire | Firefox | not yet |
-| 4 | Five panes, two themes, one narrow window | Any | not yet |
+| 4 | Five panes, two themes, one narrow window, the export preview and the snapshot tools | Any | not yet |
+| 4 | A killed browser that did not restore its tabs is offered them, and the `sessions` prompt is answered | Chrome or Edge | not yet |

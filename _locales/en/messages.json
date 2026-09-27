@@ -556,7 +556,7 @@
     "message": "Choose a file"
   },
   "dropHint": {
-    "message": "A .tabspack.json file, or an export from Tab Session Manager, Session Buddy, OneTab, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so."
+    "message": "A .tabspack.json file, an export from another tab manager, your browser's bookmarks, or a list of addresses. Nothing is opened until you say so."
   },
   "noFileYet": {
     "message": "No file chosen yet."
@@ -1312,5 +1312,390 @@
   "makerName": {
     "message": "palworks.ai",
     "description": "A company name. Not translated."
+  },
+  "recoveryBadgeTitle": {
+    "message": "TabsPack: $value$ tabs from your last session are not open. Open TabsPack to bring them back.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "autoSnapshotFullTitle": {
+    "message": "TabsPack: snapshot storage is full, so the automatic snapshot was not saved."
+  },
+  "autoSnapshotName": {
+    "message": "Automatic, $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "recoveryOfferTitle": {
+    "message": "$value$ from your last session are not open",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "recoveryOfferText": {
+    "message": "Last saved $value$. Look at them first: nothing opens until you press Restore.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "recoveryPreview": {
+    "message": "Preview and restore"
+  },
+  "recoveryDismiss": {
+    "message": "Not now"
+  },
+  "recoveryAskTitle": {
+    "message": "Protect your tabs from a crash?"
+  },
+  "recoveryAskText": {
+    "message": "TabsPack can keep a recovery copy of your open tabs on this machine. If the browser crashes or does not bring your tabs back, it offers them to you."
+  },
+  "recoveryAskYes": {
+    "message": "Turn it on"
+  },
+  "recoveryAskNo": {
+    "message": "No thanks"
+  },
+  "recoveryAskDone": {
+    "message": "Recovery copy on. You can change it on the Snapshots pane."
+  },
+  "durabilityLegend": {
+    "message": "Automatic protection"
+  },
+  "optRecovery": {
+    "message": "Keep a recovery copy of my open tabs"
+  },
+  "optRecoveryHint": {
+    "message": "Updated about half a minute after your tabs change, and kept on this machine only."
+  },
+  "autoIntervalLabel": {
+    "message": "Automatic snapshots"
+  },
+  "autoOff": {
+    "message": "Off"
+  },
+  "autoHourly": {
+    "message": "Every hour"
+  },
+  "autoFourHours": {
+    "message": "Every 4 hours"
+  },
+  "autoDaily": {
+    "message": "Every day"
+  },
+  "autoKeepLabel": {
+    "message": "Keep the newest"
+  },
+  "autoKeepHint": {
+    "message": "Older automatic snapshots are removed as new ones arrive. Snapshots you save or rename are never removed."
+  },
+  "autoStatusLast": {
+    "message": "Last automatic snapshot $value$.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "autoStatusRemoved": {
+    "message": "$value$ older ones removed so far.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "autoStatusNone": {
+    "message": "No automatic snapshot yet. One is taken each time the interval comes round, if your tabs have changed."
+  },
+  "autoStatusFull": {
+    "message": "Storage is full, so the last automatic snapshot was not saved. Export or delete a snapshot you saved to make room."
+  },
+  "previousSessionLine": {
+    "message": "Your last session before the browser restarted: $value$, saved $second$.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      },
+      "second": {
+        "content": "$2"
+      }
+    }
+  },
+  "previousSessionPreview": {
+    "message": "Preview"
+  },
+  "recentClosedButton": {
+    "message": "Show recently closed"
+  },
+  "recentClosedHint": {
+    "message": "The browser's own list of windows and tabs you closed. Reopening one brings its back button history too. The browser asks your permission the first time."
+  },
+  "recentClosedDenied": {
+    "message": "Without that permission TabsPack cannot read the browser's recently closed list."
+  },
+  "recentClosedEmpty": {
+    "message": "Nothing was closed recently."
+  },
+  "recentWindow": {
+    "message": "Window with $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "recentReopen": {
+    "message": "Reopen"
+  },
+  "recentClosedAt": {
+    "message": "closed $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "autoChip": {
+    "message": "auto"
+  },
+  "snapshotSelectAria": {
+    "message": "Select $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "compareButton": {
+    "message": "Compare with previous"
+  },
+  "compareNothingBefore": {
+    "message": "This is the oldest snapshot, so there is nothing before it to compare with."
+  },
+  "compareSame": {
+    "message": "Nothing changed between \"$value$\" and \"$second$\".",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      },
+      "second": {
+        "content": "$2"
+      }
+    }
+  },
+  "compareHeadline": {
+    "message": "From \"$value$\" to \"$second$\"",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      },
+      "second": {
+        "content": "$2"
+      }
+    }
+  },
+  "diffOpen": {
+    "message": "Open in preview"
+  },
+  "diffAddedTitle": {
+    "message": "Tabs added in \"$value$\"",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "diffRemovedTitle": {
+    "message": "Tabs gone since \"$value$\"",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "tidyButton": {
+    "message": "Tidy unchanged"
+  },
+  "tidyNone": {
+    "message": "No two snapshots in a row hold the same tabs, so there is nothing to tidy."
+  },
+  "tidyList": {
+    "message": "Each of these holds exactly what the snapshot after it holds:"
+  },
+  "tidyConfirm": {
+    "message": "Delete $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "tidyDone": {
+    "message": "$value$ removed.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "overlapButton": {
+    "message": "Find repeated addresses"
+  },
+  "overlapNone": {
+    "message": "No address is in three or more snapshots."
+  },
+  "overlapHeadline": {
+    "message": "$value$ addresses are in three or more snapshots",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "overlapIn": {
+    "message": "in $value$ snapshots",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "combineButton": {
+    "message": "Combine selected"
+  },
+  "combineHint": {
+    "message": "Tick two or more snapshots to combine them into one."
+  },
+  "combineName": {
+    "message": "Combined, $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "combineDone": {
+    "message": "Saved \"$value$\" with $second$, each address once. The originals are untouched.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      },
+      "second": {
+        "content": "$2"
+      }
+    }
+  },
+  "combineDeleteOriginals": {
+    "message": "Delete the $value$ originals",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "combineDeleted": {
+    "message": "The $value$ originals were deleted.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "cancelButton": {
+    "message": "Cancel"
+  },
+  "unit_diff_added_one": {
+    "message": "$count$ tab added",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_added_other": {
+    "message": "$count$ tabs added",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_removed_one": {
+    "message": "$count$ tab gone",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_removed_other": {
+    "message": "$count$ tabs gone",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_moved_one": {
+    "message": "$count$ tab moved to another window",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_moved_other": {
+    "message": "$count$ tabs moved to another window",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_regrouped_one": {
+    "message": "$count$ tab in a different group",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_diff_regrouped_other": {
+    "message": "$count$ tabs in a different group",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_snapshots_one": {
+    "message": "$count$ snapshot",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "unit_snapshots_other": {
+    "message": "$count$ snapshots",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "recoveryLabel": {
+    "message": "Recovery"
   }
 }

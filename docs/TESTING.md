@@ -24,12 +24,13 @@ The browser APIs are wrapped by `src/core/adapter/*` for exactly this reason: `c
 
 | Layer | Runs in | Covers | Gate |
 |---|---|---|---|
-| Unit | node, mocked adapter | collect, serialize, deserialize, schema, migrations, filters, every foreign adapter, report building | Every pull request. A red test blocks the merge |
+| Unit | node, mocked adapter | collect, serialize, deserialize, schema, migrations, filters, every foreign adapter, report building, and since M9 the session comparisons and the worker's durability flow, including a restart with `storage.session` emptied and no `onStartup` | Every pull request. A red test blocks the merge |
+| npm package | node, from a tarball installed outside the repository | `read`, `write`, `validate` and the schema export, the whole fixture corpus through the installed copy, a round trip of every valid fixture, the tarball's contents and size | Every pull request, through `npm run verify` and CI |
 | Schema conformance | node | The generated schema against `fixtures/valid` and `fixtures/invalid` | Every pull request |
 | Round trip | node plus a real browser for the restore half | Export, import, restore, re export, field by field comparison | Every milestone exit, and before every release |
 | Cross browser matrix | Chrome, Edge, Firefox, loaded unpacked | Adapter behaviour, capability probes, restore engine, permission prompts | Before every release |
 | Performance | Real browser, synthetic fixtures | NFR-001 to NFR-005 | At the milestone that introduces the code path, then before every release |
-| Manifest and privacy assertions | node | Exactly three required permissions, no required host permission, one optional host permission whose address matches the relay's in all four places it is written, and no transport anywhere in the source except `fetch` in `src/core/relay.ts` | Every pull request |
+| Manifest and privacy assertions | node | Exactly four required permissions, `alarms` being the fourth since M9, no required host permission, one optional host permission whose address matches the relay's in all four places it is written, and no transport anywhere in the source except `fetch` in `src/core/relay.ts` | Every pull request |
 | Support relay | node against the worker running locally, and a real Chromium against an intercepted endpoint | Every refusal path in the worker; the client's four outcomes; that exactly four fields leave and none of them is about a tab | Before every release, and whenever either side changes |
 | Website, static | node, no browser | Every internal link resolves, every image has dimensions and alt text, every page has a title, description, canonical and OG image, structured data parses, the sitemap matches the pages, no page links to its own origin absolutely | Every pull request, through `npm run verify` |
 | Website, in a browser | Chromium at 320, 390, 768, 1024 and 1440 px | Horizontal overflow, script errors, tap targets under 24 px. The questions a layout engine has to answer and reading the CSS cannot | Before every deploy of the site |
@@ -213,6 +214,9 @@ came from is not a fact about the product.
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |
 | Keyboard commands are declared with the shortcut the browser accepted | pass | pass | pass |
+| The recovery copy is written about half a minute after the tabs change | pass, 13 tabs | pass, 13 tabs | not run, `matrix-firefox` has no killed restart |
+| After a killed browser whose session files are gone, the lost tabs are offered | pass, 12 of 13 | pass, 12 of 13 | not run, as above |
+| After a clean restart the browser restored itself, nothing is offered | pass | pass | not run, as above |
 | A keyboard command actually fires | **pass**, Alt+Shift+E wrote a file and Alt+Shift+S saved a snapshot | **pass** | skipped, the display delivers a plain key to Firefox but not an extension command. The Alt modifier was ruled out by rebinding to Ctrl+Shift+U, so this is the rig. It is one of the four rows in Table R10 that a person has to do: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 3 |
 | Optional permission prompt for `tabGroups` | not run, a driver cannot answer a prompt. `--grant-groups` grants it programmatically and exercises everything behind it, which leaves the dialogue itself as the one untested thing: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 1 | not run | not run |
 | Containers | not applicable | not applicable | pass, the field is carried as `firefox-default` |
@@ -223,6 +227,8 @@ keyboard rows, and the reason is in the row. The row counts differ between
 engines because some rows do not apply to an engine and some only exist with
 `--keys` and `--grant-groups`, which is why the flags are in the command at the
 top of this section.
+
+**The three recovery rows, 2026-09-28**, ran headless and without the flags, which is why the same runs show the two group rows and the bounds row failing: those are the rig, as the paragraph above explains. The recovery rows need neither flag. A killed Edge headless restores its own session on the next start, so the rows remove the profile's session files after the kill, which is the crash the feature is for.
 
 One instability worth naming rather than hiding: the small restore's rows read
 the tab strip the moment the report appears, and a tab that is still loading

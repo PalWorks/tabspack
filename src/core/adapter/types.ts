@@ -223,7 +223,12 @@ export interface BrowserAdapter {
    * must not await anything before calling it. Already granted resolves true
    * with no prompt.
    */
-  requestOrigins(origins: string[]): Promise<boolean>;
+  /**
+   * `dataCollection` names what the request will send, in Firefox's data
+   * consent vocabulary. A browser that has that consent system asks for both in
+   * one prompt; any other browser ignores it.
+   */
+  requestOrigins(origins: string[], dataCollection?: string[]): Promise<boolean>;
   isAllowedIncognitoAccess(): Promise<boolean>;
   download(request: DownloadRequest): Promise<number | null>;
   storageGet<T extends Record<string, unknown>>(defaults: T): Promise<T>;
@@ -262,6 +267,12 @@ export interface BrowserAdapter {
    */
   openExternal(url: string): Promise<void>;
   copyText(text: string): Promise<void>;
+  /**
+   * Storage that lives only as long as this browser session. Null from
+   * `sessionGet` where the browser has none, which the caller treats as unknown.
+   */
+  sessionGet(key: string): Promise<unknown>;
+  sessionSet(values: Record<string, unknown>): Promise<void>;
   alarmGet(name: string): Promise<AlarmInfo | null>;
   /** Replaces an alarm of the same name. */
   alarmCreate(name: string, when: { delayInMinutes?: number; periodInMinutes?: number }): Promise<void>;

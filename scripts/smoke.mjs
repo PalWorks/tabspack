@@ -896,6 +896,97 @@ try {
     JSON.stringify(afterDelete),
   );
 
+  /*
+   * M9 on the Snapshots pane: comparing (B-103), tidying (B-103), repeated
+   * addresses (B-201) and combining (B-201), against real stored snapshots.
+   * Three saves of one session and a fourth after a tab opens.
+   */
+  const saveNamed = async (name) => {
+    const before = await manager.locator("#snapshot-list > li").count();
+    await manager.fill("#snapshot-name", name);
+    await manager.click("#save-snapshot");
+    await manager.waitForFunction((n) => document.querySelectorAll("#snapshot-list > li").length === n, before + 1, { timeout: 10_000 });
+  };
+  await saveNamed("M9 one");
+  await saveNamed("M9 two");
+  await saveNamed("M9 three");
+  const extraTab = await context.newPage();
+  await extraTab.goto("https://example.com/four").catch(() => undefined);
+  await manager.bringToFront();
+  await saveNamed("M9 four");
+
+  await manager.click("#snapshot-list > li:first-child .snapshot-actions button:has-text('Compare')");
+  await manager.waitForSelector("#snapshot-analysis:not([hidden])", { timeout: 5_000 });
+  const compared = (await manager.textContent("#snapshot-analysis")) ?? "";
+  check("comparing a snapshot with the one before names the tab added", /1 tab added/.test(compared), compared.slice(0, 120));
+
+  await manager.click("#tidy-snapshots");
+  await manager.waitForSelector("#snapshot-analysis .danger", { timeout: 5_000 });
+  const tidyText = (await manager.textContent("#snapshot-analysis")) ?? "";
+  check("tidy proposes the two unchanged snapshots, by name", /M9 one/.test(tidyText) && /M9 two/.test(tidyText) && !/M9 three/.test(tidyText), tidyText.slice(0, 160));
+  await manager.click("#snapshot-analysis .danger");
+  await manager.waitForFunction(() => document.querySelectorAll("#snapshot-list > li").length === 2, null, { timeout: 5_000 });
+  check("and deletes only those, after the confirmation", true);
+
+  await saveNamed("M9 five");
+  await manager.click("#overlap-snapshots");
+  await manager.waitForSelector("#snapshot-analysis:not([hidden])", { timeout: 5_000 });
+  const overlapText = (await manager.textContent("#snapshot-analysis")) ?? "";
+  check("repeated addresses are found across three snapshots", /addresses are in three or more snapshots/.test(overlapText), overlapText.slice(0, 120));
+
+  const picks = manager.locator("#snapshot-list .snapshot-select");
+  await picks.nth(0).check();
+  await picks.nth(1).check();
+  check("combine wakes once two snapshots are ticked", !(await manager.isDisabled("#combine-snapshots")));
+  await manager.click("#combine-snapshots");
+  await manager.waitForFunction(() => document.querySelectorAll("#snapshot-list > li").length === 4, null, { timeout: 5_000 });
+  const combinedText = (await manager.textContent("#snapshot-analysis")) ?? "";
+  check("combining saves one more snapshot and leaves the originals", /each address once/.test(combinedText), combinedText.slice(0, 120));
+  await extraTab.close();
+
+  /* Automatic protection: the settings reach the worker's alarms. */
+  await manager.check("#opt-recovery");
+  await manager.selectOption("#opt-auto-interval", "1");
+  await manager.waitForFunction(() => document.querySelector("#opt-auto-keep")?.disabled === false, null, { timeout: 5_000 });
+  let alarm = null;
+  for (let attempt = 0; attempt < 20 && !alarm; attempt += 1) {
+    alarm = await worker.evaluate(async () => (await chrome.alarms.get("tabspack-auto")) ?? null);
+    if (!alarm) await manager.waitForTimeout(150);
+  }
+  check("turning automatic snapshots on schedules the worker's alarm", alarm?.periodInMinutes === 60, JSON.stringify(alarm));
+  await manager.selectOption("#opt-auto-interval", "0");
+  await manager.uncheck("#opt-recovery");
+
+  /*
+   * The recovery offer, B-102. The worker's start check is proved in the unit
+   * tests and in the matrix, where a real browser is killed and relaunched.
+   * Here the offer it leaves is seeded, and the page has to show it, preview
+   * exactly the missing tabs, and clear the toolbar when dismissed.
+   */
+  const lost = Array.from({ length: 12 }, (_, index) => ({ index, url: `https://lost.example/${index}`, title: `Lost ${index}` }));
+  const lostPack = { format: "tabspack", schemaVersion: 1, exportedAt: "2026-09-27T10:00:00+00:00", windows: [{ id: "w1", tabs: lost }] };
+  await worker.evaluate(async (text) => {
+    await chrome.storage.local.set({
+      recoveryPrevious: { capturedAt: Date.parse("2026-09-27T10:00:00Z"), signature: "x", windows: 1, tabs: 12, text },
+      recoveryOffer: { capturedAt: Date.parse("2026-09-27T10:00:00Z"), missingTabs: 12, totalTabs: 12, wholeWindows: 1 },
+    });
+  }, JSON.stringify(lostPack));
+  await manager.goto(`chrome-extension://${extensionId}/manager.html`);
+  await manager.waitForSelector("#recovery-offer:not([hidden])", { timeout: 10_000 });
+  const offerText = (await manager.textContent("#recovery-offer")) ?? "";
+  check("a lost session is offered at the top of the manager, with its count", /12 tabs from your last session/.test(offerText), offerText.slice(0, 100));
+  await manager.click("#recovery-offer .btn-primary");
+  await manager.waitForFunction(() => /12 tabs/.test(document.querySelector("#file-meta")?.textContent ?? ""), null, { timeout: 10_000 });
+  check("and opens in the import preview, not straight into the browser", await manager.isVisible("#preview"));
+  const offerGone = await worker.evaluate(async () => (await chrome.storage.local.get("recoveryOffer")).recoveryOffer ?? null);
+  check("acting on the offer clears it", offerGone === null, JSON.stringify(offerGone));
+  // Leave the store as the rest of the run expects it: no snapshots, no offer.
+  await worker.evaluate(async () => {
+    const all = await chrome.storage.local.get(null);
+    const keys = Object.keys(all).filter((key) => key.startsWith("snapshot:") || key.startsWith("recovery") || key === "snapshots" || key === "autoSnapshotState");
+    await chrome.storage.local.remove(keys);
+  });
+
   await manager.click("#tab-import");
   await manager.setInputFiles("#file", packPath);
   await manager.waitForFunction(

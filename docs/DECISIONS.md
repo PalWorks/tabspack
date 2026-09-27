@@ -890,6 +890,31 @@ Date 2026-09-28. Status accepted. Amends ADR-012 for automatic snapshots only.
 - An unchanged session writes nothing, so the series is ten different moments, not ten copies of one.
 - Removing an automatic snapshot is recorded in the worker log and counted on the Snapshots pane, so it is never silent.
 - If the store is at the soft cap because of manual snapshots, automatic saving stops and says so rather than evicting anything the user made.
-- Renaming or tagging an automatic snapshot makes it manual, which is the one-step way to keep one forever.
+- Renaming an automatic snapshot makes it manual, which is the one-step way to keep one forever.
 
 **Consequence.** B-101 implements the series and its limit. B-103's tidy action remains, for manual snapshots and for anyone who wants a shorter series than N.
+
+---
+
+## ADR-048: How the worker keeps tabs safe without a page open
+
+Date 2026-09-28. Status accepted. Implements B-101 and B-102 within ARCHITECTURE section 7.
+
+**Context.** Automatic snapshots and the recovery copy have to happen when no TabsPack page is open, which means the background worker, and the worker is terminated whenever it is idle. The recovery copy matters most at the one moment the worker is least likely to be awake: right after a crash.
+
+**Decisions.**
+
+- **`alarms` becomes the fourth required permission.** It is the only way for the worker to run later. It carries no install warning. When both features are off, no alarm is ever set.
+- **A change schedules a write; it does not write.** Any change to what the tab strip holds creates a 30 second alarm if one is not already pending, so a storm of tab events costs one capture. A write happens only if the session's signature changed.
+- **A window closing never schedules anything.** A browser shutting down reports its tabs closing one by one, and a copy overwritten by that would be a copy of nothing.
+- **A new browser session is noticed from `storage.session`, not only from `runtime.onStartup`.** Edge 153 headless did not fire `onStartup` after a killed browser: measured 2026-09-28. `storage.session` is emptied when the browser restarts, so the first wake that finds no mark in it handles the start, once, whatever woke the worker. An install or an update is handled the same way, which also covers a browser that loads the build after it has started and so sends no `onStartup` at all, as Chrome 154 does when the matrix loads it over CDP. On that start the copy is set aside as the previous session. It is not overwritten until the loss check has run, 30 seconds later, once the browser's own restore has settled.
+- **An offer needs a real loss.** That means a whole window of at least three tabs, or at least ten tabs that are also a fifth of the session. A browser that restored its own session is offered nothing, and the matrix proves both sides against a killed and relaunched Edge and Chrome.
+- **Recovery opens the preview, never the tabs.** DOMAIN business rule 4.
+- **`sessions` is optional** and requested from the button that needs it, so the permissions asked at install change by `alarms` alone.
+- **Firefox's built-in data consent**, which AMO requires of new extensions, is declared. Nothing is required. The support message's three kinds of data are optional, and they are requested together with the relay's origin in the same click, so there is still one prompt.
+
+**Consequence.**
+
+- The worker gains four top-level listeners and still holds no state in memory.
+- `addons-linter` moves to 10.x, the first line that accepts `data_collection_permissions`.
+- The permissions lint rule now requires `alarms`.
