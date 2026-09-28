@@ -176,7 +176,7 @@ DISPLAY=:77 metacity &
 DISPLAY=:77 npm run matrix -- --target=chrome --headed --grant-groups --keys
 ```
  Results below are
-from **2026-09-26** against Chrome 154.0.8037.57, Edge 154.0.4258.37 and Firefox
+from **2026-09-28**, against the 1.1.0 build, Chrome 154.0.8037.57, Edge 154.0.4258.37 and Firefox
 156.0.1 on Linux, on a virtual display with a window manager, which is what the
 bounds and the keyboard rows need.
 
@@ -202,7 +202,7 @@ came from is not a fact about the product.
 | The pinned tab comes back pinned | pass | pass | pass |
 | The group comes back with title, colour and collapsed state | pass | pass | pass |
 | Restored tabs are unloaded, and the count is what the browser shows | pass | pass | pass, except a pinned tab, which Firefox loads anyway: ADR-025 |
-| Restore 200 tabs with unloading on, without taking the browser down | pass, 9s, 199 unloaded | pass, 13s, 199 unloaded | pass, 6s, 199 unloaded |
+| Restore 200 tabs with unloading on, without taking the browser down | pass, 9s, 199 unloaded | pass, 6s, 199 unloaded | pass, 4s, 199 unloaded |
 | A page slow to commit keeps its address through the unload | pass, 24 of 24, 0 blank | pass, 24 of 24, 0 blank | not applicable, Gecko creates the tab unloaded |
 | Every address of a 200 tab restore is in the browser, not just the count | covered by the row above | covered | pass, 200 of 200 |
 | A tab created unloaded keeps the address it was created with, 40 of them | not applicable, Chromium cannot | not applicable | pass, 40 of 40 |
@@ -216,21 +216,23 @@ came from is not a fact about the product.
 | A snapshot is written to local storage | pass | pass | pass |
 | Snapshots survive a browser restart | pass | pass | not run, the temporary add-on goes with the restart |
 | Keyboard commands are declared with the shortcut the browser accepted | pass | pass | pass |
-| The recovery copy is written about half a minute after the tabs change | pass, 13 tabs | pass, 13 tabs | not run, `matrix-firefox` has no killed restart |
-| After a killed browser whose session files are gone, the lost tabs are offered | pass, 12 of 13 | pass, 12 of 13 | not run, as above |
+| The recovery copy is written about half a minute after the tabs change | pass, 14 tabs | pass, 14 tabs | not run, `matrix-firefox` has no killed restart |
+| After a killed browser whose session files are gone, the lost tabs are offered | pass, 13 of 14 | pass, 13 of 14 | not run, as above |
 | After a clean restart the browser restored itself, nothing is offered | pass | pass | not run, as above |
 | A keyboard command actually fires | **pass**, Alt+Shift+E wrote a file and Alt+Shift+S saved a snapshot | **pass** | skipped, the display delivers a plain key to Firefox but not an extension command. The Alt modifier was ruled out by rebinding to Ctrl+Shift+U, so this is the rig. It is one of the four rows in Table R10 that a person has to do: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 3 |
 | Optional permission prompt for `tabGroups` | not run, a driver cannot answer a prompt. `--grant-groups` grants it programmatically and exercises everything behind it, which leaves the dialogue itself as the one untested thing: [MANUAL-CHECKS.md](MANUAL-CHECKS.md) section 1 | not run | not run |
 | Containers | not applicable | not applicable | pass, the field is carried as `firefox-default` |
 
-**Totals on 2026-09-26, with nothing failed on any engine: Chrome 27 of 27,
-Edge 27 of 27, Firefox 26 of 28 with 2 skipped.** The two Firefox skips are the
+**Totals on 2026-09-28, with nothing failed on any engine: Chrome 30 of 30,
+Edge 30 of 30, Firefox 26 of 28 with 2 skipped.** Headed, on a virtual display with metacity, with `--grant-groups --keys`. The two Firefox skips are the
 keyboard rows, and the reason is in the row. The row counts differ between
 engines because some rows do not apply to an engine and some only exist with
 `--keys` and `--grant-groups`, which is why the flags are in the command at the
 top of this section.
 
-**The three recovery rows, 2026-09-28**, ran headless and without the flags, which is why the same runs show the two group rows and the bounds row failing: those are the rig, as the paragraph above explains. The recovery rows need neither flag. A killed Edge headless restores its own session on the next start, so the rows remove the profile's session files after the kill, which is the crash the feature is for.
+**The three recovery rows** need neither flag, and pass headless too. A killed Edge restores its own session on the next start, so the rows remove the profile's session files after the kill, which is the crash the feature is for.
+
+**Update warning for 1.1.0, measured 2026-09-28.** Chromium's own `management.getPermissionWarningsByManifest`, given the 1.0.0 and the 1.1.0 Chrome manifests, returns the same two warnings for both, "Read your browsing history" and "Manage your downloads". Adding `alarms` adds none, so existing users are not asked to re-approve. Measured in Playwright's Chromium 151, whose permission messages Chrome and Edge share.
 
 One instability worth naming rather than hiding: the small restore's rows read
 the tab strip the moment the report appears, and a tab that is still loading

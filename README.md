@@ -209,7 +209,7 @@ npm run smoke:firefox # installs the Firefox package in a real Firefox
 npm run perf:browser  # NFR-001, NFR-004 and NFR-005 on the built package
 ```
 
-Matrix totals, run headed on a virtual display with a window manager on 2026-09-26: **Chrome 27 of 27, Edge 27 of 27, Firefox 26 of 28 with 2 skipped, nothing failed.** The configuration is part of that result; the same tree headless and without the flags reports three failures that are all the rig rather than the product, and [docs/TESTING.md](docs/TESTING.md) says so beside the number.
+Matrix totals, run headed on a virtual display with a window manager on 2026-09-28, for 1.1.0: **Chrome 30 of 30, Edge 30 of 30, Firefox 26 of 28 with 2 skipped, nothing failed.** The configuration is part of that result; the same tree headless and without the flags reports three failures that are all the rig rather than the product, and [docs/TESTING.md](docs/TESTING.md) says so beside the number.
 
 Four things no run reaches, because they need a person: answering the browser's own permission prompt, a real suspender's parked page, a keystroke Firefox actually acts on, and whether it looks any good. They are written up with the keys to press in [docs/MANUAL-CHECKS.md](docs/MANUAL-CHECKS.md).
 
