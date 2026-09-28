@@ -82,11 +82,12 @@ test("marking it asked is what stops it being shown twice in one session", () =>
  * An ask that leads nowhere is worse than no ask. The first version built the
  * Chrome link out of the runtime extension id, which every unpacked build also
  * has, so a development install linked confidently to a Web Store page that did
- * not exist. Nothing is published yet, so nothing is linked yet.
+ * not exist. Now only a store that has accepted TabsPack is linked: Chrome.
  */
-test("there is no rating link until a store listing exists", () => {
-  assert.equal(anyListingKnown(), false, "nothing is published yet");
-  for (const name of ["Google Chrome", "Microsoft Edge", "Firefox", "Some Other Browser"]) {
+test("only a store that has accepted TabsPack gets a rating link", () => {
+  assert.equal(anyListingKnown(), true, "the Chrome Web Store listing is live");
+  assert.equal(reviewUrl("Google Chrome"), "https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm/reviews");
+  for (const name of ["Microsoft Edge", "Firefox", "Some Other Browser"]) {
     assert.equal(reviewUrl(name), null, `${name} has nowhere to send a rating yet`);
   }
 });
@@ -94,8 +95,7 @@ test("there is no rating link until a store listing exists", () => {
 /*
  * The shape the panel depends on: once a listing exists, everything above has
  * to still hold. Simulated by driving the same functions the panel drives, in
- * the same order, which is the part a browser test cannot reach today because
- * nothing is published.
+ * the same order, which a browser test cannot reach without waiting days of use.
  */
 test("the whole life of an ask, from install to settled", () => {
   let state = DEFAULT_RATING_STATE;

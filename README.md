@@ -7,9 +7,9 @@
 [![Spec](https://img.shields.io/badge/format-tabspack%20v1%20draft-lightgrey)](docs/SPEC.md)
 [![Browsers](https://img.shields.io/badge/browsers-Chrome%20%7C%20Edge%20%7C%20Firefox-informational)](PLAN.md#5-browsers)
 
-> **Project status: 1.0.0 is in review at the Chrome Web Store, and 1.1.0 is built and verified.** Milestones M0 to M9 are done. 1.1.0 adds the export preview, automatic snapshots, crash recovery and the snapshot tools, and is the first version Edge and AMO will receive. The extension exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, reads the export files of seven other tab tools, restores 200 tabs without taking the browser down, saves named snapshots, and has keyboard commands, settings, a theme and a translation layer. The cross browser matrix is green on Chrome, Edge and Firefox, there is a public site with the legal pages, and a support form that reaches us without a mail client.
+> **Project status: 1.0.0 is live on the [Chrome Web Store](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm), and 1.1.0 is submitted there as an update.** Milestones M0 to M9 are done. 1.1.0 adds the export preview, automatic snapshots, crash recovery, recent sessions and the snapshot tools, and is the first version Edge and AMO will receive. The extension exports your tabs to `.tabspack.json`, a URL list or the clipboard, imports a pack back, reads the export files of seven other tab tools, restores 200 tabs without taking the browser down, saves named snapshots, and has keyboard commands, settings, a theme and a translation layer. The cross browser matrix is green on Chrome, Edge and Firefox, there is a public site with the legal pages, and a support form that reaches us without a mail client.
 >
-> What is left is what a machine cannot do: [the manual checks](docs/MANUAL-CHECKS.md), the store submissions, which each need a developer account, and publishing the `tabspack` npm package. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> What is left is what a machine cannot do: [the manual checks](docs/MANUAL-CHECKS.md), and the Edge and Firefox submissions, which each need a developer account. The [`tabspack` npm package](https://www.npmjs.com/package/tabspack) is published. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Contents
 
@@ -18,6 +18,7 @@
 - [The format](#the-format)
 - [Architecture](#architecture)
 - [Tech stack](#tech-stack)
+- [Install](#install)
 - [Getting started](#getting-started)
 - [Project structure](#project-structure)
 - [Testing](#testing)
@@ -127,6 +128,15 @@ Two models, deliberately: `TabsPackFile` is the public wire format, `Session` is
 | UI | Plain HTML, CSS and ES modules | The UI is a list, a tree and a few buttons. A framework would be the largest thing in the bundle |
 | Storage | `storage.local` | `storage.sync` cannot hold snapshots. See ADR-007 |
 | Tests | node unit tests plus a manual cross browser matrix | `core/` is testable without a browser because of the adapter rule |
+
+## Install
+
+| Browser | Where |
+|---|---|
+| Chrome, and Brave, Vivaldi or any Chromium browser that installs from it | [Chrome Web Store](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm) |
+| Edge | The Chrome Web Store link above, after allowing extensions from other stores. Edge Add-ons follows |
+| Firefox | addons.mozilla.org follows. Until then, load it as a temporary add-on, as [docs/PLAYBOOK.md](docs/PLAYBOOK.md) describes |
+| Code that reads or writes the format | `npm install tabspack`, [npmjs.com/package/tabspack](https://www.npmjs.com/package/tabspack) |
 
 ## Getting started
 

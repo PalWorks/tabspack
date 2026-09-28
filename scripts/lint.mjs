@@ -82,6 +82,9 @@ const NETWORK_ALLOWLIST = [
   "http://www.w3.org/2000/svg",
   // Who made it, linked once at the foot of About: ADR-037.
   "https://palworks.ai",
+  // The Chrome Web Store listing, where the rating ask sends people: ADR-036.
+  // A link the user follows, not a request the extension makes.
+  "https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm/reviews",
   // The support relay, which is the one request the extension can make, and
   // only after the user presses Send and grants the host: ADR-039.
   RELAY_ORIGIN,

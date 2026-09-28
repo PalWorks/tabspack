@@ -98,13 +98,13 @@ export function settle(state: RatingState): RatingState {
  * so a development install produced a confident link to a Web Store page that
  * does not exist. An ask that leads nowhere is worse than no ask.
  *
- * So the listings are written down here, once, and they are empty until each
- * store has actually accepted a submission. While a listing is empty nothing is
- * shown at all, which is correct today: there is nothing published to rate.
- * Filling these in is part of T-509, alongside the store URLs in the README.
+ * So the listings are written down here, once, and each is added only when its
+ * store has actually accepted a submission. A browser with no listing is shown
+ * nothing at all. Chrome's went live with 1.0.0, confirmed 2026-09-28; Edge and
+ * Firefox follow their first acceptance, with the store URLs in the README.
  */
 const LISTINGS: { match: string; url: string }[] = [
-  // { match: "chrome", url: "https://chromewebstore.google.com/detail/<id>/reviews" },
+  { match: "chrome", url: "https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm/reviews" },
   // { match: "edge", url: "https://microsoftedge.microsoft.com/addons/detail/<id>" },
   // { match: "firefox", url: "https://addons.mozilla.org/firefox/addon/tabspack/reviews/" },
 ];

@@ -7,6 +7,7 @@
 
 TabsPack is made by palworks.ai. Site: https://palworks.github.io/tabspack/
 Source: https://github.com/PalWorks/tabspack
+Chrome Web Store: https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm
 
 ## What it is
 
