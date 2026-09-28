@@ -120,7 +120,7 @@ on somebody's behalf.
 
 | Gate | State |
 |---|---|
-| Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13. For 1.1.0, M9's rows in Table R14 are done, B-502 apart, whose publish waits on npm two factor |
+| Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13. For 1.1.0, M9's rows in Table R14 are done, and B-502 was published to npm on 2026-09-28 |
 | Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, run 2026-09-26 for 1.0.0. For 1.1.0 on 2026-09-28, headless, the three new recovery rows pass on Chrome and Edge; the headed run with the flags is still to do before submission. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
 | `npm run verify` | Green for 1.1.0 on 2026-09-28, including 303 unit tests, 0 addons-linter errors and the npm package test |
 | `npm run smoke` | Green, 126 checks, on 2026-09-28 |
@@ -134,7 +134,7 @@ on somebody's behalf.
 | **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0 was submitted by the maintainer, item `bgomldlmhkecjeceibdphdkoencnghjm`, rejected once for keyword spam (other products named in the description), fixed and resubmitted 2026-09-26, and is in review. 1.1.0 follows as an update once it is accepted |
 | **Edge Add-ons** | None on this machine | An account has to be created |
 | **AMO** | None on this machine | An account has to be created |
-| **npm**, for the `tabspack` package | The `palworks` npm account, company owned, on this machine's npm CLI through `npmu palworks` | npm refuses a publish without two factor authentication. `npm publish --access public` from `packages/tabspack` prints a browser link to approve with two factor; `--otp` is not used. Fallback: a granular token with bypass two factor, seven day expiry, revoked after the publish |
+| **npm**, for the `tabspack` package | Published 2026-09-28, [npmjs.com/package/tabspack](https://www.npmjs.com/package/tabspack). The `palworks` npm account, company owned, on this machine's npm CLI through `npmu palworks` | npm refuses a publish without two factor authentication. `npm publish --access public` from `packages/tabspack` prints a browser link to approve with two factor; `--otp` is not used. Fallback: a granular token with bypass two factor, seven day expiry, revoked after the publish |
 
 ### The Chrome upload, when the word is given
 

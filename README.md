@@ -96,7 +96,7 @@ The JSON Schema has a canonical address, and it resolves:
 
 The site serves the same bytes as `schema/` in this repository, and the build fails if the two disagree or if the schema's `$id` stops matching the path it is published at.
 
-To read or write the format from code, the reference reader and writer are an npm package, [`packages/tabspack`](packages/tabspack/README.md), compiled from the extension's own source so the two cannot disagree:
+To read or write the format from code, the reference reader and writer are an npm package, [`tabspack`](https://www.npmjs.com/package/tabspack) (source in [`packages/tabspack`](packages/tabspack/README.md)), compiled from the extension's own source so the two cannot disagree:
 
 ```js
 import { read, write, validate } from "tabspack";
