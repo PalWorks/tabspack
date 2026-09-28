@@ -6,12 +6,13 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ## [1.1.0] - 2026-09-28
 
-Not yet published. By the maintainer's decision this is one combined release: it is the first update Chrome receives after 1.0.0 is accepted, and the first version Edge and AMO receive. The store title and summary below already shipped in the 1.0.0 package that was resubmitted to Chrome on 2026-09-26.
+Uploaded to the Chrome Web Store as a draft update on 2026-09-28, to be submitted for review from the dashboard once the listing text and the `alarms` justification are pasted in ([store/submission.md](docs/store/submission.md), "The 1.1.0 update"). By the maintainer's decision this is one combined release: the first update Chrome receives, and the first version Edge and AMO receive. The store title and summary below already shipped in 1.0.0.
 
 ### Changed
 
 - **Permissions.** `alarms` is now required, and carries no install warning. `sessions` is a new optional permission. The Firefox manifest declares Mozilla's built-in data consent, which AMO requires of new extensions: nothing is required, and the support message's contents are optional, asked for in the same click as the relay's address. `addons-linter` moves to 10.13, the first line that accepts the declaration. ADR-048
 - **The popup's format row is quieter.** It now reads as a sentence under Export and Import: "Saves as TabsPack file", with the format underlined and a chevron, highlighted on hover, and Copy as a plain word. It is still a native select. The store screenshots were recaptured, and screenshot 4 now shows the age line under the export preview, where the redesigned export pane puts it.
+- **The rating ask can now appear in Chrome**, and links to the Chrome Web Store listing's reviews. It stays silent in Edge and Firefox until their listings exist. The site's install buttons and the README point at the listing.
 - The import screen's hint no longer names other extensions. It says "an export from another tab manager", after the store's keyword spam rejection taught the rule.
 - The privacy policy is now version 1.4, in `PRIVACY.md` and on the site. It adds automatic snapshots, the recovery copy, recent sessions and the recently closed list, all local, and says the recovery copy is on from install. There is no new transmission.
 - **The store title and summary say what the product does.** The manifest `name` was `TabsPack`, which is what every store reads as the listing title, so the dashboard showed a brand nobody has heard of. It is now `TabsPack: Cross Browser Tab Export & Restore`, 44 characters so nothing is cut at the 45 character search truncation and it fits AMO's 50. The summary is now `Save or export your tab session as one file. Import it in Chrome, Edge or Firefox and restore every window, pinned tab and group.`, 129 of 132, carrying save, export, import, restore, session and all three browser names once each.
@@ -66,6 +67,8 @@ Not yet published. By the maintainer's decision this is one combined release: it
 
 
 ## [1.0.0] - 2026-09-26
+
+Live on the [Chrome Web Store](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm), confirmed 2026-09-28 after one keyword spam rejection and a resubmission.
 
 The first release. Everything below was built before any store had seen it, which is why the list is long and the version number jumps from an internal counter straight to 1.0.0: `0.0.x` was never published to anyone.
 

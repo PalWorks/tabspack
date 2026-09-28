@@ -92,6 +92,22 @@ body.popup {
   text-decoration-color: currentColor;
 }
 
+/*
+ * Gecko draws no text decoration on a select, measured in Firefox 156, so the
+ * underline there is a dotted bottom border. It runs under the chevron too.
+ */
+@supports (-moz-appearance: none) {
+  .inline-select select {
+    border-bottom: 1px dotted var(--border-strong);
+    border-radius: var(--radius-control) var(--radius-control) 0 0;
+  }
+
+  .inline-select:hover select {
+    border-bottom-style: solid;
+    border-bottom-color: currentColor;
+  }
+}
+
 /* Copy is the other way out, so it is quiet: a word, not a box. */
 .btn-quiet {
   height: 24px;

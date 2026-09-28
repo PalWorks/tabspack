@@ -125,19 +125,38 @@ on somebody's behalf.
 | Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, run 2026-09-26 for 1.0.0. For 1.1.0, re-run 2026-09-28 headed with the flags: **Chrome 30/30, Edge 30/30, Firefox 26 of 28 with 2 skipped, nothing failed**, the three new recovery rows included. Adding `alarms` adds no Chrome update warning, measured with Chromium's own warning API. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
 | `npm run verify` | Green for 1.1.0 on 2026-09-28, including 309 unit tests, 0 addons-linter errors and the npm package test |
 | `npm run smoke` | Green, 129 checks, on 2026-09-28 |
-| Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is the version in review at Chrome |
+| Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is live on Chrome; 1.1.0 is uploaded there as a draft |
 | Packages | Built, in `dist/artifacts/`, and audited: manifest at the archive root, no source map, no `.env`, no 32 character account id, no credential shape anywhere in the source archive |
 
 ### Table T6: What is actually blocking each store
 
 | Store | Credential | Blocking |
 |---|---|---|
-| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0 was submitted by the maintainer, item `bgomldlmhkecjeceibdphdkoencnghjm`, rejected once for keyword spam (other products named in the description), fixed and resubmitted 2026-09-26, and is in review. 1.1.0 follows as an update once it is accepted |
+| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0, item `bgomldlmhkecjeceibdphdkoencnghjm`, was rejected once for keyword spam (other products named in the description), fixed, resubmitted 2026-09-26, and is **live**, confirmed through the API on 2026-09-28: [chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm). **1.1.0 was uploaded through the API on 2026-09-28** (`uploadState: SUCCESS`) and waits as a draft for the dashboard steps below |
 | **Edge Add-ons** | None on this machine | An account has to be created |
 | **AMO** | None on this machine | An account has to be created |
 | **npm**, for the `tabspack` package | Published 2026-09-28, [npmjs.com/package/tabspack](https://www.npmjs.com/package/tabspack). The `palworks` npm account, company owned, on this machine's npm CLI through `npmu palworks` | npm refuses a publish without two factor authentication. `npm publish --access public` from `packages/tabspack` prints a browser link to approve with two factor; `--otp` is not used. Fallback: a granular token with bypass two factor, seven day expiry, revoked after the publish |
 
-### The Chrome upload, when the word is given
+### The 1.1.0 update, uploaded 2026-09-28
+
+The package is in the dashboard as a draft. Uploading does not submit it. Before
+pressing **Submit for review**, in this order:
+
+1. **Privacy practices**: add the justification for `alarms`, and for the
+   optional `sessions`, from `store_listing.md` Table S6. A new permission with
+   no justification is a rejection waiting to happen.
+2. **Privacy practices**: replace the "Web history" answer with the one in
+   Table S8, which now says the recovery copy is on from install.
+3. **Store listing**: paste the description box from `store_listing.md` again
+   (it gained the crash and recent sessions paragraph), and replace
+   screenshots 1, 4 and 5 with the files in `assets/store/`.
+4. **Submit for review.** Existing users keep 1.0.0 until it is approved, and
+   adding `alarms` shows them no warning (TESTING.md, measured 2026-09-28).
+
+The upload call, for the next version: the same as below, but a `PUT` to
+`/upload/chromewebstore/v1.1/items/bgomldlmhkecjeceibdphdkoencnghjm`.
+
+### The first Chrome upload, as it was done for 1.0.0
 
 A new item, so it is a `POST` to the items endpoint rather than a `PUT` to one.
 Nothing here publishes: the upload creates a draft, and publishing is a second,

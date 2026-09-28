@@ -18,7 +18,8 @@ Add-ons and addons.mozilla.org.
 > **After a store accepts it**, its listing URL goes into `LISTINGS` in
 > `src/core/rating.ts` and into `NETWORK_ALLOWLIST` in `scripts/lint.mjs`, which
 > is what turns the rating ask on. A listing URL cannot exist before the listing
-> does, so this is the one step that has to come after. See Table S11.
+> does, so this is the one step that has to come after. See Table S11. **Done
+> for Chrome on 2026-09-28**: https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm.
 
 ---
 
@@ -389,9 +390,9 @@ These are easy to forget and each one is a silent failure if it is missed.
 
 | # | Do this | Why |
 |---|---|---|
-| 1 | Put the listing URL into `LISTINGS` in `src/core/rating.ts` | Until a store's URL is there, `reviewUrl()` returns null and **the rating ask never appears**. That is deliberate: an ask that leads to a page that does not exist is worse than no ask |
-| 2 | Add the same URL to `NETWORK_ALLOWLIST` in `scripts/lint.mjs` | The linter fails the build on any remote URL that is not on the list. This is the step that makes adding one a conscious act |
-| 3 | Put all three URLs in `README.md` and on the website's home page | The install buttons currently point at GitHub releases, and the home page says the extension is not in the stores yet. Both need the real link the day it exists |
+| 1 | Put the listing URL into `LISTINGS` in `src/core/rating.ts`. Chrome done 2026-09-28 | Until a store's URL is there, `reviewUrl()` returns null and **the rating ask never appears**. That is deliberate: an ask that leads to a page that does not exist is worse than no ask |
+| 2 | Add the same URL to `NETWORK_ALLOWLIST` in `scripts/lint.mjs`. Chrome done 2026-09-28 | The linter fails the build on any remote URL that is not on the list. This is the step that makes adding one a conscious act |
+| 3 | Put all three URLs in `README.md` and on the website's home page | The day each listing exists, the install buttons have to point at it. Chrome's was done 2026-09-28: the README's Install table, the site's buttons and its structured data. Edge and Firefox still point at GitHub releases |
 
 ---
 

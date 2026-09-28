@@ -122,7 +122,8 @@ or has a roadmap row.
 ### 4.2 T-509: three stores
 
 **State.** Chrome resubmitted on 2026-09-26 after the keyword spam rejection,
-item id `bgomldlmhkecjeceibdphdkoencnghjm`, in review. Edge and AMO not started.
+item id `bgomldlmhkecjeceibdphdkoencnghjm`. **Live**, confirmed 2026-09-28, and 1.1.0
+uploaded as a draft the same day. Edge and AMO not started.
 
 **Chrome.**
 
