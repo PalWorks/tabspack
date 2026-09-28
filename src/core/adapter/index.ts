@@ -257,7 +257,19 @@ export const realAdapter: BrowserAdapter = {
       const gecko = (browser.runtime.getManifest() as { browser_specific_settings?: { gecko?: { data_collection_permissions?: unknown } } })
         .browser_specific_settings?.gecko;
       const consent = gecko?.data_collection_permissions !== undefined && dataCollection.length > 0;
-      return await browser.permissions.request(consent ? { origins, data_collection: dataCollection } : { origins });
+      if (!consent) return await browser.permissions.request({ origins });
+      let pending: Promise<boolean>;
+      try {
+        pending = browser.permissions.request({ origins, data_collection: dataCollection });
+      } catch {
+        /*
+         * Firefox 115 to 139 predate data consent and reject the unknown key
+         * when the call is made, still inside the click, so the plain request
+         * goes out in the same gesture. Those versions have no consent to ask.
+         */
+        pending = browser.permissions.request({ origins });
+      }
+      return await pending;
     } catch {
       // A browser that refuses the call outright is a browser with no host
       // access, which the caller handles the same way as a declined prompt.
