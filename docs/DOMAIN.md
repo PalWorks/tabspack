@@ -25,7 +25,8 @@ Why this file exists: most bugs in this category of extension come from assuming
 | Session | In TabsPack, the in memory model of a set of windows, tabs and groups | Not the browser `sessions` API, which is about recently closed items. Different concept, similar name |
 | Snapshot | A session saved inside the extension's local storage, with a name and tags | Not a file. A file is what a snapshot becomes on export |
 | Automatic snapshot | A snapshot the worker took on the user's chosen interval, tagged `auto` | Part of a rolling series: the newest N are kept and older automatic ones are removed, ADR-047. Renaming one makes it an ordinary snapshot, which is never removed |
-| Recovery copy | One rolling copy of the open tabs, kept by the worker when the user turns it on | Not a snapshot and not listed as one. Set aside as the previous session when the browser starts, and compared with what came back: ADR-048 |
+| Recovery copy | One rolling copy of the open tabs, kept by the worker from install unless the user turns it off | Not a snapshot and not listed as one. Set aside as the previous session when the browser starts, and compared with what came back: ADR-048 |
+| Recent session | The recovery copy as it stood when one browser session ended, in a list of the last five, newest first | Not a snapshot until the user keeps it, when it becomes one and leaves the list. A session where no tab changed is not a new entry: ADR-049 |
 | Recovery offer | What TabsPack shows after a start that lost a meaningful part of the previous session | Opens the preview with only the missing tabs. Never restores on its own |
 | Pack, TabsPack file | A `.tabspack.json` file conforming to SPEC.md | The interchange unit. The only thing a third party tool sees |
 | Scope | Which tabs an action covers: current tab, current window, all windows, selected tabs | The four scopes Copy All URLs settled on, minus its group scope, which we fold into selection |

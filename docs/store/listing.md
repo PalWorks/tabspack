@@ -40,9 +40,9 @@ in today's meeting.
   file, a plain list of addresses, or straight to the clipboard.
 - Import a pack back, preview every window, group and tab first, choose what to
   restore, and restore without the browser grinding to a halt.
-- Get your tabs back after a crash. With the recovery copy on, TabsPack keeps one
-  copy of your open tabs on this machine and, if the browser starts without
-  them, shows you what is missing before anything opens. Automatic snapshots run
+- Get your tabs back after a crash. TabsPack keeps one copy of your open tabs
+  and your last five sessions on this machine and, if the browser starts
+  without them, shows you what is missing before anything opens. Automatic snapshots run
   on an interval, skip the times nothing changed and keep the newest ten.
 - Open the export files of other popular tab managers, your browser's saved
   bookmarks and simple lists of links. Recognised by what is in the file, not

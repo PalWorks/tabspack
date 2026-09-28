@@ -56,7 +56,7 @@ Working today:
 - **Search and select** in the preview, for taking part of a pack rather than all of it.
 
 - **Snapshots**, saved locally, named and tagged, for the days when you do not want to think about where a file went. Export one to a file, or add a file as a snapshot without opening a single tab. Compare any snapshot with the one before it, tidy runs of identical ones, find the addresses that keep turning up, and combine several into one.
-- **Automatic protection**, off until you turn it on. A recovery copy of your open tabs means a crash, or a browser that starts without your tabs, ends with TabsPack showing you what is missing and restoring it from the preview. Automatic snapshots run hourly, every four hours or daily, skip the times nothing changed, and keep the newest ten.
+- **Automatic protection.** A recovery copy of your open tabs, on from install, means a crash, or a browser that starts without your tabs, ends with TabsPack showing you what is missing and restoring it from the preview. Automatic snapshots run hourly, every four hours or daily, skip the times nothing changed, and keep the newest ten. Recent sessions keep your last five browser sessions, to preview, export or keep as a snapshot.
 - **Preview what you export.** The export pane shows the tabs the file will hold, as the same tree the import preview uses, and a tab you untick is left out.
 - **Keyboard commands** for exporting all windows, exporting this window and saving a snapshot, with no page in the way.
 
@@ -199,8 +199,8 @@ manifest.firefox.json   Gecko manifest
 Three properties get the test budget: a file round trips without loss, a malformed file fails with a message you can act on, and an old file still opens. The round trip test is defined precisely in [docs/TESTING.md](docs/TESTING.md), and passing it on Chrome, Edge and Firefox is what makes the product's central claim true.
 
 ```bash
-npm run verify        # typecheck, lint, schema, site, 303 tests, contrast, budgets, both builds, AMO's linter, the npm package
-npm run smoke         # 126 checks against the built extension in a real Chromium
+npm run verify        # typecheck, lint, schema, site, 309 tests, contrast, budgets, both builds, AMO's linter, the npm package
+npm run smoke         # 129 checks against the built extension in a real Chromium
 npm run matrix -- --target=chrome|edge --headed --grant-groups --keys
                       # the cross browser matrix against the Chrome or Edge on this machine
 npm run matrix:firefox -- --headed --grant-groups

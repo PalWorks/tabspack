@@ -71,7 +71,6 @@
             <div id="recovery-offer" hidden></div>
             <div id="export-groups-callout" hidden></div>
             <div id="export-rating" hidden></div>
-            <div id="recovery-ask" hidden></div>
 
             <section id="export-settings" class="card" aria-labelledby="export-legend" data-collapsed="false">
               <div class="intake-head">
@@ -359,9 +358,12 @@
               </div>
               <p id="auto-status" class="hint"></p>
 
-              <div id="previous-session" class="row" hidden>
-                <span id="previous-line" class="summary"></span>
-                <button id="previous-preview" class="btn btn-secondary" type="button" data-i18n="previousSessionPreview">Preview</button>
+              <div class="recent-sessions">
+                <h3 class="sublegend" data-i18n="recentSessionsLabel">Recent sessions</h3>
+                <p class="hint" data-i18n="recentSessionsHint">Your last five browser sessions, each as it stood when the browser closed. The oldest goes when a new one arrives.</p>
+                <p id="current-session" class="hint current-session" hidden></p>
+                <div id="sessions-report" class="report" role="status" aria-live="polite"></div>
+                <ul id="recent-sessions" class="snapshot-list"></ul>
               </div>
 
               <div class="row">

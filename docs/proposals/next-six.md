@@ -62,7 +62,7 @@ Each has a recommendation. None blocks Track A or B.
 | # | Decision | Effect on this plan |
 |---|---|---|
 | D1 | Add B-101 | As planned |
-| D2 | Recovery copy off at install, offered after the first export | As planned |
+| D2 | Recovery copy off at install, offered after the first export | As planned. **Revised 2026-09-28** by the maintainer: on from install, with no prompt and no notice, together with recent sessions (B-104). ADR-049 |
 | D3 | **A rolling limit on automatic snapshots**, because the aim is less work for the user managing sessions, not more | ADR-047 amends ADR-012: automatic snapshots keep the newest N and the oldest beyond that are removed. Manual snapshots are still never deleted by TabsPack. Unchanged snapshots are still never written. B-103's tidy action stays, for the manual ones and for anyone who wants a shorter series |
 | D4 | The unscoped name `tabspack` on npm, published from this machine's authenticated npm CLI | B-502 publishes as `tabspack`, not `@palworks/tabspack`. Provenance publishing from Actions can follow later with a token |
 | D5 | One combined release, no hurry | Track A's 1.0.1 folds into 1.1.0. Edge and AMO receive 1.1.0 as their first version; Chrome receives it as the first update after 1.0.0 is accepted |

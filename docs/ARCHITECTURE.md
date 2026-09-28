@@ -50,8 +50,9 @@ src/
     settings.ts           defaults, merge on read, storage round trip
     snapshots.ts          the metadata index, one body per snapshot, quota
     compare.ts            signature, lost tabs, diff, tidy, overlap, combine: M9
-    durability.ts         recovery copy, start check, automatic snapshots,
-                          the rolling limit and the alarms: ADR-047, ADR-048
+    durability.ts         recovery copy, start check, recent sessions,
+                          automatic snapshots, the rolling limits and the
+                          alarms: ADR-047, ADR-048, ADR-049
     issues.ts             one shape for every validation, migration and read note
     schema.ts             structural validation and the version gate
     migrate.ts            the version step registry, empty until the format changes
@@ -98,8 +99,8 @@ src/
       preview-tree.ts     the virtualised windows, groups and tabs tree
       snapshot-panel.ts   save, list, rename, tag, export and delete snapshots,
                           and compare, tidy, overlap and combine them: B-103, B-201
-      recovery-panel.ts   the recovery offer, the one-time ask, and the
-                          Automatic protection card: B-101, B-102
+      recovery-panel.ts   the recovery offer, and the Automatic protection
+                          card with recent sessions: B-101, B-102, B-104
       settings-panel.ts   the Settings and About panes: ADR-028
       support-panel.ts    compose, send through the relay, fall back: ADR-039
       rating-panel.ts     the ask, built once per pane, never a modal: ADR-036

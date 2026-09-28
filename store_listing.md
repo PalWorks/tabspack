@@ -157,7 +157,7 @@ rank.
 
 ## Detailed description
 
-Paste the contents of the box below exactly (the copy button on a rendered view takes all of it). It is **4,332 characters** against a 16,000 limit,
+Paste the contents of the box below exactly (the copy button on a rendered view takes all of it). It is **4,331 characters** against a 16,000 limit,
 counted inside the box. Short is deliberate: a long listing
 dilutes the phrases that matter, and the fields below the fold are read by almost nobody.
 
@@ -220,7 +220,7 @@ It never guesses. A pinned tab is never called old, and a tab your browser gives
 
 🧯 A CRASH DOES NOT COST YOU YOUR TABS
 
-Turn on the recovery copy and TabsPack keeps one quiet copy of your open tabs on this machine. If the browser crashes, or starts without your tabs, it tells you how many are missing and shows them to you before anything opens.
+TabsPack keeps one quiet copy of your open tabs on this machine, and your last five sessions. If the browser crashes, or starts without your tabs, it tells you how many are missing and shows them to you before anything opens.
 
 Automatic snapshots save your session every hour, every four hours or once a day. They skip the times nothing changed, and keep the newest ten, or as many as you choose.
 
@@ -276,8 +276,8 @@ a rejection or a slow review. Each row says **what** the permission does and
 | Permission | Required? | Justification to paste |
 |---|---|---|
 | `tabs` | Required | Reads the address and title of the tabs the user has open. This is the extension's entire function: exporting them to a file and restoring them from one. It is never used to read page content, no content script is injected anywhere, and nothing is transmitted. |
-| `storage` | Required | Stores the user's own settings, the snapshots they save, and, only if they turn these on, automatic snapshots and one recovery copy of their open tabs. All of it is in local extension storage on that machine only. Nothing is synced and nothing is sent anywhere. |
-| `alarms` | Required | Wakes the extension's background worker later: about half a minute after the tabs change, to update the recovery copy, and on the interval the user chose, to take an automatic snapshot. Both features are off until the user turns them on, and when they are off no alarm is ever set. It is not used to run anything on a timer otherwise. |
+| `storage` | Required | Stores the user's own settings, the snapshots they save, one recovery copy of their open tabs with their last five browser sessions, which one checkbox turns off, and, only if they turn them on, automatic snapshots. All of it is in local extension storage on that machine only. Nothing is synced and nothing is sent anywhere. |
+| `alarms` | Required | Wakes the extension's background worker later: about half a minute after the tabs change, to update the recovery copy, and on the interval the user chose, to take an automatic snapshot. The recovery copy is on from install and the user can turn it off; automatic snapshots are off until turned on. With both off no alarm is ever set. It is not used to run anything on a timer otherwise. |
 | `downloads` | Required | Writes the export file the user asked for, with a meaningful filename, without a save dialog on every export. Only files the user explicitly requested are ever written. |
 | `tabGroups` | Optional, requested in-product | Reads and restores a tab group's title, colour and collapsed state. Without it the browser does not expose the tab groups API at all, so a group's name cannot be read and an export would silently contain unnamed groups. It is requested from a button before an export, which is the point at which the information would otherwise be lost. Declining is fully supported: the tabs still restore grouped, just unnamed. |
 | `sessions` | Optional, requested in-product | Reads the browser's own list of recently closed windows and tabs, and reopens one the user picks, with its back button history. Requested only when the user presses "Show recently closed" on the Snapshots pane, never at install. Nothing from the list is stored or sent. |
@@ -312,7 +312,7 @@ noticed and is expensive.
 | Authentication information | No. An export never contains cookies, tokens, headers or form values, by design and by specification |
 | Personal communications | Only a message the user writes in the Support pane and chooses to send, which is addressed to us. Used to answer them, and for nothing else |
 | Location | No |
-| Web history | The extension reads the tabs currently open when the user asks for an export or a snapshot, and, only if the user turns them on, for automatic snapshots and a recovery copy. All of it stays on the user's own machine, in a file they chose or in local extension storage. No tab address, title or count is ever transmitted |
+| Web history | The extension reads the tabs currently open when the user asks for an export or a snapshot, for the recovery copy, which the user can turn off, and, only if the user turns them on, for automatic snapshots. All of it stays on the user's own machine, in a file they chose or in local extension storage. No tab address, title or count is ever transmitted |
 | User activity | No |
 | Website content | No. No content script, no page access |
 | Is data sold or transferred to third parties? | Never sold, never transferred for anyone else's purposes. A support message the user sends is carried by Cloudflare Workers and delivered by Resend, acting only to get it to our inbox |

@@ -123,8 +123,8 @@ on somebody's behalf.
 |---|---|
 | Milestone exit test | M8 passed 2026-09-26, recorded in ROADMAP.md Table R13. For 1.1.0, M9's rows in Table R14 are done, and B-502 was published to npm on 2026-09-28 |
 | Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, run 2026-09-26 for 1.0.0. For 1.1.0, re-run 2026-09-28 headed with the flags: **Chrome 30/30, Edge 30/30, Firefox 26 of 28 with 2 skipped, nothing failed**, the three new recovery rows included. Adding `alarms` adds no Chrome update warning, measured with Chromium's own warning API. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
-| `npm run verify` | Green for 1.1.0 on 2026-09-28, including 303 unit tests, 0 addons-linter errors and the npm package test |
-| `npm run smoke` | Green, 126 checks, on 2026-09-28 |
+| `npm run verify` | Green for 1.1.0 on 2026-09-28, including 309 unit tests, 0 addons-linter errors and the npm package test |
+| `npm run smoke` | Green, 129 checks, on 2026-09-28 |
 | Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is the version in review at Chrome |
 | Packages | Built, in `dist/artifacts/`, and audited: manifest at the archive root, no source map, no `.env`, no 32 character account id, no credential shape anywhere in the source archive |
 

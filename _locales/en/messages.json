@@ -1358,21 +1358,6 @@
   "recoveryDismiss": {
     "message": "Not now"
   },
-  "recoveryAskTitle": {
-    "message": "Protect your tabs from a crash?"
-  },
-  "recoveryAskText": {
-    "message": "TabsPack can keep a recovery copy of your open tabs on this machine. If the browser crashes or does not bring your tabs back, it offers them to you."
-  },
-  "recoveryAskYes": {
-    "message": "Turn it on"
-  },
-  "recoveryAskNo": {
-    "message": "No thanks"
-  },
-  "recoveryAskDone": {
-    "message": "Recovery copy on. You can change it on the Snapshots pane."
-  },
   "durabilityLegend": {
     "message": "Automatic protection"
   },
@@ -1380,7 +1365,7 @@
     "message": "Keep a recovery copy of my open tabs"
   },
   "optRecoveryHint": {
-    "message": "Updated about half a minute after your tabs change, and kept on this machine only."
+    "message": "On from install. Updated about half a minute after your tabs change, and kept on this machine only. It is also what the recent sessions below are made of."
   },
   "autoIntervalLabel": {
     "message": "Automatic snapshots"
@@ -1425,8 +1410,14 @@
   "autoStatusFull": {
     "message": "Storage is full, so the last automatic snapshot was not saved. Export or delete a snapshot you saved to make room."
   },
-  "previousSessionLine": {
-    "message": "Your last session before the browser restarted: $value$, saved $second$.",
+  "recentSessionsLabel": {
+    "message": "Recent sessions"
+  },
+  "recentSessionsHint": {
+    "message": "Your last five browser sessions, each as it stood when the browser closed. The oldest goes when a new one arrives."
+  },
+  "currentSessionLine": {
+    "message": "This session: $value$, saved $second$.",
     "placeholders": {
       "value": {
         "content": "$1"
@@ -1436,8 +1427,30 @@
       }
     }
   },
-  "previousSessionPreview": {
-    "message": "Preview"
+  "recentSessionsEmpty": {
+    "message": "Your sessions appear here once the browser has restarted."
+  },
+  "recentSessionsOff": {
+    "message": "Turn on the recovery copy above to keep your recent sessions."
+  },
+  "recentSessionName": {
+    "message": "Session until $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "keepRecentButton": {
+    "message": "Keep as snapshot"
+  },
+  "keptRecent": {
+    "message": "Kept as the snapshot \"$value$\". It is no longer removed as new sessions arrive.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
   },
   "recentClosedButton": {
     "message": "Show recently closed"

@@ -77,8 +77,9 @@ export interface Settings {
   /* Durability, M9. */
   /**
    * Keep one rolling copy of the open tabs, so a crash or a browser that did
-   * not restore its session can be recovered. Off at install and offered after
-   * the first export: B-102, decision D2.
+   * not restore its session can be recovered, and so the last few sessions
+   * are kept (B-104). On at install, with no prompt: B-102, decision D2 as
+   * revised by the maintainer on 2026-09-28. It never leaves the device.
    */
   recoveryCopy: boolean;
   /** Hours between automatic snapshots. `0` is off, the default. B-101. */
@@ -115,7 +116,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
   theme: "system",
 
-  recoveryCopy: false,
+  recoveryCopy: true,
   autoSnapshotHours: 0,
   autoSnapshotKeep: 10,
 };

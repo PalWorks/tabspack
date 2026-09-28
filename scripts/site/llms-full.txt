@@ -116,10 +116,10 @@ authenticate as the user anywhere.
 
 - `tabs` (required): read the address and title of open tabs. This is the core
   function. It is never used to read page content.
-- `storage` (required): store the user's settings and snapshots locally, and,
-  if turned on, automatic snapshots and a recovery copy.
+- `storage` (required): store the user's settings, snapshots, the recovery
+  copy and recent sessions locally, and, if turned on, automatic snapshots.
 - `alarms` (required, from 1.1.0): wake the background worker to update the
-  recovery copy and take automatic snapshots, only when the user turned them on.
+  recovery copy, and take automatic snapshots when the user turned them on.
 - `downloads` (required): write the export file without a save dialog each time.
 - `tabGroups` (optional): read and restore a tab group's title, colour and
   collapsed state. Requested from a button in the interface, before an export,
@@ -131,9 +131,11 @@ authenticate as the user anywhere.
 
 ## Crash recovery and automatic snapshots, from 1.1.0
 
-Both are off until the user turns them on, on the Snapshots pane, and both keep
-everything on the device. The recovery copy is one rolling copy of the open
-tabs, written about half a minute after they change. When the browser starts
+Both keep everything on the device. The recovery copy is on from install and
+can be turned off on the Snapshots pane; automatic snapshots are off until
+turned on. The recovery copy is one rolling copy of the open tabs, written
+about half a minute after they change, and the last five browser sessions are
+kept from it as recent sessions, to preview, export, delete or keep. When the browser starts
 without a meaningful part of the previous session, TabsPack says how many tabs
 are missing on the toolbar, in the popup and on its manager page, and opens them
 in the import preview; it never restores on its own, and offers nothing when the
@@ -225,7 +227,7 @@ other file reaches for a browser API. A cross browser matrix loads the extension
 into real Chrome, real Edge and real Firefox and drives them, because the
 interesting failures in an extension are all about what a particular browser
 actually does. Every non-obvious decision is recorded as a numbered decision
-record in the repository, forty-eight of them at present.
+record in the repository, forty-nine of them at present.
 
 ## Contact
 

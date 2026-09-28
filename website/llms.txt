@@ -30,9 +30,9 @@ after a crash or after a tab suspender extension is removed.
 - No content scripts, no remote code, no analytics, no telemetry, no account.
 - An export never contains cookies, session tokens, authorization headers or
   form data. It cannot be used to sign in as the user.
-- Crash recovery, from 1.1.0 and off until turned on: a rolling recovery copy
-  of the open tabs, and automatic snapshots on an interval with a rolling
-  limit. Kept on the device only. After a crash TabsPack offers the missing
+- Crash recovery, from 1.1.0: a rolling recovery copy of the open tabs and the
+  last five browser sessions, on from install, and automatic snapshots on an
+  interval with a rolling limit, off until turned on. Kept on the device only. After a crash TabsPack offers the missing
   tabs in a preview and never restores on its own.
 - Reference reader and writer on npm: `npm install tabspack`, with `read`,
   `write`, `validate` and the JSON Schema, compiled from the extension's source.

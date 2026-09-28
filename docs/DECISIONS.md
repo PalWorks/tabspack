@@ -918,3 +918,23 @@ Date 2026-09-28. Status accepted. Implements B-101 and B-102 within ARCHITECTURE
 - The worker gains four top-level listeners and still holds no state in memory.
 - `addons-linter` moves to 10.x, the first line that accepts `data_collection_permissions`.
 - The permissions lint rule now requires `alarms`.
+
+---
+
+## ADR-049: The recovery copy is on from install, and keeps the last five sessions
+
+Date 2026-09-28. Status accepted. Revises decision D2 of [proposals/next-six.md](proposals/next-six.md) and implements B-104.
+
+**Context.** D2 kept the recovery copy off at install and offered it once, after a first export, on the view that a product which records every open tab from its first minute can surprise people, even when nothing leaves the machine. That left the users who most need it unprotected: anyone whose browser crashes before a first export, and anyone who closed the offer without reading it. A study of an older tab suspender's session page showed the other half of the idea: it kept the last five browser sessions without asking, which answers "what did I have open yesterday" without any setup. The maintainer's direction is that users should not have to manage their own sessions, and that they do not need to be asked.
+
+**Decisions.**
+
+- **The recovery copy is on from install, with no prompt and no notice.** The one-time offer after a first export is removed. The checkbox on the Snapshots pane turns it off, and turning it off also stops recent sessions.
+- **Recent sessions.** When the browser starts, the copy as it stood when the last session ended joins a list of the last five, newest first, and the oldest goes. No new permission, no new alarm: it is the moment the copy is already set aside as the previous session.
+- **A session where nothing changed is not a new entry.** The same copy seen twice is one entry, and a session holding exactly the tabs of the one before replaces it, so five idle restarts cannot push out a session that mattered.
+- **Each entry can be previewed, exported, deleted, or kept as a snapshot.** Keeping it makes it an ordinary snapshot named for when the session ended, and it leaves the rolling list, which can then never remove it. Preview goes to the import preview, never straight to the browser: DOMAIN business rule 4.
+- **Automatic snapshots stay off until turned on.** They are a schedule the user picks, and a session history is not.
+
+**What was given up.** Consent before the first write. The privacy policy, version 1.4, says the copy is on from install, what it holds and how to turn it off. Nothing about transmission changes: the copy and the sessions stay in local extension storage.
+
+**Consequence.** `recoveryCopy` defaults to true. Five recent sessions cost about five copies of the tab list without favicons, typically tens of kilobytes each, counted in the storage usage the Snapshots pane shows. The unit tests cover the roll, the no-change rule, keep and delete, and the smoke run checks the default, the list and keep.

@@ -945,6 +945,7 @@ try {
   await extraTab.close();
 
   /* Automatic protection: the settings reach the worker's alarms. */
+  check("the recovery copy is on from install, with no prompt", await manager.isChecked("#opt-recovery"));
   await manager.check("#opt-recovery");
   await manager.selectOption("#opt-auto-interval", "1");
   await manager.waitForFunction(() => document.querySelector("#opt-auto-keep")?.disabled === false, null, { timeout: 5_000 });
@@ -980,6 +981,25 @@ try {
   check("and opens in the import preview, not straight into the browser", await manager.isVisible("#preview"));
   const offerGone = await worker.evaluate(async () => (await chrome.storage.local.get("recoveryOffer")).recoveryOffer ?? null);
   check("acting on the offer clears it", offerGone === null, JSON.stringify(offerGone));
+
+  /* Recent sessions, B-104: listed on the Snapshots pane, and one can be kept for good. */
+  await worker.evaluate(async (text) => {
+    const at = (hour) => Date.parse(`2026-09-2${hour}T18:00:00Z`);
+    await chrome.storage.local.set({
+      recoverySessions: [
+        { capturedAt: at(7), signature: "r2", windows: 1, tabs: 12, text },
+        { capturedAt: at(6), signature: "r1", windows: 1, tabs: 12, text },
+      ],
+    });
+  }, JSON.stringify(lostPack));
+  await manager.goto(`chrome-extension://${extensionId}/manager.html#snapshots`);
+  await manager.waitForFunction(() => document.querySelectorAll("#recent-sessions > li.snapshot").length === 2, null, { timeout: 10_000 });
+  check("recent sessions are listed on the Snapshots pane, newest first", true);
+  await manager.locator("#recent-sessions > li.snapshot").first().getByRole("button", { name: "Keep as snapshot" }).click();
+  await manager.waitForFunction(() => document.querySelectorAll("#recent-sessions > li.snapshot").length === 1, null, { timeout: 5_000 });
+  // Filed under the time the session ended, so it sorts among the snapshots by that date.
+  const names = await manager.$$eval("#snapshot-list .snapshot-name", (inputs) => inputs.map((input) => input.value));
+  check("keeping one makes it a snapshot and takes it out of the rolling list", names.some((name) => /^Session until/.test(name)), names.join(" | "));
   // Leave the store as the rest of the run expects it: no snapshots, no offer.
   await worker.evaluate(async () => {
     const all = await chrome.storage.local.get(null);

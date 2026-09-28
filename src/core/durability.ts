@@ -1,5 +1,6 @@
 /**
- * Durability, M9: automatic snapshots (B-101) and the recovery copy (B-102).
+ * Durability, M9: automatic snapshots (B-101), the recovery copy (B-102) and
+ * recent sessions (B-104).
  *
  * The worker calls these when an alarm or the browser wakes it. It holds no
  * state in memory, because the browser terminates it when idle, so everything
@@ -34,8 +35,14 @@ export const PREVIOUS_KEY = "recoveryPrevious";
 export const PENDING_KEY = "recoveryPending";
 /** A loss worth telling the user about, until they act on it or dismiss it. */
 export const OFFER_KEY = "recoveryOffer";
-/** Whether the recovery copy has been offered after a first export, decision D2. */
-export const ASKED_KEY = "recoveryAsked";
+/**
+ * The last few browser sessions, newest first, each the recovery copy as it
+ * stood when that session ended: B-104. Kept without being asked, like the
+ * copy itself, and rolled so the oldest goes when a new one arrives.
+ */
+export const RECENT_KEY = "recoverySessions";
+/** How many recent sessions are kept. The Snapshots pane says "five" in words: change both. */
+export const RECENT_KEEP = 5;
 /** What the automatic series last did, for the Snapshots pane. */
 export const AUTO_STATE_KEY = "autoSnapshotState";
 
@@ -131,14 +138,53 @@ export async function writeRecovery(adapter: BrowserAdapter, settings: Settings,
 /**
  * The browser has started. The copy from before is set aside as the previous
  * session, and the copy stops being written until the loss check has run, so
- * the browser's own restore cannot overwrite the evidence.
+ * the browser's own restore cannot overwrite the evidence. The same copy joins
+ * the recent sessions.
  */
 export async function beginStartup(adapter: BrowserAdapter, settings: Settings): Promise<boolean> {
   if (!settings.recoveryCopy) return false;
   const copy = await read<RecoveryRecord>(adapter, RECOVERY_KEY);
   if (!copy) return false;
-  await adapter.storageSet({ [PREVIOUS_KEY]: copy, [PENDING_KEY]: true });
+  await adapter.storageSet({ [PREVIOUS_KEY]: copy, [PENDING_KEY]: true, [RECENT_KEY]: rollRecent(await readRecent(adapter), copy) });
   return true;
+}
+
+/**
+ * Adds a session to the front of the recent list. The same copy seen twice,
+ * which is a session where no tab changed, is one entry; and a session that
+ * holds exactly the tabs of the one before replaces it rather than pushing a
+ * different one out.
+ */
+export function rollRecent(list: RecoveryRecord[], copy: RecoveryRecord, keep = RECENT_KEEP): RecoveryRecord[] {
+  const rest = list.filter((entry) => entry.capturedAt !== copy.capturedAt && entry.signature !== copy.signature);
+  return [copy, ...rest].slice(0, keep);
+}
+
+export async function readRecent(adapter: BrowserAdapter): Promise<RecoveryRecord[]> {
+  const list = await read<RecoveryRecord[]>(adapter, RECENT_KEY);
+  return Array.isArray(list) ? list : [];
+}
+
+export async function readCurrent(adapter: BrowserAdapter): Promise<RecoveryRecord | null> {
+  return await read<RecoveryRecord>(adapter, RECOVERY_KEY);
+}
+
+export async function deleteRecent(adapter: BrowserAdapter, capturedAt: number): Promise<void> {
+  const list = await readRecent(adapter);
+  await adapter.storageSet({ [RECENT_KEY]: list.filter((entry) => entry.capturedAt !== capturedAt) });
+}
+
+/**
+ * Keeps a recent session for good: it becomes an ordinary snapshot, which the
+ * rolling list can no longer remove, and leaves the list.
+ */
+export async function keepRecent(adapter: BrowserAdapter, capturedAt: number, name: string): Promise<SnapshotMeta | null> {
+  const entry = (await readRecent(adapter)).find((candidate) => candidate.capturedAt === capturedAt);
+  const session = entry ? recordSession(entry) : null;
+  if (!session) return null;
+  const { meta } = await saveSnapshot(adapter, session, { name, now: new Date(capturedAt) });
+  await deleteRecent(adapter, capturedAt);
+  return meta;
 }
 
 /** Reads a stored copy back into a session. Null if it is unreadable. */

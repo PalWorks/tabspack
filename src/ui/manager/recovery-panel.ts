@@ -1,29 +1,32 @@
 /**
  * Durability on the manager page, M9.
  *
- * Three surfaces, one module, because they read and write the same state:
+ * Two surfaces, one module, because they read and write the same state:
  *
  *   - the recovery offer at the top of the Export pane, after a start that
  *     lost tabs (B-102)
- *   - the one-time ask after a first export, because the recovery copy is off
- *     at install and a setting nobody finds protects nobody (decision D2)
  *   - the Automatic protection card on the Snapshots pane: the recovery copy,
- *     automatic snapshots and their rolling limit (B-101, ADR-047), the
- *     previous session, and the browser's own recently closed list
+ *     on from install with no prompt (decision D2 as revised), automatic
+ *     snapshots and their rolling limit (B-101, ADR-047), the recent sessions
+ *     (B-104), and the browser's own recently closed list
  *
  * Nothing here opens a tab. Every session goes to the import preview first.
  */
 import type { BrowserAdapter } from "../../core/adapter/types.js";
 import {
-  ASKED_KEY,
   AUTO_STATE_KEY,
   OFFER_KEY,
-  PREVIOUS_KEY,
+  RECENT_KEY,
+  RECOVERY_KEY,
+  deleteRecent,
   dismissOffer,
   isAuto,
+  keepRecent,
   readAutoState,
+  readCurrent,
   readOffer,
   readPrevious,
+  readRecent,
   recordSession,
   type RecoveryRecord,
 } from "../../core/durability.js";
@@ -33,16 +36,16 @@ import type { Session } from "../../types/session.js";
 import { clear, el, icon, ICON, must } from "../shared/dom.js";
 import { t } from "../shared/i18n.js";
 import { renderError, renderNote, clearReport } from "../shared/report-view.js";
-import { tabs as tabsPhrase } from "../shared/wording.js";
+import { tabs as tabsPhrase, windows as windowsPhrase } from "../shared/wording.js";
 
 export interface RecoveryHooks {
   /** Hands a session to the import preview. */
   preview(session: Session, label: string): Promise<void>;
+  /** Saves a TabsPack file's text to disk. */
+  save(text: string, filename: string): Promise<void>;
 }
 
 export interface RecoveryPanel {
-  /** Called after a successful export: the moment to offer the recovery copy, once. */
-  askAfterExport(): void;
   paint(latest: Settings): void;
 }
 
@@ -50,14 +53,13 @@ export function initRecoveryPanel(adapter: BrowserAdapter, initial: Settings, ho
   let settings = initial;
   const ui = {
     offer: must<HTMLDivElement>("#recovery-offer"),
-    ask: must<HTMLDivElement>("#recovery-ask"),
     recovery: must<HTMLInputElement>("#opt-recovery"),
     interval: must<HTMLSelectElement>("#opt-auto-interval"),
     keep: must<HTMLInputElement>("#opt-auto-keep"),
     status: must<HTMLParagraphElement>("#auto-status"),
-    previous: must<HTMLDivElement>("#previous-session"),
-    previousLine: must<HTMLSpanElement>("#previous-line"),
-    previousPreview: must<HTMLButtonElement>("#previous-preview"),
+    current: must<HTMLParagraphElement>("#current-session"),
+    sessionsReport: must<HTMLDivElement>("#sessions-report"),
+    sessions: must<HTMLUListElement>("#recent-sessions"),
     recent: must<HTMLButtonElement>("#recent-closed"),
     recentReport: must<HTMLDivElement>("#recent-report"),
     recentList: must<HTMLUListElement>("#recent-list"),
@@ -93,26 +95,6 @@ export function initRecoveryPanel(adapter: BrowserAdapter, initial: Settings, ho
     await adapter.setBadge("", 0);
     await adapter.setActionTitle("");
   }
-
-  /* The ask, once, after a first export ----------------------------------- */
-
-  const askTitle = el("p", { class: "callout-title", text: t("recoveryAskTitle") });
-  const askText = el("p", { class: "callout-text", text: t("recoveryAskText") });
-  const askActions = buildCallout(ui.ask, ICON.check, askTitle, askText, [
-    [
-      t("recoveryAskYes"),
-      "btn btn-primary",
-      () => {
-        void saveSettings(adapter, { recoveryCopy: true }).then(() => {
-          askText.textContent = t("recoveryAskDone");
-          askActions.hidden = true;
-          setTimeout(() => (ui.ask.hidden = true), 6000);
-        });
-      },
-    ],
-    [t("recoveryAskNo"), "btn btn-secondary", () => (ui.ask.hidden = true)],
-  ]);
-  ui.ask.dataset.tone = "quiet";
 
   /* The Automatic protection card ----------------------------------------- */
 
@@ -154,18 +136,80 @@ export function initRecoveryPanel(adapter: BrowserAdapter, initial: Settings, ho
     ui.status.textContent = parts.join(" ");
   }
 
-  let previous: RecoveryRecord | null = null;
-  async function paintPrevious(): Promise<void> {
-    const stored = await adapter.storageGet({ [PREVIOUS_KEY]: null as unknown });
-    previous = (stored[PREVIOUS_KEY] ?? null) as RecoveryRecord | null;
-    ui.previous.hidden = previous === null;
-    if (previous) ui.previousLine.textContent = t("previousSessionLine", tabsPhrase(previous.tabs), readable(previous.capturedAt));
+  /* Recent sessions, B-104 ------------------------------------------------ */
+
+  async function paintCurrent(): Promise<void> {
+    const current = settings.recoveryCopy ? await readCurrent(adapter) : null;
+    ui.current.hidden = current === null;
+    if (current) ui.current.textContent = t("currentSessionLine", tabsPhrase(current.tabs), readable(current.capturedAt));
   }
-  ui.previousPreview.addEventListener("click", () => {
-    if (!previous) return;
-    const session = recordSession(previous);
-    if (session) void hooks.preview(session, t("autoSnapshotName", readable(previous.capturedAt)));
-  });
+
+  async function paintSessions(): Promise<void> {
+    const list = await readRecent(adapter);
+    clear(ui.sessions);
+    if (list.length === 0) {
+      ui.sessions.appendChild(el("li", { class: "hint", text: t(settings.recoveryCopy ? "recentSessionsEmpty" : "recentSessionsOff") }));
+      return;
+    }
+    for (const record of list) ui.sessions.appendChild(sessionRow(record));
+  }
+
+  function sessionRow(record: RecoveryRecord): HTMLLIElement {
+    const name = t("recentSessionName", readable(record.capturedAt));
+    const row = el("li", { class: "snapshot recent" }) as HTMLLIElement;
+    row.appendChild(el("p", { class: "snapshot-title", text: name }));
+    row.appendChild(el("p", { class: "snapshot-meta", text: [windowsPhrase(record.windows), tabsPhrase(record.tabs)].join(" · ") }));
+    const actions = el("div", { class: "snapshot-actions" });
+    actions.appendChild(
+      action(t("previewButton"), async () => {
+        const session = recordSession(record);
+        if (!session) throw new Error(t("snapshotUnreadable"));
+        await hooks.preview(session, name);
+      }),
+    );
+    actions.appendChild(
+      action(t("keepRecentButton"), async () => {
+        const meta = await keepRecent(adapter, record.capturedAt, name);
+        if (!meta) throw new Error(t("snapshotUnreadable"));
+        renderNote(ui.sessionsReport, t("keptRecent", meta.name));
+      }),
+    );
+    actions.appendChild(action(t("exportSnapshotButton"), async () => await hooks.save(record.text, `${fileName(record.capturedAt)}.tabspack.json`)));
+    actions.appendChild(armedDelete(async () => await deleteRecent(adapter, record.capturedAt)));
+    row.appendChild(actions);
+    return row;
+  }
+
+  function action(label: string, run: () => Promise<void>): HTMLButtonElement {
+    const node = el("button", { class: "btn btn-secondary", text: label }) as HTMLButtonElement;
+    node.type = "button";
+    node.addEventListener("click", () => {
+      clearReport(ui.sessionsReport);
+      void run().catch((cause: unknown) => renderError(ui.sessionsReport, cause instanceof Error ? cause.message : String(cause)));
+    });
+    return node;
+  }
+
+  /** Two presses, as a snapshot's delete: the button says so in between. */
+  function armedDelete(run: () => Promise<void>): HTMLButtonElement {
+    const node = el("button", { class: "btn btn-secondary danger", text: t("deleteButton") }) as HTMLButtonElement;
+    node.type = "button";
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    node.addEventListener("click", () => {
+      if (node.dataset.armed !== "true") {
+        node.dataset.armed = "true";
+        node.textContent = t("deleteConfirm");
+        timer = setTimeout(() => {
+          delete node.dataset.armed;
+          node.textContent = t("deleteButton");
+        }, 4000);
+        return;
+      }
+      if (timer) clearTimeout(timer);
+      void run().catch((cause: unknown) => renderError(ui.sessionsReport, cause instanceof Error ? cause.message : String(cause)));
+    });
+    return node;
+  }
 
   /*
    * The permission is asked for inside the click, before anything is awaited,
@@ -223,29 +267,24 @@ export function initRecoveryPanel(adapter: BrowserAdapter, initial: Settings, ho
 
   adapter.onStorageChanged((keys) => {
     if (keys.includes(OFFER_KEY)) void paintOffer();
-    if (keys.includes(PREVIOUS_KEY)) void paintPrevious();
+    if (keys.includes(RECENT_KEY)) void paintSessions();
+    if (keys.includes(RECOVERY_KEY)) void paintCurrent();
     if (keys.includes(AUTO_STATE_KEY) || keys.includes("snapshots")) void paintStatus();
   });
 
   paintControls();
   void paintOffer();
   void paintStatus();
-  void paintPrevious();
+  void paintCurrent();
+  void paintSessions();
 
   return {
-    askAfterExport(): void {
-      if (settings.recoveryCopy) return;
-      void (async () => {
-        const stored = await adapter.storageGet({ [ASKED_KEY]: false });
-        if (stored[ASKED_KEY] === true) return;
-        await adapter.storageSet({ [ASKED_KEY]: true });
-        ui.ask.hidden = false;
-      })();
-    },
     paint(latest: Settings): void {
       settings = latest;
       paintControls();
       void paintStatus();
+      void paintCurrent();
+      void paintSessions();
     },
   };
 }
@@ -276,6 +315,13 @@ function buildCallout(
   host.appendChild(body);
   host.appendChild(actions);
   return actions;
+}
+
+/** `tabspack-session-20260926-2231`, the same shape an export's name has. */
+function fileName(epoch: number): string {
+  const when = new Date(epoch);
+  const pad = (value: number): string => String(value).padStart(2, "0");
+  return `tabspack-session-${when.getFullYear()}${pad(when.getMonth() + 1)}${pad(when.getDate())}-${pad(when.getHours())}${pad(when.getMinutes())}`;
 }
 
 function readable(epoch: number): string {

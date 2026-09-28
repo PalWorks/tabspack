@@ -117,12 +117,13 @@ Go through all five panes in both themes, in a window that is not maximised:
   Save a few, then try **Compare with previous**, **Tidy unchanged**, **Find
   repeated addresses** and **Combine selected**. Is each result clear about what
   it found, and does anything delete without asking first?
-- **Automatic protection**, on the Snapshots pane. Turn on the recovery copy,
-  open a dozen tabs, wait a minute, then quit the browser from a terminal with
+- **Automatic protection**, on the Snapshots pane. The recovery copy should
+  already be ticked on a fresh install. Open a dozen tabs, wait a minute, then quit the browser from a terminal with
   `pkill -9` on its process, and start it again. If the browser does not bring
   the tabs back, TabsPack should offer them: a badge on the toolbar, a line in
   the popup, and a card on the manager that previews them before anything
-  opens. Press **Show recently closed** and answer the browser's prompt: the
+  opens. **Recent sessions** should now list the session you had, with
+  Preview, Keep as snapshot, Export and Delete. Press **Show recently closed** and answer the browser's prompt: the
   list should appear, and **Reopen** should bring a window back with its
   history.
 - **Settings** and **About.** Is anything stated twice?

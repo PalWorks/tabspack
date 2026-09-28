@@ -1,5 +1,5 @@
 /**
- * M9: the recovery copy (B-102) and automatic snapshots (B-101), driven the way
+ * M9: the recovery copy (B-102), recent sessions (B-104) and automatic snapshots (B-101), driven the way
  * the worker drives them, against a browser that only exists in node.
  */
 import { test } from "node:test";
@@ -10,8 +10,13 @@ import {
   AUTO_TAG,
   OFFER_KEY,
   PENDING_KEY,
+  RECENT_KEEP,
   RECOVERY_KEY,
   beginStartup,
+  deleteRecent,
+  keepRecent,
+  readRecent,
+  rollRecent,
   checkStartup,
   readAutoState,
   readOffer,
@@ -27,6 +32,7 @@ import { onAlarm, onStartup, onTabsChanged } from "../../src/background/durabili
 import { createFakeAdapter, tab, window_, type FakeAdapter } from "../tools/fake-adapter.js";
 
 const ON: Settings = { ...DEFAULT_SETTINGS, recoveryCopy: true, autoSnapshotHours: 1, autoSnapshotKeep: 3 };
+const OFF: Settings = { ...DEFAULT_SETTINGS, recoveryCopy: false };
 
 function browserWith(count: number, prefix = "a", storage: Record<string, unknown> = {}): FakeAdapter {
   return createFakeAdapter({
@@ -42,10 +48,14 @@ function setTabs(adapter: FakeAdapter, count: number, prefix = "a"): void {
   ];
 }
 
-test("the recovery copy is off unless it is turned on", async () => {
+test("the recovery copy is on from install, with nothing to agree to first", () => {
+  assert.equal(DEFAULT_SETTINGS.recoveryCopy, true);
+});
+
+test("turned off, the recovery copy writes and schedules nothing", async () => {
   const adapter = browserWith(3);
-  assert.equal(await writeRecovery(adapter, DEFAULT_SETTINGS), "off");
-  assert.equal(await scheduleRecovery(adapter, DEFAULT_SETTINGS), false);
+  assert.equal(await writeRecovery(adapter, OFF), "off");
+  assert.equal(await scheduleRecovery(adapter, OFF), false);
   assert.equal(adapter.alarms.size, 0);
 });
 
@@ -119,7 +129,8 @@ test("a restart the browser restored itself offers nothing", async () => {
 test("with the copy off, a start sets nothing aside", async () => {
   const adapter = browserWith(3);
   await writeRecovery(adapter, ON, 1000);
-  assert.equal(await beginStartup(adapter, DEFAULT_SETTINGS), false);
+  assert.equal(await beginStartup(adapter, OFF), false);
+  assert.deepEqual(await readRecent(adapter), []);
   assert.equal((await adapter.storageGet({ [OFFER_KEY]: null as unknown }))[OFFER_KEY], null);
 });
 
@@ -167,7 +178,7 @@ test("alarms follow the settings", async () => {
   await reconcileAlarms(adapter, { ...ON, autoSnapshotHours: 24 });
   assert.equal(adapter.alarms.get(ALARM_AUTO)?.periodInMinutes, 1440);
   await scheduleRecovery(adapter, ON);
-  await reconcileAlarms(adapter, DEFAULT_SETTINGS);
+  await reconcileAlarms(adapter, { ...OFF, autoSnapshotHours: 0 });
   assert.equal(adapter.alarms.size, 0);
 });
 
@@ -187,4 +198,55 @@ test("a new browser session is noticed by the first tab event, even if onStartup
   await adapter.storageRemove([PENDING_KEY]);
   await onTabsChanged(adapter, { closing: false });
   assert.equal((await adapter.storageGet({ [PENDING_KEY]: false }))[PENDING_KEY], false);
+});
+
+/* Recent sessions, B-104 ---------------------------------------------------- */
+
+test("each browser start adds the session that ended to the recent sessions, newest first", async () => {
+  const adapter = browserWith(3);
+  await writeRecovery(adapter, ON, 1000);
+  await beginStartup(adapter, ON);
+  await adapter.storageRemove([PENDING_KEY]);
+  setTabs(adapter, 5, "b");
+  await writeRecovery(adapter, ON, 2000);
+  await beginStartup(adapter, ON);
+  const recent = await readRecent(adapter);
+  assert.deepEqual(recent.map((entry) => [entry.capturedAt, entry.tabs]), [[2000, 5], [1000, 3]]);
+});
+
+test("a start with no tab changed since the last one adds nothing new", async () => {
+  const adapter = browserWith(3);
+  await writeRecovery(adapter, ON, 1000);
+  await beginStartup(adapter, ON);
+  await beginStartup(adapter, ON);
+  assert.equal((await readRecent(adapter)).length, 1);
+});
+
+test("the list keeps the newest five, and the same tabs twice are one entry", () => {
+  const record = (at: number, signature = `s${at}`) => ({ capturedAt: at, signature, windows: 1, tabs: 1, text: "" });
+  let list: ReturnType<typeof rollRecent> = [];
+  for (let at = 1; at <= 7; at += 1) list = rollRecent(list, record(at));
+  assert.equal(RECENT_KEEP, 5);
+  assert.deepEqual(list.map((entry) => entry.capturedAt), [7, 6, 5, 4, 3]);
+  list = rollRecent(list, record(8, "s5"));
+  assert.deepEqual(list.map((entry) => entry.capturedAt), [8, 7, 6, 4, 3]);
+});
+
+test("keeping a recent session makes it a snapshot and takes it out of the rolling list", async () => {
+  const adapter = browserWith(4);
+  await writeRecovery(adapter, ON, 1000);
+  await beginStartup(adapter, ON);
+  const meta = await keepRecent(adapter, 1000, "Session until 1 Jan");
+  assert.equal(meta?.name, "Session until 1 Jan");
+  assert.equal(meta?.counts.tabs, 4);
+  assert.deepEqual((await listSnapshots(adapter)).map((entry) => entry.name), ["Session until 1 Jan"]);
+  assert.deepEqual(await readRecent(adapter), []);
+});
+
+test("a recent session can be deleted on its own", async () => {
+  const adapter = browserWith(2);
+  await writeRecovery(adapter, ON, 1000);
+  await beginStartup(adapter, ON);
+  await deleteRecent(adapter, 1000);
+  assert.deepEqual(await readRecent(adapter), []);
 });

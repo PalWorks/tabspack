@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Version 1.3, dated 2026-09-28. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
+**Version 1.4, dated 2026-09-28. Applies to the TabsPack browser extension for Chrome, Edge and Firefox.**
 
 This document is both the plain answer and the policy the browser stores require.
 
@@ -25,7 +25,7 @@ To do its job, TabsPack reads the tabs you are viewing:
 | When you last looked at a tab, if your browser supplies it | To restore the same detail, and to tell you which tabs you have not opened in months so you can decide what to keep | Same. It is read on your machine and reported on your screen, and it is never sent anywhere |
 | Favicon URL, optional and off by default for embedded icons | Shown in the preview | Same. Imported favicon URLs are never fetched |
 | Your settings and snapshots | To remember your preferences and saved sessions | Your browser's local extension storage, on this machine only |
-| Automatic snapshots and the recovery copy, **only if you turn them on** | So your tabs can be brought back after a crash, or from an earlier point in the day | Your browser's local extension storage, on this machine only. The recovery copy is one entry, replaced each time your tabs change. Automatic snapshots keep the newest ones and remove older automatic ones; a snapshot you saved or renamed yourself is never removed |
+| The recovery copy and your recent sessions, **on from install, and you can turn them off**; automatic snapshots, **only if you turn them on** | So your tabs can be brought back after a crash, from one of your last five browser sessions, or from an earlier point in the day | Your browser's local extension storage, on this machine only. The recovery copy is one entry, replaced each time your tabs change. Recent sessions are the recovery copy as it stood when each of your last five browser sessions ended; the oldest is removed when a new one arrives. Automatic snapshots keep the newest ones and remove older automatic ones; a snapshot you saved or renamed yourself is never removed |
 | The browser's recently closed list, **only when you open it** | To show you what you closed and reopen what you pick | Read on demand and never stored |
 
 ## What the extension never reads or stores
@@ -49,8 +49,8 @@ Private windows are excluded from exports by default. TabsPack cannot see them a
 | Permission | Why it is needed |
 |---|---|
 | `tabs` | To read the URL and title of your open tabs. The extension cannot work without it |
-| `storage` | To save your settings, your snapshots and, if you turn them on, automatic snapshots and a recovery copy, on this machine |
-| `alarms` | To update the recovery copy and take automatic snapshots on schedule, when you have turned them on. Nothing is scheduled otherwise |
+| `storage` | To save your settings, your snapshots, the recovery copy and your recent sessions, and, if you turn them on, automatic snapshots, on this machine |
+| `alarms` | To update the recovery copy about half a minute after your tabs change, and to take automatic snapshots on schedule when you have turned them on. With both off, nothing is scheduled |
 | `downloads` | To write the export file you asked for |
 | `tabGroups`, optional | Requested the first time you use a feature involving tab groups, and only then |
 | `sessions`, optional | Requested only when you press Show recently closed, to read and reopen the browser's own list of what you closed |
@@ -117,7 +117,7 @@ any TabsPack page.
 
 ## Changes to this policy
 
-If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduces or widens any network transmission requires a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) and is stated plainly in the store listing rather than buried here. Version 1.1 of this policy was such a change: see ADR-039, which explains why the support form gained a direct Send and what was given up for it. Version 1.2 adds a row to the table above, for the last-used time of a tab. It is not a new transmission and not a new collection: the value was always in an export, and 1.2 names it because the product now shows it to you. Version 1.3 adds automatic snapshots, the recovery copy and the recently closed list, with the `alarms` permission and the optional `sessions` permission. All three are off until you use them, and all of it stays on your machine: no new transmission.
+If a future version ever changes what data is handled, this document changes in the same release, the version and date at the top change, and the change is listed in [CHANGELOG.md](CHANGELOG.md). A change that introduces or widens any network transmission requires a new decision record in [docs/DECISIONS.md](docs/DECISIONS.md) and is stated plainly in the store listing rather than buried here. Version 1.1 of this policy was such a change: see ADR-039, which explains why the support form gained a direct Send and what was given up for it. Version 1.2 adds a row to the table above, for the last-used time of a tab. It is not a new transmission and not a new collection: the value was always in an export, and 1.2 names it because the product now shows it to you. Version 1.3 adds automatic snapshots, the recovery copy and the recently closed list, with the `alarms` permission and the optional `sessions` permission. All of it stays on your machine: no new transmission. Version 1.4 turns the recovery copy on from install, and adds recent sessions, your last five browser sessions kept from it. Both stay on your machine, and one checkbox on the Snapshots pane turns both off: still no new transmission.
 
 ## Contact
 

@@ -108,7 +108,7 @@ let settingsPanel: { paint(latest: Settings): void } | null = null;
 let groupsCallout: { update(groups: number): Promise<void> } | null = null;
 let rating: { used(action: "export" | "restore"): void } | null = null;
 let importPanelRef: { paint(latest: Settings): void } | null = null;
-let recoveryPanel: { askAfterExport(): void; paint(latest: Settings): void } | null = null;
+let recoveryPanel: { paint(latest: Settings): void } | null = null;
 const notify = initNotifier(adapter);
 /** Repaints the scope control when a setting changes somewhere else. */
 let scope: (value: string) => void = () => undefined;
@@ -164,7 +164,19 @@ async function start(): Promise<void> {
     tabs.select("import");
     await importPanel.showSession(session, TABSPACK_SOURCE, label);
   };
-  recoveryPanel = initRecoveryPanel(adapter, settings, { preview: openInPreview });
+  const saveText = async (text: string, filename: string): Promise<void> => {
+    await savePayload(adapter, {
+      format: "tabspack",
+      text,
+      filename,
+      mime: "application/json;charset=utf-8",
+      bytes: text.length,
+      session: { windows: [], source: {}, capturedAt: 0 },
+      removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 },
+      recovered: 0,
+    });
+  };
+  recoveryPanel = initRecoveryPanel(adapter, settings, { preview: openInPreview, save: saveText });
 
   initSnapshotPanel(adapter, settings, {
     previewSession: openInPreview,
@@ -174,18 +186,7 @@ async function start(): Promise<void> {
       tabs.select("import");
       await importPanel.showSession(session, TABSPACK_SOURCE, meta.name);
     },
-    async save(text: string, filename: string): Promise<void> {
-      await savePayload(adapter, {
-        format: "tabspack",
-        text,
-        filename,
-        mime: "application/json;charset=utf-8",
-        bytes: text.length,
-        session: { windows: [], source: {}, capturedAt: 0 },
-        removed: { scheme: 0, pinned: 0, stale: 0, excluded: 0, duplicate: 0, unticked: 0 },
-        recovered: 0,
-      });
-    },
+    save: saveText,
   });
 
   watchSettings();
@@ -569,8 +570,6 @@ async function run(mode: "save" | "copy"): Promise<void> {
     renderExportReport(ui.report, report);
     foldSettings(true);
     rating?.used("export");
-    // Offered once, at the moment an export shows what losing tabs would cost.
-    if (outcome.saved) recoveryPanel?.askAfterExport();
     // The manager page is often behind other windows, so the toolbar has to
     // carry the outcome too: ADR-033.
     notify.done(
