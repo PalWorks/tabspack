@@ -123,7 +123,7 @@ or has a roadmap row.
 
 **State.** Chrome resubmitted on 2026-09-26 after the keyword spam rejection,
 item id `bgomldlmhkecjeceibdphdkoencnghjm`. **Live**, confirmed 2026-09-28, and 1.1.0
-uploaded as a draft the same day. Edge and AMO not started.
+submitted the same day, pending review. Edge and AMO not started.
 
 **Chrome.**
 

@@ -6,7 +6,7 @@ The file format has its own version, `schemaVersion` in [docs/SPEC.md](docs/SPEC
 
 ## [1.1.0] - 2026-09-28
 
-Uploaded to the Chrome Web Store as a draft update on 2026-09-28, to be submitted for review from the dashboard once the listing text and the `alarms` justification are pasted in ([store/submission.md](docs/store/submission.md), "The 1.1.0 update"). By the maintainer's decision this is one combined release: the first update Chrome receives, and the first version Edge and AMO receive. The store title and summary below already shipped in 1.0.0.
+Submitted to the Chrome Web Store on 2026-09-28 and pending review, confirmed through the API; 1.0.0 stays live until it is approved. By the maintainer's decision this is one combined release: the first update Chrome receives, and the first version Edge and AMO receive. The store title and summary below already shipped in 1.0.0.
 
 ### Changed
 

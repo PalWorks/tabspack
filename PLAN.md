@@ -4,7 +4,7 @@
 |---|---|
 | Version | 0.4 |
 | Date | 2026-09-26 |
-| Status | M0 to M9 built and verified. 1.0.0 live on the Chrome Web Store; 1.1.0, with the export preview, M9 durability and recent sessions, uploaded there as a draft update on 2026-09-28 |
+| Status | M0 to M9 built and verified. 1.0.0 live on the Chrome Web Store; 1.1.0, with the export preview, M9 durability and recent sessions, submitted there on 2026-09-28 and pending review |
 | Supersedes | `docs/history/TabPack_BRD_PRD_v0.9.md` (BRD and PRD v0.9, 2026-07-14) |
 | Normative format spec | [docs/SPEC.md](docs/SPEC.md) |
 | Sequencing and exit tests | [docs/ROADMAP.md](docs/ROADMAP.md) |

@@ -208,7 +208,7 @@ because tabs never leave the user's machine and there is no account system.
 
 TabsPack is live on the Chrome Web Store, free, at
 https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm
-(version 1.0.0, confirmed 28 September 2026; 1.1.0 submitted as an update).
+(version 1.0.0, confirmed 28 September 2026; 1.1.0 pending review as an update).
 Microsoft Edge and other Chromium browsers can install it from there. Microsoft
 Edge Add-ons and addons.mozilla.org listings follow. Builds, including the
 Firefox one, are at https://github.com/PalWorks/tabspack/releases and the whole

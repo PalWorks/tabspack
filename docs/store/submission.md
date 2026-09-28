@@ -125,22 +125,22 @@ on somebody's behalf.
 | Cross browser matrix | Chrome 27/27, Edge 27/27, Firefox 26 of 28 with 2 skipped, nothing failed, run 2026-09-26 for 1.0.0. For 1.1.0, re-run 2026-09-28 headed with the flags: **Chrome 30/30, Edge 30/30, Firefox 26 of 28 with 2 skipped, nothing failed**, the three new recovery rows included. Adding `alarms` adds no Chrome update warning, measured with Chromium's own warning API. The two skips and the four rows in Table R10 are in [MANUAL-CHECKS.md](../MANUAL-CHECKS.md) and are **not yet done** |
 | `npm run verify` | Green for 1.1.0 on 2026-09-28, including 309 unit tests, 0 addons-linter errors and the npm package test |
 | `npm run smoke` | Green, 129 checks, on 2026-09-28 |
-| Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is live on Chrome; 1.1.0 is uploaded there as a draft |
+| Version | `1.1.0` in `package.json` and both manifests, with a CHANGELOG heading. 1.0.0 is live on Chrome; 1.1.0 is pending review there |
 | Packages | Built, in `dist/artifacts/`, and audited: manifest at the archive root, no source map, no `.env`, no 32 character account id, no credential shape anywhere in the source archive |
 
 ### Table T6: What is actually blocking each store
 
 | Store | Credential | Blocking |
 |---|---|---|
-| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0, item `bgomldlmhkecjeceibdphdkoencnghjm`, was rejected once for keyword spam (other products named in the description), fixed, resubmitted 2026-09-26, and is **live**, confirmed through the API on 2026-09-28: [chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm). **1.1.0 was uploaded through the API on 2026-09-28** (`uploadState: SUCCESS`) and waits as a draft for the dashboard steps below |
+| **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0, item `bgomldlmhkecjeceibdphdkoencnghjm`, was rejected once for keyword spam (other products named in the description), fixed, resubmitted 2026-09-26, and is **live**, confirmed through the API on 2026-09-28: [chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm](https://chromewebstore.google.com/detail/tabspack-cross-browser-ta/bgomldlmhkecjeceibdphdkoencnghjm). **1.1.0 was uploaded through the API on 2026-09-28** (`uploadState: SUCCESS`), the dashboard steps below were done by the maintainer, and it is **pending review**, confirmed through the API the same day |
 | **Edge Add-ons** | None on this machine | An account has to be created |
 | **AMO** | None on this machine | An account has to be created |
 | **npm**, for the `tabspack` package | Published 2026-09-28, [npmjs.com/package/tabspack](https://www.npmjs.com/package/tabspack). The `palworks` npm account, company owned, on this machine's npm CLI through `npmu palworks` | npm refuses a publish without two factor authentication. `npm publish --access public` from `packages/tabspack` prints a browser link to approve with two factor; `--otp` is not used. Fallback: a granular token with bypass two factor, seven day expiry, revoked after the publish |
 
-### The 1.1.0 update, uploaded 2026-09-28
+### The 1.1.0 update, submitted 2026-09-28
 
-The package is in the dashboard as a draft. Uploading does not submit it. Before
-pressing **Submit for review**, in this order:
+Done, and pending review. Kept as the checklist for the next update. Uploading
+does not submit it. Before pressing **Submit for review**, in this order:
 
 1. **Privacy practices**: add the justification for `alarms`, and for the
    optional `sessions`, from `store_listing.md` Table S6. A new permission with
