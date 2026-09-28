@@ -78,7 +78,7 @@ This is the procedure that protects other people's files. Follow all of it.
 9. Submit to Chrome Web Store, Edge Add-ons and AMO. Keep the permission justifications from PLAN.md Table P8 in the submission notes, unchanged between stores.
 10. Record submission dates and review outcomes in the CHANGELOG entry.
 11. Put each listing URL into `LISTINGS` in `src/core/rating.ts` and `NETWORK_ALLOWLIST` in `scripts/lint.mjs`. This is the step that turns the rating ask on, and until it is done `anyListingKnown()` is false and no ask is ever shown.
-12. The `tabspack` npm package has its own version, whose major is `schemaVersion`. When `src/package/`, the reader or the writer changes: bump `packages/tabspack/package.json`, run `npm run package:test`, then `npm publish --otp=<code>` from `packages/tabspack`. npm refuses a publish without two factor authentication. Switch npm accounts with `npmu <profile>` first if the machine is on another one.
+12. The `tabspack` npm package has its own version, whose major is `schemaVersion`. When `src/package/`, the reader or the writer changes: bump `packages/tabspack/package.json`, run `npm run package:test`, then `npmu palworks` and `npm publish --access public` from `packages/tabspack`. The package is owned by the `palworks` npm account. npm asks for two factor approval in the browser: it prints a link, press Enter, approve. `--otp` is not used. A short lived granular token that bypasses two factor is the fallback, revoked after the publish.
 
 ## 7. Roll back a bad release
 

@@ -134,7 +134,7 @@ on somebody's behalf.
 | **Chrome Web Store** | On this machine, and verified: an OAuth client, a publisher id, and a refresh token that exchanges for an access token carrying the `chromewebstore` scope. Checked 2026-09-26, read only | Nothing. 1.0.0 was submitted by the maintainer, item `bgomldlmhkecjeceibdphdkoencnghjm`, rejected once for keyword spam (other products named in the description), fixed and resubmitted 2026-09-26, and is in review. 1.1.0 follows as an update once it is accepted |
 | **Edge Add-ons** | None on this machine | An account has to be created |
 | **AMO** | None on this machine | An account has to be created |
-| **npm**, for the `tabspack` package | This machine's npm CLI, logged in as `palaniappan` through the `npmu` profile switch | npm refuses a publish without two factor authentication, or a granular token allowed to bypass it. The account needs two factor turned on, then `npm publish --otp=<code>` from `packages/tabspack` |
+| **npm**, for the `tabspack` package | The `palworks` npm account, company owned, on this machine's npm CLI through `npmu palworks` | npm refuses a publish without two factor authentication. `npm publish --access public` from `packages/tabspack` prints a browser link to approve with two factor; `--otp` is not used. Fallback: a granular token with bypass two factor, seven day expiry, revoked after the publish |
 
 ### The Chrome upload, when the word is given
 
