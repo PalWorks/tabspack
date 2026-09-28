@@ -46,6 +46,7 @@ async function start(): Promise<void> {
   settings = await loadSettings(adapter);
   applyTheme(settings.theme);
   ui.format.value = settings.format;
+  fitFormat();
 
   selectScope = initSegmented(ui.scope, settings.scope, (value) => {
     settings.scope = value as Scope;
@@ -57,6 +58,7 @@ async function start(): Promise<void> {
   ui.format.addEventListener("change", () => {
     settings.format = ui.format.value as ExportFormat;
     void saveSettings(adapter, { format: settings.format });
+    fitFormat();
   });
 
   ui.exportButton.addEventListener("click", () => void run("save"));
@@ -85,6 +87,7 @@ async function start(): Promise<void> {
       settings = latest;
       applyTheme(settings.theme);
       ui.format.value = settings.format;
+      fitFormat();
       selectScope(settings.scope);
       await refresh();
     })();
@@ -157,6 +160,22 @@ async function run(mode: "save" | "copy"): Promise<void> {
     button.textContent = label;
     setEnabled(available > 0);
   }
+}
+
+/**
+ * The format reads as part of a sentence, so the select is as wide as the
+ * chosen name, not the longest one. CSS does this where `field-sizing` exists;
+ * elsewhere the width is measured.
+ */
+function fitFormat(): void {
+  if (CSS.supports("field-sizing", "content")) return;
+  const style = getComputedStyle(ui.format);
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return;
+  context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const text = ui.format.selectedOptions[0]?.textContent ?? "";
+  const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  ui.format.style.width = `${Math.ceil(context.measureText(text).width + padding) + 2}px`;
 }
 
 /** Export and copy need tabs in scope. Import and settings never do. */

@@ -43,13 +43,18 @@
       </div>
 
       <div class="row format-row">
-        <label class="field-label" for="format" data-i18n="formatLabel">Format</label>
-        <select id="format">
-          <option value="tabspack" data-i18n="formatPack">TabsPack file</option>
-          <option value="urls" data-i18n="formatUrls">URL list, one way</option>
-          <option value="flatjson" data-i18n="formatFlat">Flat JSON, one way</option>
-        </select>
-        <button id="copy" class="btn btn-secondary" type="button" disabled data-i18n="copyButton">Copy</button>
+        <span class="format-line">
+          <label class="format-lead" for="format" data-i18n="savesAs">Saves as</label>
+          <span class="inline-select">
+            <select id="format">
+              <option value="tabspack" data-i18n="formatPack">TabsPack file</option>
+              <option value="urls" data-i18n="formatUrls">URL list, one way</option>
+              <option value="flatjson" data-i18n="formatFlat">Flat JSON, one way</option>
+            </select>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" /></svg>
+          </span>
+        </span>
+        <button id="copy" class="btn btn-quiet" type="button" disabled data-i18n="copyButton">Copy</button>
       </div>
 
       <div id="report" class="report" role="status" aria-live="polite"></div>

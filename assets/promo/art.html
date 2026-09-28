@@ -260,12 +260,13 @@ h1.long { font-size: 54px; }
     },
     4() {
       copy("Find the tabs you forgot.", "See how long since you opened each tab, and leave the stale ones out. Pinned tabs are always kept.");
-      const f = framed("export.png", META.export.card, { maxH: 560 });
+      const f = framed("export.png", META.export.card, { maxH: 640 });
       const a = META.export.ageText;
       const ax = f.x + (a.x - f.crop.x) * f.scale - 10, ay = f.top + (a.y - f.crop.y) * f.scale - 8;
       const aw = a.width * f.scale + 20, ah = a.height * f.scale + 16;
       root.appendChild(el("div", { class: "ring", style: { left: px(ax), top: px(ay), width: px(aw), height: px(ah) } }));
-      root.appendChild(el("div", { class: "flag", style: { left: px(ax + 6), top: px(ay + ah + 12) } }, "How long since you last opened them"));
+      // The line sits just above the export button, so the flag goes above it.
+      root.appendChild(el("div", { class: "flag", style: { left: px(ax + 6), top: px(ay - 46) } }, "How long since you last opened them"));
     },
     5() {
       copy("Your tabs never leave this device.", "No account, no sync, no tracking, and nothing sent anywhere. Snapshots stay on this machine.",

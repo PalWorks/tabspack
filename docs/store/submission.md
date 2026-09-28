@@ -57,7 +57,8 @@ security policy pins `script-src` to `'self'`.
 - Assets: the 128 px store icon, five 1280 by 800 screenshots, the 440 by 280
   small promo tile and the 1400 by 560 marquee. All in `assets/store/`, made by
   `npm run store-art`. The upload order and what each shows are in
-  `store_listing.md` Table S10.
+  `store_listing.md` Table S10. They were recaptured from 1.1.0 on 2026-09-28,
+  so screenshot 5 shows the snapshot tools: upload them with 1.1.0, not before.
 
 ## Edge Add-ons
 

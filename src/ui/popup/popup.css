@@ -24,13 +24,86 @@ body.popup {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * The format is a setting people choose once, so it reads as a sentence under
+ * the actions rather than a form field beside them: "Saves as TabsPack file",
+ * the format underlined with a chevron, like a link that opens a menu. It is
+ * still a native select, so the keyboard and screen readers get a real one.
+ */
 .format-row {
   justify-content: space-between;
+  gap: var(--space-2);
 }
 
-.format-row select {
-  flex: 1 1 auto;
+.format-line {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   min-width: 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.format-lead {
+  white-space: nowrap;
+}
+
+.inline-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: var(--radius-control);
+  color: var(--text);
+}
+
+.inline-select select {
+  appearance: none;
+  field-sizing: content;
+  height: auto;
+  min-width: 0;
+  padding: 2px 18px 2px 4px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.inline-select svg {
+  position: absolute;
+  right: 3px;
+  pointer-events: none;
+}
+
+.inline-select:hover,
+.inline-select:focus-within {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.inline-select:hover select {
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+}
+
+/* Copy is the other way out, so it is quiet: a word, not a box. */
+.btn-quiet {
+  height: 24px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-caption);
+}
+
+.btn-quiet:hover:not([disabled]) {
+  background: var(--surface);
+  color: var(--accent);
 }
 
 /*

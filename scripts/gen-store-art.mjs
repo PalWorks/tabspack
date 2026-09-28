@@ -276,6 +276,10 @@ async function capture() {
     await manager.check("#opt-stale");
     await manager.waitForFunction(() => document.querySelector("#opt-stale-days")?.disabled === false);
     await manager.waitForTimeout(800);
+    // Since the export pane was redesigned (ADR-046) the age line sits under
+    // the tab list, so the capture is of that card, scrolled into view.
+    await manager.evaluate(() => document.querySelector("#export-preview")?.scrollIntoView({ block: "start" }));
+    await manager.waitForTimeout(300);
     const box = (sel) => manager.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }, sel);
     const ageText = await manager.evaluate(() => {
       const range = document.createRange();
@@ -288,7 +292,7 @@ async function capture() {
       summary: await manager.textContent("#summary"),
       ageBox: await box("#age"),
       ageText,
-      card: await boxOf("#panel-export > section.card:first-of-type"),
+      card: await boxOf("#export-preview-legend", "#export-tree", "#age", "#summary", "#export"),
     };
     await manager.screenshot({ path: path.join(captures, "export.png") });
     await manager.uncheck("#opt-stale");

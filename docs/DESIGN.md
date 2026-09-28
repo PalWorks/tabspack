@@ -92,7 +92,7 @@ All motion sits inside `@media (prefers-reduced-motion: no-preference)`. With re
 │  │      Export 37 tabs       │ │ Import │  │  primary 40px, secondary 40px
 │  └───────────────────────────┘ └────────┘  │
 │                                            │
-│  Format [ TabsPack file      ▾ ]  [Copy]   │  32px controls
+│  Saves as TabsPack file ⌄           Copy   │  12px sentence, quiet copy
 │                                            │
 │  ✓ Saved 37 tabs to                        │  aria-live polite
 │    tabspack-20260924-0930.tabspack.json    │
@@ -112,7 +112,9 @@ Decisions behind that layout:
 - **The gear is settings, and only settings.** An icon in that corner is read as settings before it is read as anything else, so it opens the manager on its Settings pane rather than on Export. The rest of the page is one click away on the rail from there.
 - **Segmented scope control rather than a split button.** The scope changes the primary button's label, so the user reads what will happen before clicking. A split button hides the second half of its own behaviour behind a caret.
 - **The primary button carries the count.** "Export 37 tabs" is the confirmation and the action in one place, and it makes a filtered count visible before the click rather than after.
-- **Native `<select>` for format.** A custom menu would cost keyboard and screen reader work and buy nothing. The format list is short and dull by design.
+- **The format is a sentence, not a field.** "Saves as TabsPack file ⌄" sits under the actions in caption size: the format name has a dotted underline and a chevron, and on hover it turns accent with an `--accent-soft` wash and a solid underline, so it reads as a link that opens a menu. The format is a setting chosen once and remembered, so it should say what Export will produce without competing with Export and Import for attention. A full width select beside a bordered Copy button made four equal looking choices out of two. Changed 2026-09-28 on the maintainer's review.
+- **It is still a native `<select>`**, restyled. A custom menu would cost keyboard and screen reader work and buy nothing. It is as wide as the chosen name, through `field-sizing: content`, or measured where that is not supported.
+- **Copy is a quiet word**, not a bordered button, because it is the other way out of the same action.
 - **One way formats are labelled in the option text**, so nobody discovers the limitation after trusting a file as a backup.
 - **The report is a live region below the action**, so a screen reader announces the outcome without moving focus.
 - **The trust line is permanent furniture**, not a toast.

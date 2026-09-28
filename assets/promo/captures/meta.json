@@ -27,22 +27,22 @@
     "summary": "3 windows · 23 tabs · 4 groups",
     "ageBox": {
       "x": 297,
-      "y": 484.75,
+      "y": 656.984375,
       "width": 830,
       "height": 17.390625
     },
     "ageText": {
       "x": 297,
-      "y": 486.75,
+      "y": 658.984375,
       "width": 480.09375,
       "height": 13
     },
     "card": {
-      "x": 280,
-      "y": 44.890625,
-      "width": 864,
-      "height": 486.25,
-      "scrollY": 25
+      "x": 297,
+      "y": 48.75,
+      "width": 830,
+      "height": 690.625,
+      "scrollY": 438
     }
   },
   "snapshots": {
@@ -50,7 +50,7 @@
       "x": 280,
       "y": 69.890625,
       "width": 864,
-      "height": 475.640625,
+      "height": 588.8125,
       "scrollY": 0
     }
   }
