@@ -441,7 +441,7 @@ left is what a machine genuinely cannot do.
 | T-507 | Check a recovered suspended tab against the suspender that made it | The suspender has to be installed, and its pages exist only in a real profile |
 | T-507 | Press a keyboard command in Firefox | The key arrives and the command does not fire on a virtual display. The same key fires the same command in Chrome and Edge, so the product is not what is in doubt |
 | T-507 | Look at it | Nothing automated has an opinion about how it looks |
-| T-509 | Submit to Edge and AMO | Each needs a developer account. Chrome 1.1.0 is submitted and pending review |
+| T-509 | Submit to Edge | The Partner Center form has no API. Chrome 1.1.0 and AMO 1.1.0 are submitted and pending review |
 
 Everything up to those lines is done, and `docs/store/` holds the listing text and
 every answer each store asks for, so the submissions are a sitting rather than a
