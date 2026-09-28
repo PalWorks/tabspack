@@ -507,7 +507,7 @@ For 1.1.0, the first version Edge receives. The limits marked [Unverified] are f
 | | Screenshots | The five, in the Table S10 order | Table S10 |
 | | YouTube video | The same link as the Chrome listing, once uploaded | Table S15 |
 | | Search terms | [Unverified] up to seven: tab manager, export tabs, restore tabs, session manager, tab backup, save tabs, move tabs to Firefox | Table S2 |
-| Submission | Notes for certification | "TabsPack requests no host permission at install and makes no network request unless the user presses Send in the Support pane, which the browser's own permission prompt gates. `alarms` wakes the worker only when the user has turned on automatic snapshots or the recovery copy. `sessions` is optional and requested from a button." | |
+| Submission | Notes for certification | "TabsPack requests no host permission at install and makes no network request unless the user presses Send in the Support pane, which the browser's own permission prompt gates. `alarms` wakes the worker about half a minute after the tabs change, to update a local recovery copy of the open tabs, and on the schedule the user picked for automatic snapshots. Nothing it keeps leaves the device. `sessions` is optional and requested from a button." | |
 
 ## Table S17: Firefox AMO, field by field
 
